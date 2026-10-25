@@ -79,17 +79,19 @@ export const Header: React.FC<HeaderProps> = ({
             border: 'none',
             cursor: 'pointer',
             textAlign: 'left',
-            padding: 0
+            padding: 0,
+            flexShrink: 1,
+            minWidth: 0
           }}
           aria-label={t.nav.home}
         >
           <img
-            src="/logo.png?v=4"
+            src="/logo.png?v=5"
             alt="Sai Deveena Traders & General Store"
             className="navbar-brand-logo"
             style={{
-              height: '84px',
-              maxWidth: '380px',
+              height: '80px',
+              maxWidth: '360px',
               width: 'auto',
               objectFit: 'contain',
               display: 'block',
@@ -116,17 +118,18 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Language Toggle with Smooth Styling */}
           <div style={{
             display: 'inline-flex',
-            padding: '3px',
+            padding: '2px',
             borderRadius: 'var(--radius-full)',
             backgroundColor: '#f1f5f9',
             border: '1.5px solid var(--border-light)',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
+            flexShrink: 0
           }} role="group" aria-label={t.nav.langSelect}>
             <button
               onClick={() => onLanguageChange('en')}
               style={{
-                padding: '0.4rem 0.8rem',
-                fontSize: '0.82rem',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
                 fontWeight: currentLang === 'en' ? 800 : 600,
                 color: currentLang === 'en' ? 'white' : 'var(--text-secondary)',
                 background: currentLang === 'en' ? 'linear-gradient(135deg, #15803d, #14532d)' : 'transparent',
@@ -134,17 +137,19 @@ export const Header: React.FC<HeaderProps> = ({
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: currentLang === 'en' ? '0 2px 6px rgba(22, 101, 52, 0.3)' : 'none',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
               aria-pressed={currentLang === 'en'}
             >
-              English
+              <span className="lang-text-desktop">English</span>
+              <span className="lang-text-mobile">EN</span>
             </button>
             <button
               onClick={() => onLanguageChange('te')}
               style={{
-                padding: '0.4rem 0.8rem',
-                fontSize: '0.82rem',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
                 fontWeight: currentLang === 'te' ? 800 : 600,
                 color: currentLang === 'te' ? 'white' : 'var(--text-secondary)',
                 background: currentLang === 'te' ? 'linear-gradient(135deg, #ea580c, #c2410c)' : 'transparent',
@@ -153,11 +158,13 @@ export const Header: React.FC<HeaderProps> = ({
                 cursor: 'pointer',
                 boxShadow: currentLang === 'te' ? '0 2px 6px rgba(234, 88, 12, 0.3)' : 'none',
                 transition: 'all 0.2s ease',
-                fontFamily: 'var(--font-telugu)'
+                fontFamily: 'var(--font-telugu)',
+                whiteSpace: 'nowrap'
               }}
               aria-pressed={currentLang === 'te'}
             >
-              తెలుగు
+              <span className="lang-text-desktop">తెలుగు</span>
+              <span className="lang-text-mobile">తె</span>
             </button>
           </div>
 
@@ -217,6 +224,26 @@ export const Header: React.FC<HeaderProps> = ({
           boxShadow: 'var(--shadow-xl)',
           animation: 'fadeIn 0.2s ease-out'
         }}>
+          {/* Official Logo Banner inside Mobile Drawer */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            paddingBottom: '0.85rem',
+            marginBottom: '0.75rem',
+            borderBottom: '1px solid var(--border-light)'
+          }}>
+            <img
+              src="/logo.png?v=5"
+              alt="Sai Deveena Traders & General Store"
+              style={{
+                height: '64px',
+                width: 'auto',
+                maxWidth: '260px',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button onClick={() => handleNavClick('hero')} className="mobile-nav-link">
               {t.nav.home}
@@ -319,29 +346,46 @@ export const Header: React.FC<HeaderProps> = ({
           padding-left: 0.5rem;
           transition: all 0.2s ease;
         }
+        .header-call-btn {
+          display: none !important;
+        }
+        .lang-text-mobile {
+          display: none;
+        }
+        .lang-text-desktop {
+          display: inline;
+        }
         @media (max-width: 1024px) {
           .navbar-brand-logo {
-            height: 72px !important;
-            max-width: 300px !important;
+            height: 68px !important;
+            max-width: 280px !important;
           }
         }
         @media (max-width: 640px) {
+          .lang-text-desktop {
+            display: none !important;
+          }
+          .lang-text-mobile {
+            display: inline !important;
+            font-size: 0.78rem;
+            font-weight: 800;
+          }
           .navbar-brand-logo {
-            height: 58px !important;
-            max-width: 250px !important;
+            height: 52px !important;
+            max-width: calc(100vw - 165px) !important;
           }
         }
-        @media (max-width: 400px) {
+        @media (max-width: 380px) {
           .navbar-brand-logo {
-            height: 48px !important;
-            max-width: 200px !important;
+            height: 44px !important;
+            max-width: calc(100vw - 145px) !important;
           }
         }
         @media (min-width: 860px) {
           .desktop-nav {
             display: flex !important;
           }
-          .desktop-call-btn {
+          .header-call-btn {
             display: inline-flex !important;
           }
           .mobile-menu-btn {

@@ -359,19 +359,22 @@ export function App() {
       {/* Floating Bottom Contact Bar (Mobile-Friendly Farmer Quick Actions) */}
       <div style={{
         position: 'fixed',
-        bottom: '1.25rem',
+        bottom: '1rem',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 40,
         display: 'flex',
         alignItems: 'center',
-        gap: '0.65rem',
+        justifyContent: 'center',
+        gap: '0.55rem',
         backgroundColor: 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(12px)',
-        padding: '0.45rem 0.75rem',
+        padding: '0.4rem 0.65rem',
         borderRadius: 'var(--radius-full)',
         boxShadow: '0 12px 30px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(22, 101, 52, 0.15)',
-        border: '1.5px solid rgba(254, 215, 170, 0.8)'
+        border: '1.5px solid rgba(254, 215, 170, 0.8)',
+        maxWidth: 'calc(100% - 20px)',
+        width: 'max-content'
       }} className="mobile-float-bar">
         {/* Mini Logo Emblem */}
         <div style={{

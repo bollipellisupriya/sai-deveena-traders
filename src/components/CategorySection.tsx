@@ -123,8 +123,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '1.5rem'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
+          gap: '1.25rem'
         }}>
           {categories.map((category) => {
             const count = getProductCount(category.id);
