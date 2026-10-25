@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2e7d32" />
+      <stop offset="100%" stop-color="#1b5e20" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="15" flood-color="#000000" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Clean Studio Background -->
+  <rect width="500" height="500" fill="#f8fafc" />
+  <circle cx="250" cy="250" r="210" fill="#f1f5f9" opacity="0.6" />
+
+  <!-- Package Outer Bag / Box Container -->
+  <g filter="url(#shadow)">
+    <!-- Main Packet Body -->
+    <rect x="75" y="45" width="350" height="410" rx="20" fill="url(#bgGrad)" stroke="#ffffff" stroke-width="3" />
+    
+    <!-- Top Foil Seal Ridge -->
+    <rect x="75" y="45" width="350" height="30" rx="8" fill="#ffffff" opacity="0.18" />
+    <line x1="85" y1="60" x2="415" y2="60" stroke="#ffffff" stroke-dasharray="6,4" stroke-width="2" opacity="0.4" />
+    
+    <!-- Header Brand Ribbon -->
+    <rect x="75" y="80" width="350" height="48" fill="#ffffff" />
+    <text x="250" y="112" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="19" fill="#14532d" text-anchor="middle" letter-spacing="1">
+      ★ GREEN EARTH ★
+    </text>
+
+    <!-- Center Product Title Card -->
+    <rect x="95" y="145" width="310" height="150" rx="14" fill="#ffffff" />
+    
+    <!-- Category Badge -->
+    <rect x="180" y="155" width="140" height="22" rx="11" fill="#2e7d32" />
+    <text x="250" y="170" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">
+      SOIL CONDITIONER
+    </text>
+
+    <!-- Product Name in English -->
+    <text x="250" y="210" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="18" fill="#0f172a" text-anchor="middle">
+      ORGANIC NEEM CAKE
+    </text>
+    
+    <!-- Product Name in Telugu -->
+    <text x="250" y="240" font-family="'Noto Sans Telugu', sans-serif" font-weight="800" font-size="16" fill="#ea580c" text-anchor="middle">
+      వేప పిండి సేంద్రీయ ఎరువు
+    </text>
+
+    <!-- Quality Guarantee Seal -->
+    <circle cx="250" cy="272" r="14" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+    <text x="250" y="277" font-family="sans-serif" font-weight="900" font-size="13" fill="#b45309" text-anchor="middle">✓</text>
+
+    <!-- Agricultural Field Waves -->
+    <path d="M 75 350 Q 160 330 250 350 T 425 350 L 425 435 Q 425 455 405 455 L 95 455 Q 75 455 75 435 Z" fill="#ffffff" opacity="0.12" />
+
+    <!-- Pack Size & Authenticity Ribbon -->
+    <rect x="110" y="380" width="280" height="45" rx="12" fill="url(#accentGrad)" />
+    <text x="250" y="408" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="16" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">
+      NET WT: 25 KG BAG
+    </text>
+
+    <!-- Sai Deveena Traders Authenticity Sub-label -->
+    <text x="250" y="445" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="10" fill="#f8fafc" opacity="0.85" text-anchor="middle">
+      SAI DEEVENA TRADERS • BHAINSA, TELANGANA
+    </text>
+  </g>
+</svg>

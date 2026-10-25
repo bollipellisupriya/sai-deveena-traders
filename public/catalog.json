@@ -1,0 +1,703 @@
+{
+  "schemaVersion": 1,
+  "shop": {
+    "name": "Sai Deveena Traders",
+    "city": "Bhainsa",
+    "state": "Telangana",
+    "currency": "INR"
+  },
+  "categories": [
+    {
+      "id": "seeds",
+      "name": {
+        "en": "Seeds",
+        "te": "విత్తనాలు"
+      },
+      "icon": "Sprout",
+      "image": "/images/categories/seeds.jpg",
+      "description": {
+        "en": "Certified hybrid and improved crop & vegetable seeds",
+        "te": "ధృవీకరించబడిన హైబ్రిడ్ మరియు కూరగాయల విత్తనాలు"
+      }
+    },
+    {
+      "id": "fertilizers",
+      "name": {
+        "en": "Fertilizers & Nutrients",
+        "te": "ఎరువులు & పోషకాలు"
+      },
+      "icon": "Layers",
+      "image": "/images/categories/fertilizers.jpg",
+      "description": {
+        "en": "Organic, bio-fertilizers, water-soluble, and micro-nutrients",
+        "te": "సేంద్రీయ, జీవ ఎరువులు మరియు సూక్ష్మ పోషకాలు"
+      }
+    },
+    {
+      "id": "crop-protection",
+      "name": {
+        "en": "Crop Protection & Care",
+        "te": "పంట సంరక్షణ"
+      },
+      "icon": "ShieldCheck",
+      "image": "/images/categories/crop-protection.jpg",
+      "description": {
+        "en": "Safe fungicides, insecticides, weedicides, and plant growth regulators",
+        "te": "శిలీంద్ర సంహారిణులు, పురుగుమందులు మరియు కలుపు మందులు"
+      }
+    },
+    {
+      "id": "irrigation",
+      "name": {
+        "en": "Irrigation Supplies",
+        "te": "నీటిపారుదల సామగ్రి"
+      },
+      "icon": "Droplets",
+      "image": "/images/categories/irrigation.jpg",
+      "description": {
+        "en": "Drip laterals, sprinkler nozzles, valves, and water pipes",
+        "te": "డ్రిప్ పైపులు, స్ప్రింక్లర్లు మరియు కవాటాలు"
+      }
+    },
+    {
+      "id": "tools",
+      "name": {
+        "en": "Agricultural Tools & Sprayers",
+        "te": "వ్యవసాయ పనిముట్లు & స్ప్రేయర్లు"
+      },
+      "icon": "Wrench",
+      "image": "/images/categories/tools.jpg",
+      "description": {
+        "en": "Manual and battery sprayers, pruning shears, sickles, and tarpaulins",
+        "te": "బ్యాటరీ స్ప్రేయర్లు, కొడవళ్ళు మరియు వ్యవసాయ ఉపకరణాలు"
+      }
+    },
+    {
+      "id": "other",
+      "name": {
+        "en": "Other Agri Products",
+        "te": "ఇతర వ్యవసాయ ఉత్పత్తులు"
+      },
+      "icon": "Package",
+      "image": "/images/categories/other.jpg",
+      "description": {
+        "en": "Mulch films, seed trays, vermicompost, and storage covers",
+        "te": "మల్చింగ్ పేపర్, సీడ్లింగ్ ట్రేలు మరియు వర్మీ కంపోస్ట్"
+      }
+    }
+  ],
+  "products": [
+    {
+      "id": "seed-001",
+      "category": "seeds",
+      "name": {
+        "en": "Hybrid Cotton Seeds (Bt-II)",
+        "te": "హైబ్రిడ్ పత్తి విత్తనాలు (Bt-II)"
+      },
+      "brand": "Rasi Seeds",
+      "packSize": "475 g packet",
+      "price": 864,
+      "description": {
+        "en": "High-yielding bollworm-tolerant hybrid cotton seeds suited for black cotton soil in Telangana.",
+        "te": "తెలంగాణ నల్లరేగడి నేలలకు అనువైన, అధిక దిగుబడినిచ్చే హైబ్రిడ్ పత్తి విత్తనాలు."
+      },
+      "image": "/images/products/cotton-seed.webp",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "seed-002",
+      "category": "seeds",
+      "name": {
+        "en": "Soyabean Seeds (JS 335)",
+        "te": "సోయాబీన్ విత్తనాలు (JS 335)"
+      },
+      "brand": "Mahyco",
+      "packSize": "30 kg bag",
+      "price": 2850,
+      "description": {
+        "en": "Early maturing, high-germination certified soyabean seeds with excellent oil content.",
+        "te": "అధిక మొలక శాతం మరియు త్వరగా పక్వానికి వచ్చే నాణ్యమైన సోయాబీన్ విత్తనాలు."
+      },
+      "image": "/images/products/soyabean-seed.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "seed-003",
+      "category": "seeds",
+      "name": {
+        "en": "Hybrid Maize Seeds",
+        "te": "హైబ్రిడ్ మొక్కజొన్న విత్తనాలు"
+      },
+      "brand": "Kaveri Seeds",
+      "packSize": "4 kg bag",
+      "price": 1450,
+      "description": {
+        "en": "Vigorous plant growth with uniform cobs, orange-yellow flint grains, and strong drought tolerance.",
+        "te": "ఏకరీతి కంకులు మరియు బెట్టను తట్టుకునే శక్తి కలిగిన హైబ్రిడ్ మొక్కజొన్న విత్తనాలు."
+      },
+      "image": "/images/products/maize-seed.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "seed-004",
+      "category": "seeds",
+      "name": {
+        "en": "Paddy Seeds (BPT 5204 / Samba Mahsuri)",
+        "te": "వరి విత్తనాలు (బి.పి.టి 5204 / సాంబ మసూరి)"
+      },
+      "brand": "State Certified",
+      "packSize": "25 kg bag",
+      "price": 1100,
+      "description": {
+        "en": "Popular fine grain paddy seeds known for premium cooking quality and high market demand.",
+        "te": "నాణ్యమైన అన్నం మరియు మార్కెట్లో మంచి గిరాకీ ఉన్న సన్న రకం వరి విత్తనాలు."
+      },
+      "image": "/images/products/paddy-seed.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "seed-005",
+      "category": "seeds",
+      "name": {
+        "en": "Red Gram (Tur / Arhar) Seeds",
+        "te": "కంది విత్తనాలు"
+      },
+      "brand": "Nirmal Seeds",
+      "packSize": "2 kg bag",
+      "price": 320,
+      "description": {
+        "en": "Wilt-resistant red gram variety suitable for sole cropping as well as intercropping with cotton or soya.",
+        "te": "ఎండు తెగులును తట్టుకునే మరియు అంతర పంటగా సాగు చేయదగిన కంది విత్తనాలు."
+      },
+      "image": "/images/products/redgram-seed.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "seed-006",
+      "category": "seeds",
+      "name": {
+        "en": "Chilli Seeds (Teja Hybrid)",
+        "te": "తేజా హైబ్రిడ్ మిరప విత్తనాలు"
+      },
+      "brand": "Syngenta",
+      "packSize": "10 g packet",
+      "price": 750,
+      "description": {
+        "en": "Pungent, deep red chilli hybrid with excellent branching and tolerance to viral infections.",
+        "te": "గాఢమైన కారం, మంచి ఎరుపు రంగు మరియు వైరస్ తెగుళ్లను తట్టుకునే హైబ్రిడ్ మిరప విత్తనాలు."
+      },
+      "image": "/images/products/chilli-seed.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "seed-007",
+      "category": "seeds",
+      "name": {
+        "en": "Seasonal Hybrid Vegetable Seed Kit",
+        "te": "కాలానుగుణ కూరగాయల విత్తనాల కిట్"
+      },
+      "brand": "Local Agro",
+      "packSize": "5 in 1 Combo (Tomato, Brinjal, Bhendi, Gourd, Chilli)",
+      "price": 240,
+      "description": {
+        "en": "Kitchen garden and commercial vegetable seeds combo packet with high germination rate.",
+        "te": "టమాటా, వంకాయ, బెండ, మిరప, సొరకాయల విత్తనాల కాంబో కిట్."
+      },
+      "image": "/images/products/veg-seeds.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "fert-001",
+      "category": "fertilizers",
+      "name": {
+        "en": "NPK 19-19-19 Water Soluble Fertilizer",
+        "te": "NPK 19-19-19 నీటిలో కరిగే ఎరువు"
+      },
+      "brand": "IFFCO",
+      "packSize": "1 kg pack",
+      "price": 180,
+      "description": {
+        "en": "100% water-soluble foliar spray and fertigation fertilizer that delivers balanced primary nutrients.",
+        "te": "పైరుకు తక్షణ శక్తినిచ్చే 100% నీటిలో కరిగే సంతులిత పోషకాల ఎరువు."
+      },
+      "image": "/images/products/npk-19.webp",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "fert-002",
+      "category": "fertilizers",
+      "name": {
+        "en": "Zinc Sulphate (Heptahydrate 21%)",
+        "te": "జింక్ సల్ఫేట్ (21%)"
+      },
+      "brand": "Coromandel",
+      "packSize": "5 kg bag",
+      "price": 380,
+      "description": {
+        "en": "Essential micronutrient for correcting zinc deficiency in paddy, cotton, and maize crops.",
+        "te": "వరి, పత్తి మరియు మొక్కజొన్నలో జింక్ లోపాన్ని నివారించే సూక్ష్మ పోషకం."
+      },
+      "image": "/images/products/zinc-sulphate.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "fert-003",
+      "category": "fertilizers",
+      "name": {
+        "en": "Humic Acid 98% Flakes / Organic Bio-Stimulant",
+        "te": "హ్యూమిక్ యాసిడ్ 98% సేంద్రీయ ఉత్ప్రేరకం"
+      },
+      "brand": "AgroKing",
+      "packSize": "500 g pack",
+      "price": 350,
+      "description": {
+        "en": "Enhances white root development, improves soil aeration, and boosts fertilizer absorption.",
+        "te": "వేర్ల వ్యవస్థను దృఢపరిచి, నేలలో సారాన్ని మరియు పోషకాల గ్రహణ శక్తిని పెంచుతుంది."
+      },
+      "image": "/images/products/humic-acid.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "fert-004",
+      "category": "fertilizers",
+      "name": {
+        "en": "Boron 20% (Disodium Octaborate)",
+        "te": "బోరాన్ 20% సూక్ష్మ పోషకం"
+      },
+      "brand": "Multiplex",
+      "packSize": "250 g pack",
+      "price": 160,
+      "description": {
+        "en": "Prevents flower and fruit dropping in cotton, chilli, pulses, and vegetables.",
+        "te": "పత్తి, మిరప మరియు కూరగాయలలో పూత, పిందె రాలడాన్ని అరికడుతుంది."
+      },
+      "image": "/images/products/boron.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "fert-005",
+      "category": "fertilizers",
+      "name": {
+        "en": "Bio-Enriched Neem Cake Granules",
+        "te": "వేప పిండి సేంద్రీయ ఎరువు"
+      },
+      "brand": "GreenEarth",
+      "packSize": "25 kg bag",
+      "price": 650,
+      "description": {
+        "en": "Natural soil conditioner and nematicide; enriches soil fertility and repels subterranean pests.",
+        "te": "భూమికి బలాన్నిచ్చే సహజ వేప పిండి; వేరు తెగుళ్లు మరియు పురుగులను నియంత్రిస్తుంది."
+      },
+      "image": "/images/products/neem-cake.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "fert-006",
+      "category": "fertilizers",
+      "name": {
+        "en": "DAP / Complex Fertilizer (Seasonal Bulk)",
+        "te": "డి.ఎ.పి / కాంప్లెక్స్ ఎరువులు (సీజనల్)"
+      },
+      "brand": "IFFCO / Coromandel",
+      "packSize": "50 kg bag",
+      "price": null,
+      "description": {
+        "en": "Basal fertilizer for field crops. Government subsidized rates apply; please contact shop for current stock and pricing.",
+        "te": "పంటలకు మూల ఎరువు. ప్రస్తుత నిల్వ మరియు ప్రభుత్వ నిర్ణీత ధరల వివరాల కోసం దుకాణాన్ని సంప్రదించండి."
+      },
+      "image": "/images/products/dap-fertilizer.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "prot-001",
+      "category": "crop-protection",
+      "name": {
+        "en": "Neem Oil 10000 PPM (Bio-Pesticide)",
+        "te": "వేప నూనె 10000 PPM (బయో పెస్టిసైడ్)"
+      },
+      "brand": "Nagarjuna Agro",
+      "packSize": "1 Litre bottle",
+      "price": 420,
+      "description": {
+        "en": "Cold-pressed pure neem seed extract for broad-spectrum organic insect control (aphids, thrips, whiteflies).",
+        "te": "రసం పీల్చే పురుగుల నివారణకు ఉపయోగపడే సహజసిద్ధమైన స్వచ్ఛమైన వేప నూనె."
+      },
+      "image": "/images/products/neem-oil.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "prot-002",
+      "category": "crop-protection",
+      "name": {
+        "en": "Imidacloprid 17.8% SL Insecticide",
+        "te": "ఇమిడాక్లోప్రిడ్ 17.8% SL పురుగుల మందు"
+      },
+      "brand": "Bayer / Confidor",
+      "packSize": "250 ml bottle",
+      "price": 490,
+      "description": {
+        "en": "Systemic insecticide for effective control of sucking pests in cotton, chillies, and vegetables.",
+        "te": "పత్తి, మిరపలో రసం పీల్చే పురుగులను నివారించే దైహిక పురుగుమందు."
+      },
+      "image": "/images/products/imidacloprid.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "prot-003",
+      "category": "crop-protection",
+      "name": {
+        "en": "Mancozeb 75% WP Broad Spectrum Fungicide",
+        "te": "మాంకోజెబ్ 75% WP శిలీంద్ర సంహారిణి"
+      },
+      "brand": "UPL / Indofil M-45",
+      "packSize": "500 g pack",
+      "price": 270,
+      "description": {
+        "en": "Contact fungicide for controlling leaf spots, blights, and downy mildews in field crops.",
+        "te": "ఆకుమచ్చ మరియు బూడిద తెగుళ్ల నివారణకు నమ్మకమైన శిలీంద్ర సంహారిణి."
+      },
+      "image": "/images/products/mancozeb.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "prot-004",
+      "category": "crop-protection",
+      "name": {
+        "en": "Chlorantraniliprole 18.5% SC (Coragen)",
+        "te": "కోరాజెన్ (క్లోరాంత్రానిలిప్రోల్ 18.5% SC)"
+      },
+      "brand": "FMC",
+      "packSize": "60 ml pack",
+      "price": 890,
+      "description": {
+        "en": "Long-lasting protection against stem borers, leaf folders, and bollworms in paddy and sugarcane.",
+        "te": "వరిలో కాండం తొలుచు పురుగు మరియు ఆకు చుట్టు పురుగుల దీర్ఘకాలిక నివారణ."
+      },
+      "image": "/images/products/coragen.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "prot-005",
+      "category": "crop-protection",
+      "name": {
+        "en": "Plant Growth Booster & Flowering Tonic",
+        "te": "పూత, పిందె వృద్ధి టానిక్ (బయో బూస్టర్)"
+      },
+      "brand": "Godrej Double",
+      "packSize": "100 ml bottle",
+      "price": 210,
+      "description": {
+        "en": "Homobrassinolide formulation that triggers healthy blooms, improves fruit setting, and boosts crop quality.",
+        "te": "పూత రాలడాన్ని అరికట్టి, అధిక దిగుబడినిచ్చే అధునాతన ప్లాంట్ గ్రోత్ టానిక్."
+      },
+      "image": "/images/products/godrej-double.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "prot-006",
+      "category": "crop-protection",
+      "name": {
+        "en": "Trichoderma Viride (Bio-Fungicide)",
+        "te": "ట్రైకోడెర్మా విరిడే (జీవ శిలీంద్ర నాశిని)"
+      },
+      "brand": "Krishi Bio",
+      "packSize": "1 kg packet",
+      "price": 190,
+      "description": {
+        "en": "Beneficial bio-fungicide for seed treatment and soil application to control root rot, wilt, and damping off.",
+        "te": "వేరుకుళ్లు మరియు ఎండు తెగుళ్లను నియంత్రించే సహజసిద్ధమైన జీవ శిలీంద్ర సంహారిణి."
+      },
+      "image": "/images/products/trichoderma.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "irri-001",
+      "category": "irrigation",
+      "name": {
+        "en": "16mm Inline Drip Irrigation Lateral Pipe",
+        "te": "16mm ఇన్-లైన్ డ్రిప్ ఇరిగేషన్ పైపు"
+      },
+      "brand": "Jain Irrigation",
+      "packSize": "400 metre bundle",
+      "price": 3200,
+      "description": {
+        "en": "UV-stabilized virgin polymer drip lateral with clog-resistant drippers spaced at 40cm, ideal for cotton and chillies.",
+        "te": "ఎండ వేడిని తట్టుకునే 16mm నాణ్యమైన డ్రిప్ పైపు; పత్తి మరియు మిరప తోటలకు అనుకూలం."
+      },
+      "image": "/images/products/drip-lateral.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "irri-002",
+      "category": "irrigation",
+      "name": {
+        "en": "Micro Sprinkler Nozzles with Stand Set",
+        "te": "మైక్రో స్ప్రింక్లర్ నాజిల్స్ & స్టాండ్ సెట్"
+      },
+      "brand": "Finolex Plastro",
+      "packSize": "Set of 10 units",
+      "price": 540,
+      "description": {
+        "en": "Uniform 360-degree water spray coverage for vegetable plots, groundnut, and nursery beds.",
+        "te": "కూరగాయలు మరియు నర్సరీలకు సరిసమానంగా నీటిని అందించే స్ప్రింక్లర్ నాజిల్స్."
+      },
+      "image": "/images/products/sprinkler-set.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "irri-003",
+      "category": "irrigation",
+      "name": {
+        "en": "Screen Filter 2 Inch (Drip & Sprinkler)",
+        "te": "2 అంగుళాల స్క్రీన్ ఫిల్టర్"
+      },
+      "brand": "Captain Tractors & Agro",
+      "packSize": "1 piece",
+      "price": 1250,
+      "description": {
+        "en": "High flow rate primary filtration unit to protect drip drippers and sprinkler nozzles from sand and algae.",
+        "te": "ఇసుక మరియు నాచు రాకుండా డ్రిప్ నాజిల్స్‌ను కాపాడే బలమైన 2 అంగుళాల ఫిల్టర్."
+      },
+      "image": "/images/products/screen-filter.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "irri-004",
+      "category": "irrigation",
+      "name": {
+        "en": "Heavy Duty Drip Ball Valves (16mm / 20mm)",
+        "te": "డ్రిప్ బాల్ వాల్వ్‌లు (16mm / 20mm)"
+      },
+      "brand": "Supreme Agro",
+      "packSize": "Pack of 20 pieces",
+      "price": 360,
+      "description": {
+        "en": "Leak-proof easy-turn lateral valves with rubber grommets for precise row-by-row water regulation.",
+        "te": "ప్రతి వరుసకు నీటి సరఫరాను నియంత్రించే లీక్-ప్రూఫ్ బాల్ వాల్వ్‌లు."
+      },
+      "image": "/images/products/ball-valves.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "irri-005",
+      "category": "irrigation",
+      "name": {
+        "en": "Flexible PVC Agriculture Delivery Hose Pipe",
+        "te": "ఫ్లెక్సిబుల్ పివిసి డెలివరీ హోస్ పైపు"
+      },
+      "brand": "Kisan Green",
+      "packSize": "2.5 inch x 50 metre coil",
+      "price": null,
+      "description": {
+        "en": "Durable reinforced lay-flat water delivery hose pipe. Contact shop for available diameters and roll lengths.",
+        "te": "మోటారు నుండి పొలానికి నీటిని మళ్లించే మన్నికైన డెలివరీ పైపు. ధర మరియు కొలతల కోసం సంప్రదించండి."
+      },
+      "image": "/images/products/hose-pipe.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "tool-001",
+      "category": "tools",
+      "name": {
+        "en": "16 Litre 2-in-1 Battery & Manual Knapsack Sprayer",
+        "te": "16 లీటర్ల బ్యాటరీ & మాన్యువల్ స్ప్రేయర్"
+      },
+      "brand": "KisanKraft",
+      "packSize": "1 unit (with 12V 12Ah battery & charger)",
+      "price": 3400,
+      "description": {
+        "en": "Dual-mode sprayer with long battery backup, stainless steel lance, 4 types of nozzles, and comfortable shoulder straps.",
+        "te": "12V బ్యాటరీ మరియు మాన్యువల్ పంపింగ్ సదుపాయం కలిగిన 16 లీటర్ల బలమైన స్ప్రేయర్."
+      },
+      "image": "/images/products/battery-sprayer.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "tool-002",
+      "category": "tools",
+      "name": {
+        "en": "Stainless Steel Pruning Secateur & Shears",
+        "te": "ప్రూనింగ్ కట్టర్ & కత్తెర"
+      },
+      "brand": "Falcon Garden Tools",
+      "packSize": "1 piece",
+      "price": 420,
+      "description": {
+        "en": "Sharp carbon steel bypass blade with safety lock, ideal for pruning fruit orchards, cotton, and vegetables.",
+        "te": "పండ్ల తోటలు మరియు కూరగాయల కొమ్మలను కత్తిరించడానికి ఉపయోగపడే నాణ్యమైన కత్తెర."
+      },
+      "image": "/images/products/secateur.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "tool-003",
+      "category": "tools",
+      "name": {
+        "en": "Heavy Duty Multi-Purpose Agriculture Tarpaulin",
+        "te": "వాటర్‌ప్రూఫ్ పాలిథిన్ టార్పాలిన్ (రైతు పట్టా)"
+      },
+      "brand": "Silpaulin",
+      "packSize": "18 x 24 feet (150 GSM)",
+      "price": 1650,
+      "description": {
+        "en": "100% waterproof multilayer cross-laminated tarpaulin for grain drying, cotton storage, and equipment protection.",
+        "te": "వరి, పత్తి ఆరబెట్టడానికి మరియు వర్షం నుండి ధాన్యాన్ని రక్షించే వాటర్‌ప్రూఫ్ పట్టా."
+      },
+      "image": "/images/products/tarpaulin.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "tool-004",
+      "category": "tools",
+      "name": {
+        "en": "Tempered Steel Crop Sickle (Kodavali)",
+        "te": "స్టీల్ కొడవలి"
+      },
+      "brand": "Local Artisan",
+      "packSize": "1 piece (wooden handle)",
+      "price": 140,
+      "description": {
+        "en": "Serrated high-carbon steel sickle designed for easy paddy, grass, and crop harvesting with reduced wrist fatigue.",
+        "te": "వరి కోతకు మరియు గడ్డి కోయడానికి అనువైన పదునైన కొడవలి."
+      },
+      "image": "/images/products/sickle.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "tool-005",
+      "category": "tools",
+      "name": {
+        "en": "Heavy Duty Garden Hand Weeder & Hoe",
+        "te": "చేతి కలుపు తీసే పరికరం (గుంటక)"
+      },
+      "brand": "Kisan Pride",
+      "packSize": "1 piece",
+      "price": 180,
+      "description": {
+        "en": "Ergonomic hand hoe for removing deep-rooted weeds and aerating nursery beds and vegetable patches.",
+        "te": "కూరగాయలు మరియు తోటలలో కలుపు తీయడానికి సులువైన చేతి పరికరం."
+      },
+      "image": "/images/products/hand-weeder.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "other-001",
+      "category": "other",
+      "name": {
+        "en": "Silver-Black Agricultural Mulching Film",
+        "te": "సిల్వర్-బ్లాక్ వ్యవసాయ మల్చింగ్ షీట్"
+      },
+      "brand": "AgroFilm India",
+      "packSize": "25 Micron (1.2m x 400m roll)",
+      "price": 1950,
+      "description": {
+        "en": "Conserves soil moisture, stops weed growth, and controls soil temperature for chilli, watermelon, and tomatoes.",
+        "te": "కలుపును నివారించి, నేలలో తేమను నిలిపి ఉంచే నాణ్యమైన మల్చింగ్ షీట్."
+      },
+      "image": "/images/products/mulch-film.svg",
+      "active": true,
+      "featured": true
+    },
+    {
+      "id": "other-002",
+      "category": "other",
+      "name": {
+        "en": "Seedling Pro-Trays (98 Cavity)",
+        "te": "సీడ్లింగ్ నర్సరీ ట్రేలు (98 గుంతలు)"
+      },
+      "brand": "GreenPlast",
+      "packSize": "Pack of 10 trays",
+      "price": 280,
+      "description": {
+        "en": "Reusable UV-treated plastic trays for raising healthy vegetable nursery saplings with zero root damage.",
+        "te": "కూరగాయల నారు పెంచడానికి ఉపయోగపడే 98 గుంతల నర్సరీ ట్రేలు."
+      },
+      "image": "/images/products/seed-trays.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "other-003",
+      "category": "other",
+      "name": {
+        "en": "Pure Organic Vermicompost Fertilizer",
+        "te": "స్వచ్ఛమైన సేంద్రీయ వర్మీ కంపోస్ట్"
+      },
+      "brand": "Telangana Bio Farm",
+      "packSize": "40 kg bag",
+      "price": 380,
+      "description": {
+        "en": "Earthworm-processed nutrient-rich organic manure that enriches soil microflora and moisture retention.",
+        "te": "వానపాముల ఎరువు; నేల సారాన్ని మరియు దిగుబడిని పెంచే సహజ సేంద్రీయ ఎరువు."
+      },
+      "image": "/images/products/vermicompost.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "other-004",
+      "category": "other",
+      "name": {
+        "en": "Yellow & Blue Sticky Insect Traps",
+        "te": "పసుపు మరియు నీలం జిగురు అట్టలు"
+      },
+      "brand": "BioTrap",
+      "packSize": "Pack of 10 sheets (Double sided)",
+      "price": 220,
+      "description": {
+        "en": "Chemical-free monitoring and mass trapping of whiteflies, aphids, thrips, and leaf miners in vegetable crops.",
+        "te": "రసాయనాలు లేకుండా తెల్లదోమ మరియు తామర పురుగులను ఆకర్షించి బంధించే జిగురు అట్టలు."
+      },
+      "image": "/images/products/sticky-traps.svg",
+      "active": true,
+      "featured": false
+    },
+    {
+      "id": "other-005",
+      "category": "other",
+      "name": {
+        "en": "Sample Inactive Seasonal Item (Archived)",
+        "te": "సీజనల్ ఉత్పత్తి (ప్రస్తుతానికి నిలిపివేయబడింది)"
+      },
+      "brand": "Demo",
+      "packSize": "1 piece",
+      "price": 999,
+      "description": {
+        "en": "This product has active: false and must NOT be shown to customers in the catalogue.",
+        "te": "ఈ ఉత్పత్తి నిలిపివేయబడినది మరియు వెబ్‌సైట్‌లో కనిపించకూడదు."
+      },
+      "image": "/images/products/demo.webp",
+      "active": false,
+      "featured": false
+    }
+  ]
+}
