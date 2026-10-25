@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Heart, ArrowLeft, ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
+import { Heart, ArrowLeft, ArrowRight, MessageCircle, Sparkles, Phone } from 'lucide-react';
 import type { Product, Category, Language } from '../../types';
 
 interface MobileCategoryScreenProps {
@@ -484,31 +484,64 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                     )}
                   </div>
 
-                  {/* Direct WhatsApp Order Button */}
-                  <button
-                    onClick={(e) => handleQuickOrder(prod, e)}
-                    style={{
-                      marginTop: 'auto',
-                      width: '100%',
-                      backgroundColor: '#15803d',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '9999px',
-                      padding: '0.48rem 0',
-                      fontSize: '0.8rem',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.35rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(21, 128, 61, 0.25)',
-                      transition: 'background-color 0.15s ease'
-                    }}
-                  >
-                    <MessageCircle size={15} />
-                    <span>{isTe ? 'వాట్సాప్ ఆర్డర్' : 'WhatsApp Order'}</span>
-                  </button>
+                  {/* Dual Action Buttons: WhatsApp & Call */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '0.4rem',
+                    marginTop: 'auto'
+                  }}>
+                    {/* WhatsApp Button */}
+                    <button
+                      onClick={(e) => handleQuickOrder(prod, e)}
+                      title={isTe ? 'వాట్సాప్‌లో ఆర్డర్ చేయండి' : 'Order on WhatsApp'}
+                      style={{
+                        backgroundColor: '#15803d',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '9999px',
+                        padding: '0.48rem 0.2rem',
+                        fontSize: '0.76rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(21, 128, 61, 0.22)',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
+                      <MessageCircle size={14} />
+                      <span>{isTe ? 'వాట్సాప్' : 'WhatsApp'}</span>
+                    </button>
+
+                    {/* Call Button */}
+                    <a
+                      href="tel:9010454541"
+                      onClick={(e) => e.stopPropagation()}
+                      title={isTe ? 'కాల్ ద్వారా ఆర్డర్ చేయండి' : 'Order via Phone Call'}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        color: '#15803d',
+                        border: '1.5px solid #15803d',
+                        borderRadius: '9999px',
+                        padding: '0.48rem 0.2rem',
+                        fontSize: '0.76rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        textDecoration: 'none',
+                        boxShadow: '0 2px 6px rgba(21, 128, 61, 0.08)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Phone size={13} />
+                      <span>{isTe ? 'కాల్' : 'Call'}</span>
+                    </a>
+                  </div>
                 </div>
               );
             })}

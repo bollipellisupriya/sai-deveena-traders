@@ -556,11 +556,11 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
             </button>
           </div>
 
-          {/* 3-Column Product Cards Row */}
+          {/* 2-Column Product Cards Grid (Matching Mobile E-commerce Apps) */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '0.65rem'
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '0.75rem'
           }}>
             {bestSellers.map((prod) => {
               const isWishlisted = wishlist.has(prod.id);
@@ -570,9 +570,9 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                   key={prod.id}
                   style={{
                     backgroundColor: '#ffffff',
-                    borderRadius: '14px',
+                    borderRadius: '16px',
                     border: '1px solid #e2e8f0',
-                    padding: '0.65rem',
+                    padding: '0.75rem',
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
@@ -590,8 +590,8 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                     aria-label="Wishlist"
                     style={{
                       position: 'absolute',
-                      top: '0.5rem',
-                      right: '0.5rem',
+                      top: '0.65rem',
+                      right: '0.65rem',
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
@@ -600,17 +600,17 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                       color: isWishlisted ? '#ef4444' : '#94a3b8'
                     }}
                   >
-                    <Heart size={16} fill={isWishlisted ? '#ef4444' : 'none'} />
+                    <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} />
                   </button>
 
                   {/* Product Image */}
                   <div style={{
                     width: '100%',
-                    height: '95px',
+                    height: '120px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '0.45rem'
+                    marginBottom: '0.5rem'
                   }}>
                     <img
                       src={prod.image || '/images/products/paddy-seeds-pouch.svg'}
@@ -625,12 +625,12 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
 
                   {/* Product Title */}
                   <div style={{
-                    fontSize: '0.74rem',
+                    fontSize: '0.82rem',
                     fontWeight: 800,
                     color: '#0f172a',
-                    lineHeight: 1.25,
-                    minHeight: '2rem',
-                    marginBottom: '0.25rem',
+                    lineHeight: 1.3,
+                    minHeight: '2.1rem',
+                    marginBottom: '0.35rem',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -641,38 +641,72 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
 
                   {/* Price */}
                   <div style={{
-                    fontSize: '0.92rem',
+                    fontSize: '1rem',
                     fontWeight: 900,
                     color: '#0f172a',
-                    marginBottom: '0.55rem'
+                    marginBottom: '0.65rem'
                   }}>
                     ₹{prod.price}
                   </div>
 
-                  {/* Direct WhatsApp Order Button */}
-                  <button
-                    onClick={(e) => handleQuickOrder(prod, e)}
-                    style={{
-                      marginTop: 'auto',
-                      width: '100%',
-                      backgroundColor: '#15803d',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '0.4rem 0',
-                      fontSize: '0.74rem',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.25rem',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.15s ease'
-                    }}
-                  >
-                    <MessageCircle size={13} />
-                    <span>{isTe ? 'ఆర్డర్' : 'Order'}</span>
-                  </button>
+                  {/* Dual Action Buttons: WhatsApp & Call */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '0.35rem',
+                    marginTop: 'auto'
+                  }}>
+                    {/* WhatsApp Button */}
+                    <button
+                      onClick={(e) => handleQuickOrder(prod, e)}
+                      title={isTe ? 'వాట్సాప్‌లో ఆర్డర్ చేయండి' : 'Order on WhatsApp'}
+                      style={{
+                        backgroundColor: '#15803d',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '0.45rem 0.2rem',
+                        fontSize: '0.76rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(21, 128, 61, 0.2)',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                    >
+                      <MessageCircle size={13} />
+                      <span>{isTe ? 'వాట్సాప్' : 'WhatsApp'}</span>
+                    </button>
+
+                    {/* Call Button */}
+                    <a
+                      href="tel:9010454541"
+                      onClick={(e) => e.stopPropagation()}
+                      title={isTe ? 'కాల్ ద్వారా ఆర్డర్ చేయండి' : 'Order via Phone Call'}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        color: '#15803d',
+                        border: '1.5px solid #15803d',
+                        borderRadius: '8px',
+                        padding: '0.45rem 0.2rem',
+                        fontSize: '0.76rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        textDecoration: 'none',
+                        boxShadow: '0 2px 6px rgba(21, 128, 61, 0.08)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Phone size={13} />
+                      <span>{isTe ? 'కాల్' : 'Call'}</span>
+                    </a>
+                  </div>
                 </div>
               );
             })}
