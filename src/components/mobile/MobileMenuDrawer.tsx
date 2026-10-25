@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Home, LayoutGrid, ShoppingBag, Info, Phone, MessageCircle, MapPin, Globe } from 'lucide-react';
+import { X, Home, LayoutGrid, ShoppingBag, Info, Phone, MessageCircle, MapPin, Globe, ShieldCheck } from 'lucide-react';
 import type { Language } from '../../types';
 
 interface MobileMenuDrawerProps {
@@ -8,6 +8,7 @@ interface MobileMenuDrawerProps {
   onNavigateTab: (tab: 'home' | 'categories' | 'orders' | 'profile') => void;
   currentLang: Language;
   onLanguageChange: (lang: Language) => void;
+  onOpenAdmin?: () => void;
 }
 
 export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
@@ -15,7 +16,8 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
   onClose,
   onNavigateTab,
   currentLang,
-  onLanguageChange
+  onLanguageChange,
+  onOpenAdmin
 }) => {
   if (!isOpen) return null;
   const isTe = currentLang === 'te';
@@ -261,6 +263,35 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
             <Info size={19} style={{ color: '#15803d' }} />
             <span>{isTe ? 'దుకాణం వివరాలు & సంప్రదించండి' : 'Store Info & Contact'}</span>
           </button>
+
+          {onOpenAdmin && (
+            <button
+              onClick={() => {
+                onOpenAdmin();
+                onClose();
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.85rem',
+                padding: '0.75rem 0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#64748b',
+                fontSize: '0.86rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                textAlign: 'left',
+                marginTop: '0.5rem',
+                borderTop: '1px dashed #e2e8f0'
+              }}
+            >
+              <ShieldCheck size={18} style={{ color: '#0f172a' }} />
+              <span>Admin Portal (Login)</span>
+            </button>
+          )}
         </div>
 
         {/* Drawer Footer with Quick Calls */}

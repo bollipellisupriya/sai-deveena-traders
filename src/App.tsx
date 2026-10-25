@@ -9,8 +9,26 @@ import { MobileOrdersScreen } from './components/mobile/MobileOrdersScreen';
 import { MobileProfileScreen } from './components/mobile/MobileProfileScreen';
 import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
 import { RefreshCw, AlertCircle } from 'lucide-react';
+import AdminApp from './admin/AdminApp';
 
 export function App() {
+  // Admin Route detection (/admin or #admin)
+  const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
+    return window.location.pathname.startsWith('/admin') || window.location.hash === '#admin';
+  });
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setIsAdminRoute(window.location.pathname.startsWith('/admin') || window.location.hash === '#admin');
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
   // Language State with localStorage persistence
   const [currentLang, setCurrentLang] = useState<Language>(() => {
     const saved = localStorage.getItem('sdt_language');
@@ -121,6 +139,19 @@ export function App() {
     }
     return '';
   }, [selectedProduct, activeTab, selectedCategory, catalog, currentLang]);
+
+  // Render Admin Portal if path or hash is admin
+  if (isAdminRoute) {
+    return (
+      <AdminApp
+        catalog={catalog}
+        onExitToStore={() => {
+          setIsAdminRoute(false);
+          window.history.pushState(null, '', '/');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mobile-app-root" style={{
@@ -283,6 +314,11 @@ export function App() {
               }}
               currentLang={currentLang}
               onLanguageChange={handleLanguageChange}
+              onOpenAdmin={() => {
+                setIsDrawerOpen(false);
+                setIsAdminRoute(true);
+                window.history.pushState(null, '', '/admin');
+              }}
             />
           </>
         )}
