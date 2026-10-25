@@ -20,11 +20,15 @@ export interface Product {
   brand?: string;
   packSize?: string;
   price: number | null; // null indicates "Contact for price"
+  originalPrice?: number | null;
   description: LocalizedText;
   image?: string;
   active: boolean;
   featured?: boolean;
   usage?: LocalizedText;
+  subCategory?: string;
+  keyFeatures?: string[];
+  inStock?: boolean;
 }
 
 export interface CatalogData {

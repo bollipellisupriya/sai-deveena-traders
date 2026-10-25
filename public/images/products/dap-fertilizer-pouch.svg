@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pouchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="sealGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dcfce7"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <filter id="shadow" x="-8%" y="-6%" width="116%" height="116%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="rgba(15, 23, 42, 0.16)"/>
+    </filter>
+  </defs>
+
+  <!-- Pouch Body with top seal indent -->
+  <g filter="url(#shadow)">
+    <!-- Main Pouch shape with ribbed top seal -->
+    <path d="M 60,35 L 340,35 Q 355,35 352,55 L 342,435 Q 340,455 320,455 L 80,455 Q 60,455 58,435 L 48,55 Q 45,35 60,35 Z" fill="url(#pouchGrad)" stroke="#cbd5e1" stroke-width="2"/>
+    
+    <!-- Top Foil Seal with heat seal ridges -->
+    <path d="M 58,35 L 342,35 Q 350,35 348,52 L 52,52 Q 50,35 58,35 Z" fill="url(#sealGrad)"/>
+    <line x1="60" y1="41" x2="340" y2="41" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+    <line x1="60" y1="47" x2="340" y2="47" stroke="rgba(0,0,0,0.1)" stroke-width="1.5"/>
+
+    <!-- Top Green Header Band with Sai Deveena emblem notch -->
+    <rect x="52" y="52" width="296" height="75" fill="url(#headerGrad)"/>
+    <text x="200" y="80" text-anchor="middle" fill="#ffffff" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="22" letter-spacing="1">
+      DAP FERTILIZER
+    </text>
+    <text x="200" y="105" text-anchor="middle" fill="#fef08a" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="700" font-size="13" letter-spacing="0.5">
+      Di-Ammonium Phosphate (18:46:0)
+    </text>
+
+    <!-- Brand emblem circle on top center -->
+    <circle cx="200" cy="52" r="16" fill="#ffffff" stroke="#15803d" stroke-width="2"/>
+    <path d="M 194,52 Q 200,44 206,52 Q 200,60 194,52 Z" fill="#f59e0b"/>
+
+    <!-- Center Product Illustration Art -->
+    <g transform="translate(60, 135)">
+      
+      <rect x="0" y="0" width="280" height="250" rx="12" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <!-- Woven Fertilizer Sack -->
+      <g transform="translate(140, 125)">
+        <path d="M -50,-50 L 50,-50 L 58,45 L -58,45 Z" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5"/>
+        <rect x="-42" y="-35" width="84" height="65" fill="#15803d" rx="6"/>
+        <text x="0" y="-8" text-anchor="middle" fill="#ffffff" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="24">
+          DAP
+        </text>
+        <text x="0" y="16" text-anchor="middle" fill="#fef08a" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="14">
+          50 KG
+        </text>
+      </g>
+      <text x="140" y="235" text-anchor="middle" fill="#14532d" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="14">
+        ROOT BOOSTER • 100% GENUINE
+      </text>
+    
+    </g>
+
+    <!-- Bottom Wave / Accent Stripe -->
+    <path d="M 60,395 Q 200,420 340,395 L 338,435 Q 338,455 318,455 L 82,455 Q 62,455 60,435 Z" fill="#15803d"/>
+    <text x="200" y="438" text-anchor="middle" fill="#ffffff" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="800" font-size="12" letter-spacing="1.5">
+      SAI DEVEENA TRADERS • 100% GENUINE
+    </text>
+  </g>
+</svg>
