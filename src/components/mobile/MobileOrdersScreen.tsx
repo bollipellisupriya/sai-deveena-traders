@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShoppingBag, MessageCircle, Phone, CheckCircle, Clock, RotateCw, MapPin, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, MessageCircle, Phone, CheckCircle, Clock, RotateCw, MapPin, Package, ArrowRight } from 'lucide-react';
 import type { Language } from '../../types';
 
 interface MobileOrdersScreenProps {
@@ -7,7 +7,7 @@ interface MobileOrdersScreenProps {
   onExplore: () => void;
 }
 
-interface CompletedOrder {
+export interface PlacedOrder {
   orderId: string;
   date: string;
   status: 'Completed' | 'Processing';
@@ -18,46 +18,25 @@ interface CompletedOrder {
 
 export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentLang, onExplore }) => {
   const isTe = currentLang === 'te';
+  const [orders, setOrders] = useState<PlacedOrder[]>([]);
 
-  // Sample Completed / Verified Orders
-  const completedOrders: CompletedOrder[] = [
-    {
-      orderId: 'SDT-8924',
-      date: '24 Oct 2026',
-      status: 'Completed',
-      deliveryLocation: isTe ? 'భైంసా వ్యవసాయ క్షేత్రం, నిర్మల్' : 'Bhainsa Farm Field, Nirmal',
-      items: [
-        { name: { en: 'Paddy Seeds (High Yield)', te: 'వరి విత్తనాలు (అధిక దిగుబడి)' }, qty: 2, price: 850 },
-        { name: { en: 'DAP Fertilizer 50 Kg', te: 'డి.ఎ.పి ఎరువు 50 కేజీలు' }, qty: 1, price: 1350 }
-      ],
-      total: 3050
-    },
-    {
-      orderId: 'SDT-8871',
-      date: '21 Oct 2026',
-      status: 'Completed',
-      deliveryLocation: isTe ? 'మెట్ట పంటల క్షేత్రం, భైంసా' : 'Mettapalli Road, Bhainsa',
-      items: [
-        { name: { en: 'Cotton Seeds (Bt-II)', te: 'హైబ్రిడ్ పత్తి విత్తనాలు' }, qty: 3, price: 920 },
-        { name: { en: 'Vegetable Seeds Combo Pack', te: 'కూరగాయల విత్తనాల కాంబో' }, qty: 2, price: 299 }
-      ],
-      total: 3358
-    },
-    {
-      orderId: 'SDT-8790',
-      date: '18 Oct 2026',
-      status: 'Completed',
-      deliveryLocation: isTe ? 'నిర్మల్ రోడ్ దుకాణం పికప్' : 'Shop Direct Pickup, Bhainsa',
-      items: [
-        { name: { en: 'Sunflower Oil 1 Ltr', te: 'సన్‌ఫ్లవర్ నూనె 1 లీటర్' }, qty: 4, price: 145 },
-        { name: { en: 'Maize Seeds', te: 'మొక్కజొన్న విత్తనాలు' }, qty: 1, price: 780 }
-      ],
-      total: 1360
+  // Load real orders from localStorage (default is empty, so no fake orders are shown!)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sdt_user_orders');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setOrders(parsed);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading orders:', e);
     }
-  ];
+  }, []);
 
   // Send an order list to WhatsApp
-  const handleSendOrderToWhatsApp = (order: CompletedOrder) => {
+  const handleSendOrderToWhatsApp = (order: PlacedOrder) => {
     const itemsList = order.items
       .map(it => `- ${it.name.en} x ${it.qty} (₹${it.price * it.qty})`)
       .join('\n');
@@ -103,7 +82,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
           </div>
           <div>
             <h2 style={{ fontSize: '1.12rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {isTe ? 'పూర్తయిన ఆర్డర్లు & విచారణలు' : 'Completed Orders & Dispatch'}
+              {isTe ? 'ఆర్డర్లు & విచారణలు' : 'My Orders & Enquiries'}
             </h2>
             <div style={{ fontSize: '0.74rem', color: '#15803d', fontWeight: 800 }}>
               {isTe ? 'సాయి దీవెన ట్రేడర్స్ భైంసా' : 'Sai Deveena Traders • Bhainsa'}
@@ -113,8 +92,8 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
 
         <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.45, marginBottom: '0.85rem' }}>
           {isTe
-            ? 'గతంలో పూర్తయిన ఆర్డర్లను తనిఖీ చేయండి లేదా ఒకే క్లిక్‌తో వాట్సాప్ లేదా కాల్ ద్వారా ఆర్డర్ లిస్ట్‌ను పంపండి.'
-            : 'Review completed orders, re-order your agricultural supplies, or send your items list directly to WhatsApp.'}
+            ? 'మీరు చేసిన ఆర్డర్ల వివరాలు ఇక్కడ కనిపిస్తాయి. వాట్సాప్ లేదా కాల్ ద్వారా ఆర్డర్ లిస్ట్‌ను సులభంగా పంపవచ్చు.'
+            : 'Track the status of your orders placed via WhatsApp or Phone with Sai Deveena Traders.'}
         </p>
 
         {/* 2 Action Buttons: Send WhatsApp Order / Call Order */}
@@ -164,25 +143,91 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
         </div>
       </div>
 
-      {/* 2. Completed Orders List */}
-      <div style={{ marginBottom: '1.25rem' }}>
+      {/* 2. Orders Content: Empty State when no orders, or List when orders exist */}
+      {orders.length === 0 ? (
+        /* Clean Empty State Without Fake Orders */
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.65rem',
-          padding: '0 0.25rem'
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          border: '1px dashed #cbd5e1',
+          padding: '2.5rem 1.5rem',
+          textAlign: 'center',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
         }}>
-          <h3 style={{ fontSize: '0.98rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-            {isTe ? 'పూర్తయిన డెలివరీలు' : 'Completed Orders History'}
-          </h3>
-          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
-            {completedOrders.length} {isTe ? 'ఆర్డర్లు' : 'Orders'}
-          </span>
-        </div>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            backgroundColor: '#f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+            color: '#94a3b8'
+          }}>
+            <ShoppingBag size={30} />
+          </div>
 
+          <h3 style={{
+            fontSize: '1.08rem',
+            fontWeight: 800,
+            color: '#0f172a',
+            marginBottom: '0.35rem'
+          }}>
+            {isTe ? 'ఇంకా ఎలాంటి ఆర్డర్లు లేవు' : 'No Orders Yet'}
+          </h3>
+
+          <p style={{
+            fontSize: '0.82rem',
+            color: '#64748b',
+            lineHeight: 1.5,
+            maxWidth: '300px',
+            margin: '0 auto 1.5rem'
+          }}>
+            {isTe
+              ? 'మీరు ఇంకా ఆర్డర్ చేయలేదు. వాట్సాప్ లేదా నేరుగా కాల్ చేసి విత్తనాలు, ఎరువులను ఆర్డర్ చేయండి.'
+              : 'You have not placed any orders yet. Place an order directly via WhatsApp or Phone call!'}
+          </p>
+
+          <button
+            onClick={onExplore}
+            style={{
+              backgroundColor: '#15803d',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '0.65rem 1.5rem',
+              fontSize: '0.86rem',
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)'
+            }}
+          >
+            <span>{isTe ? 'ఉత్పత్తులను బ్రౌజ్ చేయండి' : 'Browse Products'}</span>
+            <ArrowRight size={15} />
+          </button>
+        </div>
+      ) : (
+        /* Real Orders List (When User Has Placed Orders) */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-          {completedOrders.map((order) => (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 0.25rem'
+          }}>
+            <h3 style={{ fontSize: '0.98rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+              {isTe ? 'మీ ఆర్డర్ల చరిత్ర' : 'Order History'}
+            </h3>
+            <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
+              {orders.length} {isTe ? 'ఆర్డర్లు' : 'Orders'}
+            </span>
+          </div>
+
+          {orders.map((order) => (
             <div
               key={order.orderId}
               style={{
@@ -211,7 +256,6 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
                   </div>
                 </div>
 
-                {/* Completed Badge */}
                 <span style={{
                   backgroundColor: '#dcfce7',
                   color: '#15803d',
@@ -224,7 +268,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
                   gap: '0.3rem'
                 }}>
                   <CheckCircle size={13} />
-                  <span>{isTe ? 'పూర్తయింది' : 'Completed'}</span>
+                  <span>{order.status}</span>
                 </span>
               </div>
 
@@ -265,9 +309,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#64748b' }}>
                   <MapPin size={14} style={{ color: '#ea580c', flexShrink: 0 }} />
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '170px' }}>
-                    {order.deliveryLocation}
-                  </span>
+                  <span>{order.deliveryLocation}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ fontSize: '0.72rem', color: '#64748b', marginRight: '0.35rem' }}>Total:</span>
@@ -277,7 +319,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
                 </div>
               </div>
 
-              {/* Card Action: Send Order via WhatsApp */}
+              {/* Card Action */}
               <button
                 onClick={() => handleSendOrderToWhatsApp(order)}
                 style={{
@@ -297,33 +339,13 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({ currentL
                 }}
               >
                 <MessageCircle size={15} />
-                <span>{isTe ? 'ఈ ఆర్డర్‌ను వాట్సాప్‌లో మళ్లీ పంపండి' : 'Send this Order list to WhatsApp'}</span>
+                <span>{isTe ? 'ఈ ఆర్డర్‌ను వాట్సాప్‌లో పంపండి' : 'Send this Order list to WhatsApp'}</span>
                 <RotateCw size={13} />
               </button>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Browse Catalogue Button */}
-      <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <button
-          onClick={onExplore}
-          style={{
-            backgroundColor: '#14532d',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '9999px',
-            padding: '0.75rem 1.75rem',
-            fontSize: '0.88rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(20, 83, 45, 0.25)'
-          }}
-        >
-          {isTe ? 'కొత్త ఉత్పత్తులను ఆర్డర్ చేయండి' : 'Browse Products to Order'}
-        </button>
-      </div>
+      )}
     </div>
   );
 };

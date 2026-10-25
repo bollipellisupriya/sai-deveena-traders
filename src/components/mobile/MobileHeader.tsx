@@ -1,15 +1,11 @@
 import React from 'react';
-import { Search, Menu, ArrowLeft, Phone } from 'lucide-react';
-import type { Language } from '../../types';
+import { Menu, ArrowLeft } from 'lucide-react';
 
 interface MobileHeaderProps {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
   onOpenMenu: () => void;
-  onSearchClick: () => void;
-  currentLang: Language;
-  onLanguageChange: (lang: Language) => void;
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -17,9 +13,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   showBack = false,
   onBack,
   onOpenMenu,
-  onSearchClick,
-  currentLang,
-  onLanguageChange
 }) => {
   return (
     <header style={{
@@ -28,11 +21,11 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       zIndex: 50,
       backgroundColor: '#ffffff',
       borderBottom: '1px solid #f1f5f9',
-      padding: '0.6rem 0.85rem',
+      padding: '0.65rem 1rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
     }}>
       {/* Left: Either Back Button + Title or Brand Logo Emblem */}
       {showBack ? (
@@ -67,11 +60,11 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           </h1>
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-          {/* Circular Logo Emblem */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          {/* Circular Logo Emblem without cut S */}
           <div style={{
-            width: '40px',
-            height: '40px',
+            width: '42px',
+            height: '42px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#ffffff',
@@ -82,8 +75,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             flexShrink: 0
           }}>
             <img
-              src="/logo-icon.png?v=6"
-              alt="Sai Deveena Traders"
+              src="/logo-icon.png?v=7"
+              alt="Sai Deveena Traders Emblem"
               style={{ width: '92%', height: '92%', objectFit: 'contain' }}
             />
           </div>
@@ -95,7 +88,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               alignItems: 'baseline',
               gap: '0.25rem',
               fontWeight: 900,
-              fontSize: '1.02rem',
+              fontSize: '1.05rem',
               letterSpacing: '-0.02em',
               lineHeight: 1.15
             }}>
@@ -103,7 +96,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               <span style={{ color: '#ea580c' }}>DEVEENA</span>
             </div>
             <div style={{
-              fontSize: '0.56rem',
+              fontSize: '0.58rem',
               fontWeight: 800,
               color: '#64748b',
               letterSpacing: '0.04em',
@@ -116,85 +109,24 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       )}
 
-      {/* Right Actions: Quick Language Toggle, Search, Call, Menu */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-        {/* Quick Language Toggle Pill */}
-        <button
-          onClick={() => onLanguageChange(currentLang === 'en' ? 'te' : 'en')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-            padding: '0.3rem 0.55rem',
-            borderRadius: '9999px',
-            border: '1.5px solid #16a34a',
-            backgroundColor: currentLang === 'te' ? '#f0fdf4' : '#ffffff',
-            color: '#15803d',
-            fontSize: '0.74rem',
-            fontWeight: 800,
-            cursor: 'pointer'
-          }}
-          title="Switch Language"
-        >
-          <span>{currentLang === 'te' ? 'English' : 'తెలుగు'}</span>
-        </button>
-
-        {/* Search Icon */}
-        <button
-          onClick={onSearchClick}
-          aria-label="Search"
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.4rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#334155'
-          }}
-        >
-          <Search size={20} />
-        </button>
-
-        {/* Quick Call Button */}
-        <a
-          href="tel:9010454541"
-          aria-label="Call Shop"
-          style={{
-            background: '#dcfce7',
-            border: 'none',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#15803d',
-            textDecoration: 'none'
-          }}
-        >
-          <Phone size={15} />
-        </a>
-
-        {/* Menu Icon */}
-        <button
-          onClick={onOpenMenu}
-          aria-label="Menu"
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '0.4rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#334155'
-          }}
-        >
-          <Menu size={22} />
-        </button>
-      </div>
+      {/* Right Action: Clean Menu Drawer button only */}
+      <button
+        onClick={onOpenMenu}
+        aria-label="Menu"
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: '0.45rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: '#334155',
+          borderRadius: '50%'
+        }}
+      >
+        <Menu size={23} />
+      </button>
     </header>
   );
 };

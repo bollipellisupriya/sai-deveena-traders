@@ -196,13 +196,6 @@ export function App() {
                 }
               }}
               onOpenMenu={() => setIsDrawerOpen(true)}
-              onSearchClick={() => {
-                setActiveTab('categories');
-                setSelectedCategory(null);
-                setSelectedProduct(null);
-              }}
-              currentLang={currentLang}
-              onLanguageChange={handleLanguageChange}
             />
 
             {/* Screen Content Area */}
