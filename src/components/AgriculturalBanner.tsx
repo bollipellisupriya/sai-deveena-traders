@@ -205,13 +205,14 @@ export const AgriculturalBanner: React.FC<AgriculturalBannerProps> = ({
 
                 {/* Little Clean Glass Text Capsule in the Corner */}
                 <div
+                  className="banner-text-capsule"
                   style={{
                     position: 'absolute',
                     bottom: '2.5rem',
                     left: 'clamp(1rem, 3vw, 2.5rem)',
                     zIndex: 5,
                     maxWidth: '460px',
-                    backgroundColor: 'rgba(5, 46, 22, 0.58)',
+                    backgroundColor: 'rgba(5, 46, 22, 0.68)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                     border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -372,7 +373,7 @@ export const AgriculturalBanner: React.FC<AgriculturalBannerProps> = ({
         </div>
       </div>
 
-      {/* Scoped CSS for hover interactions */}
+      {/* Scoped CSS for hover interactions & mobile responsiveness */}
       <style>{`
         .carousel-nav-btn:hover {
           background-color: #ffffff !important;
@@ -381,6 +382,26 @@ export const AgriculturalBanner: React.FC<AgriculturalBannerProps> = ({
         }
         .carousel-nav-btn:active {
           transform: translateY(-50%) scale(0.95) !important;
+        }
+        @media (max-width: 640px) {
+          .carousel-nav-btn {
+            width: 34px !important;
+            height: 34px !important;
+          }
+          .carousel-nav-btn.prev-btn {
+            left: 0.4rem !important;
+          }
+          .carousel-nav-btn.next-btn {
+            right: 0.4rem !important;
+          }
+          .banner-text-capsule {
+            bottom: 2.2rem !important;
+            left: 0.5rem !important;
+            right: 0.5rem !important;
+            max-width: calc(100% - 1rem) !important;
+            padding: 0.55rem 0.85rem !important;
+            border-radius: 10px !important;
+          }
         }
       `}</style>
     </section>

@@ -16,8 +16,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ currentLang }) => {
       <div className="container">
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '3.5rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
+          gap: 'clamp(1.75rem, 4vw, 3.5rem)',
           alignItems: 'center'
         }}>
           {/* Left Column: Narrative with Brand Header */}
@@ -89,7 +89,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ currentLang }) => {
           {/* Right Column: Key Commitments Card with Logo Branding */}
           <div style={{
             background: 'linear-gradient(135deg, #f8fafc 0%, #f0fdf4 100%)',
-            padding: '2.25rem',
+            padding: 'clamp(1.25rem, 4vw, 2.25rem)',
             borderRadius: 'var(--radius-lg)',
             border: '2px solid rgba(187, 247, 208, 0.8)',
             boxShadow: '0 12px 30px rgba(22, 101, 52, 0.08)'

@@ -292,8 +292,8 @@ export function App() {
                 {filteredProducts.length > 0 ? (
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                    gap: '1.5rem',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))',
+                    gap: 'clamp(1rem, 3vw, 1.5rem)',
                     alignItems: 'stretch'
                   }}>
                     {filteredProducts.map((product) => (
@@ -435,6 +435,11 @@ export function App() {
       </div>
 
       <style>{`
+        @media (max-width: 860px) {
+          #main-content {
+            padding-bottom: 5.5rem !important;
+          }
+        }
         @media (min-width: 860px) {
           .mobile-float-bar {
             display: none !important;

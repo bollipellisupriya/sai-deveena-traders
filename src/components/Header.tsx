@@ -40,8 +40,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div style={{
         background: 'linear-gradient(90deg, #14532d 0%, #15803d 60%, #c2410c 100%)',
         color: '#f8fafc',
-        padding: '0.4rem 1rem',
-        fontSize: '0.82rem',
+        padding: '0.3rem 0.75rem',
+        fontSize: '0.78rem',
         fontWeight: 600
       }}>
         <div className="container" style={{
@@ -50,12 +50,20 @@ export const Header: React.FC<HeaderProps> = ({
           alignItems: 'center',
           textAlign: 'center'
         }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
-            <MapPin size={14} style={{ color: '#fdba74', flexShrink: 0 }} />
-            <span>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            <MapPin size={13} style={{ color: '#fdba74', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {currentLang === 'te' 
-                ? 'భైంసా, నిర్మల్ జిల్లా, తెలంగాణ 504103' 
-                : 'Bhainsa, Nirmal District, Telangana 504103'}
+                ? 'భైంసా, నిర్మల్ జిల్లా, తెలంగాణ' 
+                : 'Bhainsa, Nirmal Dist, Telangana 504103'}
             </span>
           </div>
         </div>
@@ -85,10 +93,11 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           aria-label={t.nav.home}
         >
+          {/* Desktop Banner Logo */}
           <img
             src="/logo.png?v=5"
             alt="Sai Deveena Traders & General Store"
-            className="navbar-brand-logo"
+            className="navbar-brand-logo desktop-logo"
             style={{
               height: '80px',
               maxWidth: '360px',
@@ -99,6 +108,60 @@ export const Header: React.FC<HeaderProps> = ({
               imageRendering: 'auto'
             }}
           />
+
+          {/* Mobile Optimized Brand: Emblem + Crisp Typography */}
+          <div className="mobile-brand-wrapper" style={{
+            display: 'none',
+            alignItems: 'center',
+            gap: '0.55rem'
+          }}>
+            <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              backgroundColor: 'white',
+              boxShadow: '0 2px 8px rgba(22, 101, 52, 0.2), 0 0 0 1.5px rgba(234, 88, 12, 0.3)',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img
+                src="/logo-icon.png?v=5"
+                alt="Sai Deveena Traders Emblem"
+                style={{
+                  width: '95%',
+                  height: '95%',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+            <div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '0.25rem',
+                fontWeight: 900,
+                fontSize: '1.15rem',
+                letterSpacing: '-0.015em',
+                lineHeight: 1.15
+              }}>
+                <span style={{ color: '#14532d' }}>SAI</span>
+                <span style={{ color: '#ea580c' }}>DEEVENA</span>
+              </div>
+              <div style={{
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                color: '#64748b',
+                letterSpacing: '0.04em',
+                lineHeight: 1.1,
+                marginTop: '1px'
+              }}>
+                TRADERS & GENERAL STORE
+              </div>
+            </div>
+          </div>
         </button>
 
         {/* Desktop Navigation Links */}
@@ -355,10 +418,12 @@ export const Header: React.FC<HeaderProps> = ({
         .lang-text-desktop {
           display: inline;
         }
-        @media (max-width: 1024px) {
-          .navbar-brand-logo {
-            height: 68px !important;
-            max-width: 280px !important;
+        @media (max-width: 768px) {
+          .desktop-logo {
+            display: none !important;
+          }
+          .mobile-brand-wrapper {
+            display: flex !important;
           }
         }
         @media (max-width: 640px) {
@@ -369,16 +434,6 @@ export const Header: React.FC<HeaderProps> = ({
             display: inline !important;
             font-size: 0.78rem;
             font-weight: 800;
-          }
-          .navbar-brand-logo {
-            height: 52px !important;
-            max-width: calc(100vw - 165px) !important;
-          }
-        }
-        @media (max-width: 380px) {
-          .navbar-brand-logo {
-            height: 44px !important;
-            max-width: calc(100vw - 145px) !important;
           }
         }
         @media (min-width: 860px) {

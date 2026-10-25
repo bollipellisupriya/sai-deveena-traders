@@ -46,7 +46,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         {/* Search Field with Dynamic Shadow */}
         <div style={{
           position: 'relative',
-          flex: '1 1 340px',
+          flex: '1 1 min(280px, 100%)',
         }}>
           <div style={{
             position: 'absolute',

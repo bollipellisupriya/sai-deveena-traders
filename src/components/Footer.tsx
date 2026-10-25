@@ -48,9 +48,9 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Main Columns */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '3rem',
-          marginBottom: '3.5rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
+          gap: 'clamp(2rem, 4vw, 3rem)',
+          marginBottom: '3rem'
         }}>
           {/* Column 1: Brand & Logo Emblem */}
           <div>
@@ -62,15 +62,16 @@ export const Footer: React.FC<FooterProps> = ({
                 padding: '0.45rem 0.85rem',
                 borderRadius: 'var(--radius-md)',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
-                border: '1.5px solid rgba(234, 88, 12, 0.4)'
+                border: '1.5px solid rgba(234, 88, 12, 0.4)',
+                maxWidth: '100%'
               }}>
                 <img
-                  src="/logo.png?v=4"
+                  src="/logo.png?v=5"
                   alt="Sai Deveena Traders & General Store"
                   style={{
                     height: '68px',
                     width: 'auto',
-                    maxWidth: '300px',
+                    maxWidth: 'min(280px, 100%)',
                     objectFit: 'contain',
                     display: 'block'
                   }}

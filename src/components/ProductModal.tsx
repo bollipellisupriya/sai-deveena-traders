@@ -190,7 +190,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div style={{ padding: '1.75rem' }}>
+        <div style={{ padding: 'clamp(1.1rem, 4vw, 1.75rem)' }}>
           {/* Metadata badges */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem' }}>
             <span className="badge badge-green" style={{ fontSize: '0.82rem', fontWeight: 800 }}>
@@ -316,7 +316,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           {/* Action CTAs */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
             gap: '0.85rem'
           }}>
             <a

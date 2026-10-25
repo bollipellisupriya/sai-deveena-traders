@@ -46,7 +46,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ currentLang }) =
         {/* 4 Cards Grid: Orders (9010454541), Support (9014397044), Address, Hours */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))',
           gap: '1.25rem',
           maxWidth: '1200px',
           margin: '0 auto'
