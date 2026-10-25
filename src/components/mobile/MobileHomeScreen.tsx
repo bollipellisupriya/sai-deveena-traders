@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Search, Heart, ArrowRight } from 'lucide-react';
+import { Search, Heart, ArrowRight, Truck, ShieldCheck, MessageCircle, Sparkles } from 'lucide-react';
 import type { Product, Category, Language } from '../../types';
 
 interface MobileHomeScreenProps {
   products: Product[];
   categories: Category[];
   currentLang: Language;
+  onLanguageChange: (lang: Language) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSelectCategory: (categoryId: string) => void;
   onSelectProduct: (product: Product) => void;
-  onAddToCart: (product: Product) => void;
   onViewAllProducts: () => void;
   onViewAllCategories: () => void;
   wishlist: Set<string>;
@@ -21,11 +21,11 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
   products,
   categories,
   currentLang,
+  onLanguageChange,
   searchQuery,
   onSearchChange,
   onSelectCategory,
   onSelectProduct,
-  onAddToCart,
   onViewAllProducts,
   onViewAllCategories,
   wishlist,
@@ -46,7 +46,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
     { id: 'more', label: isTe ? 'మరిన్ని' : 'More', iconImg: '/images/categories/quick-more.svg' }
   ];
 
-  // Best Selling Products for the horizontal shelf (Paddy Seeds, DAP, Sunflower Oil, Maize)
+  // Best Selling Products for the horizontal shelf
   const bestSellers = products.filter(p => p.featured || ['paddy-seed-hy', 'dap-fert-50kg', 'sunflower-oil-1l', 'maize-seed-hy'].includes(p.id)).slice(0, 4);
 
   // 4 Main categories for "Shop by Category"
@@ -56,9 +56,84 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
     img: c.image || '/images/categories/seeds.jpg'
   }));
 
+  // Quick WhatsApp order for a product
+  const handleQuickOrder = (prod: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const text = encodeURIComponent(
+      `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery to Bhainsa.`
+    );
+    window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
+  };
+
   return (
     <div style={{ paddingBottom: '6rem', backgroundColor: '#f8fafc' }}>
-      {/* 1. Search Bar Directly Under Header */}
+      {/* 1. Top Language Selection Bar - Above Search (Simple for customers to use) */}
+      <div style={{
+        backgroundColor: '#f0fdf4',
+        borderBottom: '1.5px solid #bbf7d0',
+        padding: '0.45rem 1rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.35rem',
+          fontSize: '0.78rem',
+          fontWeight: 800,
+          color: '#15803d'
+        }}>
+          <Sparkles size={14} style={{ color: '#ea580c' }} />
+          <span>{isTe ? 'భాషను ఎంచుకోండి:' : 'Select Language:'}</span>
+        </div>
+
+        {/* 2 Big Clear Language Switcher Tabs */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.35rem',
+          backgroundColor: '#ffffff',
+          padding: '2px',
+          borderRadius: '9999px',
+          border: '1px solid #86efac'
+        }}>
+          <button
+            onClick={() => onLanguageChange('en')}
+            style={{
+              padding: '0.3rem 0.85rem',
+              borderRadius: '9999px',
+              border: 'none',
+              backgroundColor: currentLang === 'en' ? '#15803d' : 'transparent',
+              color: currentLang === 'en' ? '#ffffff' : '#334155',
+              fontSize: '0.78rem',
+              fontWeight: 900,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            English
+          </button>
+          <button
+            onClick={() => onLanguageChange('te')}
+            style={{
+              padding: '0.3rem 0.85rem',
+              borderRadius: '9999px',
+              border: 'none',
+              backgroundColor: currentLang === 'te' ? '#15803d' : 'transparent',
+              color: currentLang === 'te' ? '#ffffff' : '#334155',
+              fontSize: '0.78rem',
+              fontWeight: 900,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            తెలుగు
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Search Bar Directly Under Header */}
       <div style={{ padding: '0.75rem 1rem 0.5rem', backgroundColor: '#ffffff' }}>
         <div style={{
           position: 'relative',
@@ -98,7 +173,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
       </div>
 
       <div style={{ padding: '0.85rem 1rem' }}>
-        {/* 2. Main Hero Promo Banner (Green Card with Telugu headline & smiling farmer) */}
+        {/* 3. Main Hero Promo Banner (Green Card with Telugu headline & smiling farmer) */}
         <div style={{
           position: 'relative',
           borderRadius: '18px',
@@ -110,7 +185,8 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           minHeight: '175px',
-          padding: '1.25rem 1.15rem'
+          padding: '1.25rem 1.15rem',
+          marginBottom: '1rem'
         }}>
           {/* Left Text & CTA */}
           <div style={{ zIndex: 2, maxWidth: '62%' }}>
@@ -200,12 +276,148 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           </div>
         </div>
 
-        {/* 3. Circular Quick Category Navigation (8 Icons in 2 Rows of 4) */}
+        {/* 4. NEW PROMO BANNER 1: FREE DOORSTEP DELIVERY */}
+        <div style={{
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fffbeb 50%, #fefce8 100%)',
+          border: '1.5px solid #fde68a',
+          borderRadius: '16px',
+          padding: '0.85rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem',
+          boxShadow: '0 4px 12px rgba(217, 119, 6, 0.08)',
+          marginBottom: '0.85rem'
+        }}>
+          <div style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            backgroundColor: '#ea580c',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 10px rgba(234, 88, 12, 0.3)'
+          }}>
+            <Truck size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              marginBottom: '0.15rem'
+            }}>
+              <span style={{
+                fontSize: '0.88rem',
+                fontWeight: 900,
+                color: '#9a3412',
+                lineHeight: 1.2
+              }}>
+                {isTe ? 'పొలాల వద్దకే ఉచిత డెలివరీ' : 'Free Doorstep Farm Delivery'}
+              </span>
+              <span style={{
+                backgroundColor: '#fed7aa',
+                color: '#c2410c',
+                fontSize: '0.65rem',
+                fontWeight: 900,
+                padding: '0.1rem 0.4rem',
+                borderRadius: '9999px'
+              }}>
+                BHAINSA
+              </span>
+            </div>
+            <p style={{
+              fontSize: '0.74rem',
+              color: '#78350f',
+              margin: 0,
+              fontWeight: 600,
+              lineHeight: 1.3
+            }}>
+              {isTe
+                ? 'భైంసా మరియు చుట్టుపక్కల గ్రామాల రైతులకు తక్షణ రవాణా సౌకర్యం.'
+                : 'Fast delivery for seeds & fertilizers directly to farms & villages.'}
+            </p>
+          </div>
+        </div>
+
+        {/* 5. NEW PROMO BANNER 2: 100% GENUINE & DIRECT WHATSAPP BOOKING */}
+        <div style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+          border: '1.5px solid #86efac',
+          borderRadius: '16px',
+          padding: '0.85rem 1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem',
+          boxShadow: '0 4px 12px rgba(22, 101, 52, 0.08)',
+          marginBottom: '1.25rem'
+        }}>
+          <div style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            backgroundColor: '#15803d',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 10px rgba(21, 128, 61, 0.3)'
+          }}>
+            <ShieldCheck size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{
+              fontSize: '0.88rem',
+              fontWeight: 900,
+              color: '#14532d',
+              marginBottom: '0.15rem',
+              lineHeight: 1.2
+            }}>
+              {isTe ? '100% అసలైన ధృవీకృత బ్రాండ్లు' : '100% Certified Genuine Brands'}
+            </div>
+            <p style={{
+              fontSize: '0.74rem',
+              color: '#166534',
+              margin: 0,
+              fontWeight: 600,
+              lineHeight: 1.3
+            }}>
+              {isTe
+                ? 'వ్యక్తిగత పంట సంరక్షణ సలహాలు & సరసమైన ప్రభుత్వ నియంత్రిత ధరలు.'
+                : 'Government approved rates, genuine seeds & expert farmer guidance.'}
+            </p>
+          </div>
+          <a
+            href="https://wa.me/919010454541"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              backgroundColor: '#15803d',
+              color: '#ffffff',
+              borderRadius: '50%',
+              width: '34px',
+              height: '34px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.3)'
+            }}
+            title="Chat on WhatsApp"
+          >
+            <MessageCircle size={18} />
+          </a>
+        </div>
+
+        {/* 6. Circular Quick Category Navigation (8 Icons in 2 Rows of 4) */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '1rem 0.5rem',
-          margin: '1.5rem 0 1.25rem',
+          margin: '0.5rem 0 1.25rem',
           textAlign: 'center'
         }}>
           {quickCategories.map((cat) => (
@@ -254,81 +466,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           ))}
         </div>
 
-        {/* 4. Secondary Promo Banner Card (Cream rounded card) */}
-        <div style={{
-          backgroundColor: '#fffbeb',
-          border: '1.5px solid #fde68a',
-          borderRadius: '16px',
-          padding: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-          boxShadow: '0 4px 14px rgba(217, 119, 6, 0.08)'
-        }}>
-          {/* Left Plant Artwork Icon */}
-          <div style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '12px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '6px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-            flexShrink: 0
-          }}>
-            <img
-              src="/images/categories/quick-cropcare.svg"
-              alt="Agri Products"
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          </div>
-
-          {/* Right Content */}
-          <div style={{ flex: 1 }}>
-            <h3 style={{
-              fontSize: '0.98rem',
-              fontWeight: 900,
-              color: '#14532d',
-              marginBottom: '0.2rem',
-              lineHeight: 1.2
-            }}>
-              Trusted Agricultural Products
-            </h3>
-            <p style={{
-              fontSize: '0.72rem',
-              color: '#78350f',
-              fontWeight: 600,
-              lineHeight: 1.35,
-              marginBottom: '0.65rem'
-            }}>
-              Seeds | Fertilizers | Pesticides<br />Crop Care | General Items
-            </p>
-            <button
-              onClick={onViewAllProducts}
-              style={{
-                backgroundColor: '#14532d',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.35rem 0.8rem',
-                fontSize: '0.74rem',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                cursor: 'pointer'
-              }}
-            >
-              <span>View Products</span>
-              <ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-
-        {/* 5. Best Selling Products Section (Matching Screen 1) */}
+        {/* 7. Best Selling Products Section */}
         <div style={{ marginBottom: '1.75rem' }}>
           <div style={{
             display: 'flex',
@@ -451,12 +589,9 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                     ₹{prod.price}
                   </div>
 
-                  {/* Solid Green "Add" Button */}
+                  {/* Direct WhatsApp Order Button */}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddToCart(prod);
-                    }}
+                    onClick={(e) => handleQuickOrder(prod, e)}
                     style={{
                       marginTop: 'auto',
                       width: '100%',
@@ -464,14 +599,19 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '8px',
-                      padding: '0.38rem 0',
-                      fontSize: '0.76rem',
+                      padding: '0.4rem 0',
+                      fontSize: '0.74rem',
                       fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.25rem',
                       cursor: 'pointer',
                       transition: 'background-color 0.15s ease'
                     }}
                   >
-                    Add
+                    <MessageCircle size={13} />
+                    <span>{isTe ? 'ఆర్డర్' : 'Order'}</span>
                   </button>
                 </div>
               );
@@ -479,7 +619,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           </div>
         </div>
 
-        {/* 6. Shop by Category Section (Matching Screen 1) */}
+        {/* 8. Shop by Category Section */}
         <div>
           <div style={{
             display: 'flex',

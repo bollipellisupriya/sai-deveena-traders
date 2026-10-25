@@ -5,11 +5,10 @@ import { MobileBottomNav, type TabType } from './components/mobile/MobileBottomN
 import { MobileHomeScreen } from './components/mobile/MobileHomeScreen';
 import { MobileCategoryScreen } from './components/mobile/MobileCategoryScreen';
 import { MobileProductDetailScreen } from './components/mobile/MobileProductDetailScreen';
-import { MobileCartDrawer, type CartItem } from './components/mobile/MobileCartDrawer';
 import { MobileOrdersScreen } from './components/mobile/MobileOrdersScreen';
 import { MobileProfileScreen } from './components/mobile/MobileProfileScreen';
 import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
-import { RefreshCw, AlertCircle, Check } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export function App() {
   // Language State with localStorage persistence
@@ -25,16 +24,14 @@ export function App() {
 
   // App Navigation State
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [selectedCategory, setSelectedCategory] = useState<string>('seeds');
+  // selectedCategory is null when viewing all categories, or string when drilled down into a specific category
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Search & Cart State
+  // Search & Drawer State
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Update language and body attribute
   const handleLanguageChange = (lang: Language) => {
@@ -60,18 +57,6 @@ export function App() {
       }
       const data: CatalogData = await response.json();
       setCatalog(data);
-
-      // Pre-populate 3 items in cart to match reference image badge count (3 items: Paddy, DAP, Sunflower Oil)
-      const initCart: CartItem[] = [];
-      const paddy = data.products.find(p => p.id === 'paddy-seed-hy');
-      const dap = data.products.find(p => p.id === 'dap-fert-50kg');
-      const oil = data.products.find(p => p.id === 'sunflower-oil-1l');
-
-      if (paddy) initCart.push({ product: paddy, quantity: 1 });
-      if (dap) initCart.push({ product: dap, quantity: 1 });
-      if (oil) initCart.push({ product: oil, quantity: 1 });
-
-      setCartItems(initCart);
     } catch (err: any) {
       console.error('Error fetching catalog:', err);
       setLoadError(err.message || 'Unknown network error');
@@ -83,51 +68,6 @@ export function App() {
   useEffect(() => {
     fetchCatalog();
   }, [fetchCatalog]);
-
-  // Show quick toast notification
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2200);
-  };
-
-  // Add to Cart handler
-  const handleAddToCart = (product: Product, quantity = 1) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prev, { product, quantity }];
-    });
-    showToast(currentLang === 'te' ? 'కార్ట్‌కి జోడించబడింది!' : 'Added to cart!');
-  };
-
-  // Update Cart Quantity
-  const handleUpdateCartQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      handleRemoveCartItem(productId);
-      return;
-    }
-    setCartItems(prev => prev.map(item =>
-      item.product.id === productId ? { ...item, quantity } : item
-    ));
-  };
-
-  // Remove from Cart
-  const handleRemoveCartItem = (productId: string) => {
-    setCartItems(prev => prev.filter(item => item.product.id !== productId));
-  };
-
-  // Clear Cart
-  const handleClearCart = () => {
-    setCartItems([]);
-  };
 
   // Toggle Wishlist Heart
   const handleToggleWishlist = (productId: string) => {
@@ -142,29 +82,24 @@ export function App() {
     });
   };
 
-  // Switch category and jump to categories view
-  const handleCategorySelect = (categoryId: string) => {
+  // Switch to specific category from Home or Categories
+  const handleCategorySelect = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
     setSelectedProduct(null);
     setActiveTab('categories');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle Tab Switch
+  // Handle Bottom Nav Tab Switch
   const handleTabChange = (tab: TabType) => {
-    if (tab === 'cart') {
-      setIsCartOpen(true);
-      return;
-    }
     setActiveTab(tab);
     setSelectedProduct(null);
+    // When clicking Categories tab, reset to show ALL categories first!
+    if (tab === 'categories') {
+      setSelectedCategory(null);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // Total items in cart
-  const totalCartCount = useMemo(() => {
-    return cartItems.reduce((acc, it) => acc + it.quantity, 0);
-  }, [cartItems]);
 
   // Determine current header title
   const currentHeaderTitle = useMemo(() => {
@@ -172,14 +107,17 @@ export function App() {
       return selectedProduct.name[currentLang] || selectedProduct.name.en;
     }
     if (activeTab === 'categories') {
+      if (!selectedCategory) {
+        return currentLang === 'te' ? 'అన్ని విభాగాలు' : 'All Categories';
+      }
       const cat = catalog?.categories.find(c => c.id === selectedCategory);
-      return cat ? (cat.name[currentLang] || cat.name.en) : (currentLang === 'te' ? 'విత్తనాలు' : 'Seeds');
+      return cat ? (cat.name[currentLang] || cat.name.en) : (currentLang === 'te' ? 'విభాగాలు' : 'Categories');
     }
     if (activeTab === 'orders') {
-      return currentLang === 'te' ? 'ఆర్డర్లు' : 'Orders';
+      return currentLang === 'te' ? 'పూర్తయిన ఆర్డర్లు' : 'Completed Orders';
     }
     if (activeTab === 'profile') {
-      return currentLang === 'te' ? 'ప్రొఫైల్' : 'Store Profile';
+      return currentLang === 'te' ? 'దుకాణం ప్రొఫైల్' : 'Store Profile';
     }
     return '';
   }, [selectedProduct, activeTab, selectedCategory, catalog, currentLang]);
@@ -192,7 +130,7 @@ export function App() {
       justifyContent: 'center',
       fontFamily: currentLang === 'te' ? 'var(--font-telugu)' : 'var(--font-sans)'
     }}>
-      {/* Container (phone width on desktop, 100% on mobile) */}
+      {/* App Shell Container */}
       <div className="mobile-app-shell" style={{
         width: '100%',
         maxWidth: '480px',
@@ -251,21 +189,23 @@ export function App() {
               onBack={() => {
                 if (selectedProduct) {
                   setSelectedProduct(null);
+                } else if (activeTab === 'categories' && selectedCategory) {
+                  setSelectedCategory(null);
                 } else {
                   setActiveTab('home');
                 }
               }}
-              cartCount={totalCartCount}
-              onOpenCart={() => setIsCartOpen(true)}
               onOpenMenu={() => setIsDrawerOpen(true)}
               onSearchClick={() => {
                 setActiveTab('categories');
+                setSelectedCategory(null);
                 setSelectedProduct(null);
               }}
               currentLang={currentLang}
+              onLanguageChange={handleLanguageChange}
             />
 
-            {/* Screen Content */}
+            {/* Screen Content Area */}
             <main style={{ flex: 1 }}>
               {selectedProduct ? (
                 // Screen 3: Product Detail View
@@ -273,56 +213,57 @@ export function App() {
                   product={selectedProduct}
                   allProducts={catalog.products}
                   currentLang={currentLang}
-                  onAddToCart={handleAddToCart}
                   onSelectProduct={(p) => setSelectedProduct(p)}
                   wishlist={wishlist}
                   onToggleWishlist={handleToggleWishlist}
                 />
               ) : activeTab === 'categories' ? (
-                // Screen 2: Categories View
+                // Screen 2: Categories View (Shows ALL categories first, or drilled-down products)
                 <MobileCategoryScreen
                   categories={catalog.categories}
                   selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
+                  onSelectCategory={handleCategorySelect}
                   products={catalog.products}
                   currentLang={currentLang}
                   onSelectProduct={(p) => setSelectedProduct(p)}
-                  onAddToCart={handleAddToCart}
                   wishlist={wishlist}
                   onToggleWishlist={handleToggleWishlist}
                 />
               ) : activeTab === 'orders' ? (
-                // Orders View
+                // Orders View (Completed Orders & WhatsApp/Call list)
                 <MobileOrdersScreen
                   currentLang={currentLang}
                   onExplore={() => {
                     setActiveTab('categories');
+                    setSelectedCategory(null);
                     setSelectedProduct(null);
                   }}
                 />
               ) : activeTab === 'profile' ? (
-                // Profile View
+                // Profile View (High-end Store Profile & Contact Hub)
                 <MobileProfileScreen
                   currentLang={currentLang}
                   onLanguageChange={handleLanguageChange}
                 />
               ) : (
-                // Screen 1: Home View
+                // Screen 1: Home View (With English/Telugu at top, 2 banners, quick categories, best sellers)
                 <MobileHomeScreen
                   products={catalog.products}
                   categories={catalog.categories}
                   currentLang={currentLang}
+                  onLanguageChange={handleLanguageChange}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onSelectCategory={handleCategorySelect}
                   onSelectProduct={(p) => setSelectedProduct(p)}
-                  onAddToCart={handleAddToCart}
                   onViewAllProducts={() => {
                     setActiveTab('categories');
+                    setSelectedCategory(null);
                     setSelectedProduct(null);
                   }}
                   onViewAllCategories={() => {
                     setActiveTab('categories');
+                    setSelectedCategory(null);
                     setSelectedProduct(null);
                   }}
                   wishlist={wishlist}
@@ -331,22 +272,10 @@ export function App() {
               )}
             </main>
 
-            {/* Fixed 5-Tab Bottom App Navigation Bar */}
+            {/* Fixed 4-Tab Bottom App Navigation Bar (Home, Categories, Orders, Profile) */}
             <MobileBottomNav
               activeTab={activeTab}
               onTabChange={handleTabChange}
-              cartCount={totalCartCount}
-              currentLang={currentLang}
-            />
-
-            {/* Slide-Up Cart Drawer */}
-            <MobileCartDrawer
-              isOpen={isCartOpen}
-              onClose={() => setIsCartOpen(false)}
-              items={cartItems}
-              onUpdateQuantity={handleUpdateCartQuantity}
-              onRemoveItem={handleRemoveCartItem}
-              onClearCart={handleClearCart}
               currentLang={currentLang}
             />
 
@@ -356,37 +285,13 @@ export function App() {
               onClose={() => setIsDrawerOpen(false)}
               onNavigateTab={(tab) => {
                 setActiveTab(tab);
+                if (tab === 'categories') setSelectedCategory(null);
                 setSelectedProduct(null);
               }}
               currentLang={currentLang}
               onLanguageChange={handleLanguageChange}
             />
           </>
-        )}
-
-        {/* Quick Toast Notification */}
-        {toastMessage && (
-          <div style={{
-            position: 'fixed',
-            top: '4.5rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 120,
-            backgroundColor: '#15803d',
-            color: '#ffffff',
-            padding: '0.55rem 1.15rem',
-            borderRadius: '9999px',
-            fontSize: '0.84rem',
-            fontWeight: 800,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
-            <Check size={16} strokeWidth={3} />
-            <span>{toastMessage}</span>
-          </div>
         )}
       </div>
 

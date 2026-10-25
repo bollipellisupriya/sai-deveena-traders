@@ -1,20 +1,18 @@
 import React from 'react';
-import { Home, LayoutGrid, ShoppingCart, ShoppingBag, User } from 'lucide-react';
+import { Home, LayoutGrid, ShoppingBag, User } from 'lucide-react';
 import type { Language } from '../../types';
 
-export type TabType = 'home' | 'categories' | 'cart' | 'orders' | 'profile';
+export type TabType = 'home' | 'categories' | 'orders' | 'profile';
 
 interface MobileBottomNavProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
-  cartCount: number;
   currentLang: Language;
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   activeTab,
   onTabChange,
-  cartCount,
   currentLang
 }) => {
   const isTe = currentLang === 'te';
@@ -29,35 +27,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       id: 'categories',
       label: isTe ? 'విభాగాలు' : 'Categories',
       icon: <LayoutGrid size={22} />
-    },
-    {
-      id: 'cart',
-      label: isTe ? 'కార్ట్' : 'Cart',
-      icon: (
-        <div style={{ position: 'relative' }}>
-          <ShoppingCart size={22} />
-          {cartCount > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '-6px',
-              right: '-9px',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
-              fontSize: '0.64rem',
-              fontWeight: 900,
-              width: '16px',
-              height: '16px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1.5px solid #ffffff'
-            }}>
-              {cartCount > 9 ? '9+' : cartCount}
-            </span>
-          )}
-        </div>
-      )
     },
     {
       id: 'orders',
@@ -108,7 +77,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               border: 'none',
               cursor: 'pointer',
               color: isActive ? '#15803d' : '#94a3b8',
-              padding: '0.25rem 0.6rem',
+              padding: '0.25rem 0.75rem',
               transition: 'color 0.2s ease, transform 0.15s ease',
               flex: 1
             }}
@@ -120,7 +89,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               {tab.icon}
             </div>
             <span style={{
-              fontSize: '0.72rem',
+              fontSize: '0.74rem',
               fontWeight: isActive ? 800 : 600,
               letterSpacing: '-0.01em'
             }}>

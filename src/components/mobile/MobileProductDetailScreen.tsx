@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Check, Plus, Minus, Truck, ShieldCheck, RotateCcw } from 'lucide-react';
+import { Heart, Check, Plus, Minus, Truck, ShieldCheck, RotateCcw, MessageCircle, Phone } from 'lucide-react';
 import type { Product, Language } from '../../types';
 import { getProductWhatsappUrl } from '../../utils/whatsapp';
 
@@ -7,7 +7,6 @@ interface MobileProductDetailScreenProps {
   product: Product;
   allProducts: Product[];
   currentLang: Language;
-  onAddToCart: (product: Product, quantity: number) => void;
   onSelectProduct: (product: Product) => void;
   wishlist: Set<string>;
   onToggleWishlist: (productId: string) => void;
@@ -17,7 +16,6 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
   product,
   allProducts,
   currentLang,
-  onAddToCart,
   onSelectProduct,
   wishlist,
   onToggleWishlist
@@ -319,7 +317,7 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
           </div>
         </div>
 
-        {/* Action Buttons: Add to Cart & Buy Now */}
+        {/* Action Buttons: Order via WhatsApp & Call Shop */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -327,38 +325,48 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
           marginBottom: '1.75rem'
         }}>
           <button
-            onClick={() => onAddToCart(product, quantity)}
-            style={{
-              backgroundColor: '#ffffff',
-              color: '#15803d',
-              border: '2px solid #15803d',
-              borderRadius: '9999px',
-              padding: '0.75rem 1rem',
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.1)'
-            }}
-          >
-            {isTe ? 'కార్ట్‌కి జోడించండి' : 'Add to Cart'}
-          </button>
-
-          <button
             onClick={handleBuyNow}
             style={{
               backgroundColor: '#15803d',
               color: '#ffffff',
               border: 'none',
               borderRadius: '9999px',
-              padding: '0.75rem 1rem',
-              fontSize: '0.92rem',
+              padding: '0.75rem 0.5rem',
+              fontSize: '0.88rem',
               fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.45rem',
               cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(21, 128, 61, 0.28)'
             }}
           >
-            {isTe ? 'ఇప్పుడే కొనండి' : 'Buy Now'}
+            <MessageCircle size={18} />
+            <span>{isTe ? 'వాట్సాప్ ఆర్డర్' : 'WhatsApp Order'}</span>
           </button>
+
+          <a
+            href="tel:9010454541"
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#15803d',
+              border: '2px solid #15803d',
+              borderRadius: '9999px',
+              padding: '0.75rem 0.5rem',
+              fontSize: '0.88rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.45rem',
+              textDecoration: 'none',
+              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.1)'
+            }}
+          >
+            <Phone size={17} />
+            <span>{isTe ? 'కాల్ ఆర్డర్' : 'Call to Order'}</span>
+          </a>
         </div>
 
         {/* 3 Trust Badges Matching Screen 3 */}

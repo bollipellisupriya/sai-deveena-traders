@@ -1,26 +1,25 @@
 import React from 'react';
-import { Search, ShoppingCart, Menu, ArrowLeft } from 'lucide-react';
+import { Search, Menu, ArrowLeft, Phone } from 'lucide-react';
 import type { Language } from '../../types';
 
 interface MobileHeaderProps {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
-  cartCount: number;
-  onOpenCart: () => void;
   onOpenMenu: () => void;
   onSearchClick: () => void;
   currentLang: Language;
+  onLanguageChange: (lang: Language) => void;
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
   title,
   showBack = false,
   onBack,
-  cartCount,
-  onOpenCart,
   onOpenMenu,
   onSearchClick,
+  currentLang,
+  onLanguageChange
 }) => {
   return (
     <header style={{
@@ -29,7 +28,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       zIndex: 50,
       backgroundColor: '#ffffff',
       borderBottom: '1px solid #f1f5f9',
-      padding: '0.65rem 1rem',
+      padding: '0.6rem 0.85rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -37,7 +36,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     }}>
       {/* Left: Either Back Button + Title or Brand Logo Emblem */}
       {showBack ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
           <button
             onClick={onBack}
             aria-label="Back"
@@ -55,21 +54,24 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <ArrowLeft size={22} />
           </button>
           <h1 style={{
-            fontSize: '1.2rem',
+            fontSize: '1.15rem',
             fontWeight: 800,
             color: '#0f172a',
             margin: 0,
-            lineHeight: 1.2
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}>
             {title || 'Sai Deveena'}
           </h1>
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-          {/* Circular Sun & Field Logo Emblem */}
+          {/* Circular Logo Emblem */}
           <div style={{
-            width: '42px',
-            height: '42px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#ffffff',
@@ -86,14 +88,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             />
           </div>
 
-          {/* Clean Typography Matching Image */}
+          {/* Clean Typography */}
           <div>
             <div style={{
               display: 'flex',
               alignItems: 'baseline',
               gap: '0.25rem',
               fontWeight: 900,
-              fontSize: '1.05rem',
+              fontSize: '1.02rem',
               letterSpacing: '-0.02em',
               lineHeight: 1.15
             }}>
@@ -101,7 +103,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               <span style={{ color: '#ea580c' }}>DEVEENA</span>
             </div>
             <div style={{
-              fontSize: '0.58rem',
+              fontSize: '0.56rem',
               fontWeight: 800,
               color: '#64748b',
               letterSpacing: '0.04em',
@@ -114,86 +116,84 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       )}
 
-      {/* Right Icons: Search, Cart (Badge), Menu */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+      {/* Right Actions: Quick Language Toggle, Search, Call, Menu */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        {/* Quick Language Toggle Pill */}
+        <button
+          onClick={() => onLanguageChange(currentLang === 'en' ? 'te' : 'en')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            padding: '0.3rem 0.55rem',
+            borderRadius: '9999px',
+            border: '1.5px solid #16a34a',
+            backgroundColor: currentLang === 'te' ? '#f0fdf4' : '#ffffff',
+            color: '#15803d',
+            fontSize: '0.74rem',
+            fontWeight: 800,
+            cursor: 'pointer'
+          }}
+          title="Switch Language"
+        >
+          <span>{currentLang === 'te' ? 'English' : 'తెలుగు'}</span>
+        </button>
+
+        {/* Search Icon */}
         <button
           onClick={onSearchClick}
           aria-label="Search"
           style={{
             background: 'none',
             border: 'none',
-            padding: '0.45rem',
+            padding: '0.4rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#334155',
-            borderRadius: '50%'
+            color: '#334155'
           }}
         >
-          <Search size={21} />
+          <Search size={20} />
         </button>
 
-        {/* Cart Icon with Red Counter Badge */}
-        <button
-          onClick={onOpenCart}
-          aria-label={`Cart with ${cartCount} items`}
+        {/* Quick Call Button */}
+        <a
+          href="tel:9010454541"
+          aria-label="Call Shop"
           style={{
-            position: 'relative',
+            background: '#dcfce7',
+            border: 'none',
+            borderRadius: '50%',
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#15803d',
+            textDecoration: 'none'
+          }}
+        >
+          <Phone size={15} />
+        </a>
+
+        {/* Menu Icon */}
+        <button
+          onClick={onOpenMenu}
+          aria-label="Menu"
+          style={{
             background: 'none',
             border: 'none',
-            padding: '0.45rem',
+            padding: '0.4rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: '#334155',
-            borderRadius: '50%'
+            color: '#334155'
           }}
         >
-          <ShoppingCart size={21} />
-          {cartCount > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '2px',
-              right: '2px',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
-              fontSize: '0.68rem',
-              fontWeight: 900,
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1.5px solid #ffffff',
-              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
-            }}>
-              {cartCount > 9 ? '9+' : cartCount}
-            </span>
-          )}
+          <Menu size={22} />
         </button>
-
-        {!showBack && (
-          <button
-            onClick={onOpenMenu}
-            aria-label="Menu"
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '0.45rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#334155',
-              borderRadius: '50%'
-            }}
-          >
-            <Menu size={22} />
-          </button>
-        )}
       </div>
     </header>
   );
