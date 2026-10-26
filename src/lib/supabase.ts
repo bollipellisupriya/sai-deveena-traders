@@ -1,10 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const rawUrl = import.meta.env.VITE_SUPABASE_URL;
-const rawAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Primary project public credentials (used directly in production/Vercel without requiring local .env setup)
+const DEFAULT_SUPABASE_URL = 'https://ypeeiwlwegfnocvayxdv.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_KqbSxte-ZIhzAKxtG8k1hQ_bshSTu12';
 
-export const supabaseUrl = (typeof rawUrl === 'string' ? rawUrl : '').trim();
-export const supabaseAnonKey = (typeof rawAnonKey === 'string' ? rawAnonKey : '').trim();
+const rawUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const rawAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+
+export const supabaseUrl = (typeof rawUrl === 'string' ? rawUrl : DEFAULT_SUPABASE_URL).trim();
+export const supabaseAnonKey = (typeof rawAnonKey === 'string' ? rawAnonKey : DEFAULT_SUPABASE_ANON_KEY).trim();
 
 export interface SupabaseConfigStatus {
   isConfigured: boolean;
