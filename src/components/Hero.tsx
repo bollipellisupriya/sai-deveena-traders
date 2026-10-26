@@ -1,384 +1,379 @@
-import React from 'react';
-import { Sprout, Phone, MessageCircle, Store, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Sprout, ArrowRight, Sparkles, ShieldCheck, Leaf, ShoppingBag } from 'lucide-react';
 import type { Language } from '../types';
-import { translations } from '../translations';
-import { getPhoneDialUrl, getGeneralWhatsappUrl } from '../utils/whatsapp';
 
-interface HeroProps {
-  currentLang: Language;
-  onExploreClick: () => void;
-  onContactClick: () => void;
+export interface HeroProps {
+  currentLang?: Language;
+  onExploreClick?: () => void;
+  onContactClick?: () => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  currentLang,
+  currentLang = 'en',
   onExploreClick,
-  onContactClick
+  onContactClick,
+  className = '',
+  style = {}
 }) => {
-  const t = translations[currentLang];
-  const { url: phoneUrl, isConfigured: isPhoneReady } = getPhoneDialUrl();
-  const { url: whatsappUrl, isConfigured: isWhatsappReady } = getGeneralWhatsappUrl(currentLang);
+  const isTe = currentLang === 'te';
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [videoError, setVideoError] = useState<boolean>(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState<boolean>(false);
+
+  // Check prefers-reduced-motion to avoid unwanted motion
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleMotionChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+    mediaQuery.addEventListener?.('change', handleMotionChange);
+    return () => mediaQuery.removeEventListener?.('change', handleMotionChange);
+  }, []);
+
+  // Control video play/pause based on prefers-reduced-motion
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (prefersReducedMotion) {
+      video.pause();
+    } else {
+      video.play().catch(() => {
+        // Browser autoplay restrictions may wait for user interaction; safe to catch
+      });
+    }
+  }, [prefersReducedMotion]);
+
+  // Navigate to product catalogue route
+  const handleExplore = () => {
+    if (onExploreClick) {
+      onExploreClick();
+      return;
+    }
+    // Router fallback: scroll to catalogue section or trigger hash route
+    const catalogueEl = document.getElementById('catalogue') || document.getElementById('categories');
+    if (catalogueEl) {
+      catalogueEl.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.hash = '#categories';
+    }
+  };
 
   return (
-    <section id="hero" style={{
-      position: 'relative',
-      background: 'linear-gradient(180deg, #f0fdf4 0%, #ffffff 70%, #fff7ed 100%)',
-      paddingTop: '3.5rem',
-      paddingBottom: '4.5rem',
-      borderBottom: '1px solid var(--border-light)',
-      overflow: 'hidden'
-    }}>
-      {/* Background Decorative Gradient Orbs */}
-      <div style={{
-        position: 'absolute',
-        top: '-15%',
-        right: '-5%',
-        width: '550px',
-        height: '550px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(254, 215, 170, 0.35) 0%, rgba(240, 253, 244, 0) 70%)',
-        pointerEvents: 'none'
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '-10%',
-        left: '-5%',
-        width: '500px',
-        height: '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(187, 247, 208, 0.4) 0%, rgba(240, 253, 244, 0) 70%)',
-        pointerEvents: 'none'
-      }} />
+    <section
+      id="hero"
+      className={`organic-hero-root ${className}`}
+      style={{
+        position: 'relative',
+        width: '100%',
+        backgroundColor: '#052e16',
+        borderRadius: '20px',
+        overflow: 'hidden',
+        boxShadow: '0 16px 40px -10px rgba(5, 46, 22, 0.45), 0 0 0 1px rgba(74, 222, 128, 0.15)',
+        color: '#ffffff',
+        isolation: 'isolate',
+        ...style
+      }}
+    >
+      {/* 1. LAYER 0: Rich Static Fallback Poster & Deep Forest-Green Tone Backdrop */}
+      <div
+        className="hero-fallback-backdrop"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          background: 'linear-gradient(135deg, #052e16 0%, #0f3d20 50%, #14532d 100%)',
+          backgroundImage: 'radial-gradient(circle at 85% 15%, rgba(74, 222, 128, 0.18) 0%, transparent 50%), radial-gradient(circle at 15% 85%, rgba(22, 163, 74, 0.25) 0%, transparent 60%), url("/images/banner.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundBlendMode: 'overlay',
+          opacity: 1
+        }}
+      />
 
-      <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '3rem',
-          alignItems: 'center',
-          marginBottom: '3.5rem'
-        }}>
-          {/* Left Column: Headlines & Call to Actions */}
-          <div>
-            {/* Top Badge */}
-            <div style={{
+      {/* 2. LAYER 1: 3D Organic Background Video */}
+      {!prefersReducedMotion && (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/images/banner.jpg"
+          onLoadedData={() => setIsVideoLoaded(true)}
+          onError={() => setVideoError(true)}
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '100%',
+            height: '100%',
+            minWidth: '100%',
+            minHeight: '100%',
+            transform: 'translate(-50%, -50%)',
+            objectFit: 'cover',
+            pointerEvents: 'none',
+            zIndex: 1,
+            opacity: isVideoLoaded && !videoError ? 1 : 0,
+            transition: 'opacity 0.8s ease-in-out'
+          }}
+        >
+          <source src="/videos/organic-vegetables-bg.mp4" type="video/mp4" />
+        </video>
+      )}
+
+      {/* 3. LAYER 2: Cinematic Deep Forest-Green Dark Gradient Overlay for Maximum Legibility & 3D Depth */}
+      <div
+        className="hero-cinematic-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: 'none',
+          background: 'linear-gradient(180deg, rgba(5, 46, 22, 0.82) 0%, rgba(5, 46, 22, 0.65) 45%, rgba(5, 46, 22, 0.90) 100%)'
+        }}
+      />
+      <div
+        className="hero-vignette-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: 'none',
+          background: 'radial-gradient(circle at center, rgba(5, 46, 22, 0.2) 0%, rgba(5, 46, 22, 0.8) 100%)'
+        }}
+      />
+
+      {/* 4. LAYER 3: Interactive Foreground Content */}
+      <div
+        className="hero-content-wrapper"
+        style={{
+          position: 'relative',
+          zIndex: 3,
+          padding: '1.25rem 1.1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          minHeight: '210px'
+        }}
+      >
+        {/* Brand & Organic Trust Badge */}
+        <div
+          className="hero-pill-badge"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.28rem 0.75rem',
+            backgroundColor: 'rgba(5, 46, 22, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(74, 222, 128, 0.4)',
+            borderRadius: '9999px',
+            color: '#dcfce7',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            letterSpacing: '0.02em',
+            marginBottom: '0.65rem',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+            alignSelf: 'flex-start'
+          }}
+        >
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: '#4ade80',
+              boxShadow: '0 0 8px #4ade80',
+              display: 'inline-block'
+            }}
+          />
+          <Leaf size={12} style={{ color: '#4ade80' }} />
+          <span>{isTe ? '100% సహజసిద్ధ తాజా ఉత్పత్తులు' : '100% Farm Fresh & Organic'}</span>
+        </div>
+
+        {/* Main Heading: Crisp White with Fresh-Green Highlight */}
+        <h1
+          className="hero-heading"
+          style={{
+            fontSize: 'clamp(1.22rem, 3.8vw, 1.85rem)',
+            fontWeight: 900,
+            color: '#ffffff',
+            lineHeight: 1.25,
+            letterSpacing: '-0.02em',
+            marginBottom: '0.5rem',
+            textShadow: '0 2px 12px rgba(0, 0, 0, 0.6)'
+          }}
+        >
+          {isTe ? (
+            <>
+              ప్రకృతి నుండి మీ ఇంటికి <span style={{ color: '#4ade80', textShadow: '0 0 16px rgba(74, 222, 128, 0.5)' }}>స్వచ్ఛమైన తాజాదనం</span>
+            </>
+          ) : (
+            <>
+              Freshness from <span style={{ color: '#4ade80', textShadow: '0 0 16px rgba(74, 222, 128, 0.5)' }}>Nature</span> to Your Table
+            </>
+          )}
+        </h1>
+
+        {/* Hero Description */}
+        <p
+          className="hero-description"
+          style={{
+            fontSize: 'clamp(0.78rem, 1.8vw, 0.9rem)',
+            color: '#f0fdf4',
+            lineHeight: 1.45,
+            fontWeight: 500,
+            marginBottom: '0.95rem',
+            maxWidth: '520px',
+            textShadow: '0 1px 8px rgba(0, 0, 0, 0.65)'
+          }}
+        >
+          {isTe
+            ? 'తాజా కూరగాయలతో ప్రతిరోజూ ఆరోగ్యకరమైన మరియు స్వచ్ఛమైన ఆహారాన్ని పొందండి.'
+            : 'Discover fresh vegetables and bring the goodness of nature into your everyday meals.'}
+        </p>
+
+        {/* Hero Actions Row */}
+        <div
+          className="hero-actions-row"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.65rem'
+          }}
+        >
+          {/* Main Action Button: Explore Fresh Vegetables */}
+          <button
+            onClick={handleExplore}
+            className="hero-btn-primary"
+            style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.5rem',
-              padding: '0.45rem 1.1rem',
-              backgroundColor: 'white',
-              border: '1.5px solid var(--primary-300)',
-              borderRadius: 'var(--radius-full)',
-              color: 'var(--primary-900)',
-              fontSize: '0.85rem',
+              backgroundColor: '#16a34a',
+              backgroundImage: 'linear-gradient(135deg, #22c55e 0%, #16a34a 55%, #15803d 100%)',
+              color: '#ffffff',
+              border: '1px solid rgba(134, 239, 172, 0.45)',
+              borderRadius: '9999px',
+              padding: '0.72rem 1.45rem',
+              fontSize: '0.9rem',
               fontWeight: 800,
-              marginBottom: '1.25rem',
-              boxShadow: '0 4px 12px rgba(22, 101, 52, 0.08)'
-            }}>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#ea580c',
-                display: 'inline-block'
-              }} />
-              <span>{t.hero.badge}</span>
-            </div>
+              cursor: 'pointer',
+              boxShadow: '0 8px 24px -4px rgba(22, 163, 74, 0.55), 0 0 16px rgba(74, 222, 128, 0.35)',
+              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              position: 'relative',
+              zIndex: 4
+            }}
+          >
+            <Sprout size={18} />
+            <span>{isTe ? 'తాజా కూరగాయలను చూడండి' : 'Explore Fresh Vegetables'}</span>
+            <ArrowRight size={16} />
+          </button>
 
-            {/* Main Headline with Brand Gradient */}
-            <h1 style={{
-              fontSize: 'clamp(2.1rem, 4.5vw, 3.4rem)',
-              fontWeight: 900,
-              color: 'var(--primary-950)',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.18,
-              marginBottom: '1.25rem'
-            }}>
-              {currentLang === 'te' ? (
-                <>
-                  మంచి పంట దిగుబడికి <span style={{ color: '#ea580c' }}>నమ్మకమైన</span> వ్యవసాయ ఉత్పత్తులు
-                </>
-              ) : (
-                <>
-                  Quality Agricultural Products for <span style={{ color: '#ea580c' }}>Better Crop Yields</span>
-                </>
-              )}
-            </h1>
-
-            {/* Subtitle */}
-            <p style={{
-              fontSize: 'clamp(1.02rem, 2vw, 1.18rem)',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.65,
-              marginBottom: '2rem',
-              maxWidth: '620px'
-            }}>
-              {t.hero.subtitle}
-            </p>
-
-            {/* CTAs Row */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '0.85rem',
-              marginBottom: '2.5rem'
-            }}>
-              <button
-                onClick={onExploreClick}
-                className="btn btn-primary"
-                style={{
-                  fontSize: '1rem',
-                  padding: '0.9rem 1.85rem'
-                }}
-              >
-                <Sprout size={20} />
-                <span>{t.hero.exploreBtn}</span>
-                <ArrowRight size={17} />
-              </button>
-
-              <a
-                href={whatsappUrl}
-                target={isWhatsappReady ? "_blank" : undefined}
-                rel={isWhatsappReady ? "noopener noreferrer" : undefined}
-                className="btn btn-whatsapp"
-                style={{
-                  fontSize: '1rem',
-                  padding: '0.9rem 1.6rem'
-                }}
-                onClick={(e) => {
-                  if (!isWhatsappReady) {
-                    e.preventDefault();
-                    onContactClick();
-                  }
-                }}
-              >
-                <MessageCircle size={19} />
-                <span>{t.hero.whatsappBtn}</span>
-              </a>
-
-              <a
-                href={phoneUrl}
-                className="btn btn-secondary"
-                style={{
-                  fontSize: '1rem',
-                  padding: '0.9rem 1.45rem'
-                }}
-                onClick={(e) => {
-                  if (!isPhoneReady) {
-                    e.preventDefault();
-                    onContactClick();
-                  }
-                }}
-              >
-                <Phone size={18} style={{ color: 'var(--primary-700)' }} />
-                <span>{t.hero.callBtn}</span>
-              </a>
-            </div>
-
-            {/* Live Stats Row */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1.5rem',
-              paddingTop: '1.25rem',
-              borderTop: '1px solid rgba(226, 232, 240, 0.8)'
-            }}>
-              <div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-900)' }}>
-                  30+
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {currentLang === 'te' ? 'రైతు ఉత్పత్తులు' : 'Quality Products'}
-                </div>
-              </div>
-              <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--border-light)' }} />
-              <div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ea580c' }}>
-                  100%
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {currentLang === 'te' ? 'అసలైన బ్రాండ్లు' : 'Genuine Brands'}
-                </div>
-              </div>
-              <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--border-light)' }} />
-              <div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-900)' }}>
-                  భైంసా
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {currentLang === 'te' ? 'స్థానిక సేవలు' : 'Bhainsa & Villages'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Hero Showcase featuring Official Logo */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            position: 'relative'
-          }}>
-            {/* Glow backing */}
-            <div style={{
-              position: 'absolute',
-              width: '320px',
-              height: '320px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(234, 88, 12, 0.2) 0%, rgba(22, 163, 74, 0.25) 50%, transparent 70%)',
-              filter: 'blur(35px)',
-              zIndex: 1
-            }} />
-
-            {/* Main Showcase Card */}
-            <div
-              className="card animate-float"
+          {/* Secondary Quick Contact Button if provided */}
+          {onContactClick && (
+            <button
+              onClick={onContactClick}
+              className="hero-btn-secondary"
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '9999px',
+                padding: '0.72rem 1.15rem',
+                fontSize: '0.86rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
                 position: 'relative',
-                zIndex: 2,
-                maxWidth: '420px',
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)',
-                padding: '2rem 1.75rem',
-                borderRadius: 'var(--radius-lg)',
-                border: '2px solid rgba(254, 215, 170, 0.8)',
-                boxShadow: '0 20px 45px -10px rgba(22, 101, 52, 0.15), 0 0 25px rgba(234, 88, 12, 0.1)',
-                textAlign: 'center'
+                zIndex: 4
               }}
             >
-              {/* Circular Emblem Image Container */}
-              <div style={{
-                width: '190px',
-                height: '190px',
-                margin: '0 auto 1.25rem',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                backgroundColor: 'white',
-                boxShadow: '0 10px 25px rgba(22, 101, 52, 0.2), 0 0 0 4px #ffedd5',
-                padding: '4px'
-              }}>
-                <img
-                  src="/logo-icon.png"
-                  alt="Sai Deveena Traders Official Logo"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    borderRadius: '50%'
-                  }}
-                />
-              </div>
-
-              {/* Tagline Badge from logo */}
-              <div style={{
-                display: 'inline-block',
-                padding: '0.45rem 1rem',
-                backgroundColor: '#fff7ed',
-                border: '1px solid #fed7aa',
-                borderRadius: 'var(--radius-full)',
-                color: '#9a3412',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                letterSpacing: '0.04em',
-                marginBottom: '1rem',
-                textTransform: 'uppercase'
-              }}>
-                QUALITY SEEDS • PREMIUM FERTILIZERS • BETTER YIELDS
-              </div>
-
-              <div style={{
-                fontSize: '0.92rem',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-                fontWeight: 500
-              }}>
-                {currentLang === 'te' 
-                  ? 'భైంసా మరియు పరిసర గ్రామాల రైతులకు నమ్మకమైన వ్యవసాయ భాగస్వామి.' 
-                  : 'Your dedicated agricultural partner in Bhainsa, Telangana.'}
-              </div>
-
-              {/* Bottom Quick Callout */}
-              <div style={{
-                marginTop: '1.25rem',
-                paddingTop: '1rem',
-                borderTop: '1px dashed var(--border-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                color: '#15803d',
-                fontSize: '0.85rem',
-                fontWeight: 700
-              }}>
-                <ShieldCheck size={17} style={{ color: '#ea580c' }} />
-                <span>
-                  {currentLang === 'te' ? 'ప్రత్యక్ష సంప్రదింపులు & దుకాణం వద్ద లభ్యం' : 'Direct Call & Shop Pickup in Bhainsa'}
-                </span>
-              </div>
-            </div>
-          </div>
+              <Sparkles size={16} style={{ color: '#4ade80' }} />
+              <span>{isTe ? 'సంప్రదించండి' : 'Quick Contact'}</span>
+            </button>
+          )}
         </div>
 
-        {/* 3 Pillar Cards for Farmers */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '1.5rem',
-          textAlign: 'left'
-        }}>
-          {t.hero.features.map((feature, idx) => (
-            <div
-              key={idx}
-              className="card"
-              style={{
-                backgroundColor: 'white',
-                padding: '1.5rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1.5px solid var(--border-light)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '1rem'
-              }}
-            >
-              <div style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: idx === 1 ? '#ffedd5' : 'var(--primary-100)',
-                color: idx === 1 ? '#ea580c' : 'var(--primary-800)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: 'var(--shadow-xs)'
-              }}>
-                {idx === 0 && <Sprout size={24} />}
-                {idx === 1 && <Sparkles size={24} />}
-                {idx === 2 && <Store size={24} />}
-              </div>
-              <div>
-                <h2 style={{
-                  fontSize: '1.05rem',
-                  fontWeight: 800,
-                  color: 'var(--primary-950)',
-                  marginBottom: '0.3rem'
-                }}>
-                  {feature.title}
-                </h2>
-                <p style={{
-                  fontSize: '0.86rem',
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.5
-                }}>
-                  {feature.desc}
-                </p>
-              </div>
-            </div>
-          ))}
+        {/* 3D Depth Micro Features */}
+        <div
+          className="hero-features-chips"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginTop: '1.25rem',
+            paddingTop: '0.85rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.15)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#dcfce7', fontWeight: 600 }}>
+            <ShieldCheck size={14} style={{ color: '#4ade80' }} />
+            <span>{isTe ? 'ధృవీకరించబడిన నాణ్యత' : 'Direct Farm Harvest'}</span>
+          </div>
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.4)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#dcfce7', fontWeight: 600 }}>
+            <ShoppingBag size={14} style={{ color: '#4ade80' }} />
+            <span>{isTe ? 'సులభమైన ఆర్డర్' : 'Same-Day Dispatch'}</span>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        .organic-hero-root {
+          transform: translateZ(0);
+        }
+        .hero-btn-primary:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 12px 28px -4px rgba(22, 163, 74, 0.7), 0 0 24px rgba(74, 222, 128, 0.5) !important;
+          background-image: linear-gradient(135deg, #4ade80 0%, #22c55e 55%, #15803d 100%) !important;
+        }
+        .hero-btn-primary:active {
+          transform: translateY(0) scale(0.99);
+        }
+        .hero-btn-secondary:hover {
+          background-color: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(74, 222, 128, 0.5) !important;
+          transform: translateY(-1px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .organic-hero-root video {
+            display: none !important;
+          }
+          .hero-btn-primary, .hero-btn-secondary {
+            transition: none !important;
+            transform: none !important;
+          }
+        }
+        @media (min-width: 640px) {
+          .hero-content-wrapper {
+            padding: 2.75rem 2rem !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };
+
+export default Hero;

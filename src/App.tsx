@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { CatalogData, Product, Language } from './types';
+import type { CatalogData, Product, Language, PendingCustomerAction, CustomerEnquiry } from './types';
 import { MobileHeader } from './components/mobile/MobileHeader';
 import { MobileBottomNav, type TabType } from './components/mobile/MobileBottomNav';
 import { MobileHomeScreen } from './components/mobile/MobileHomeScreen';
@@ -8,8 +8,11 @@ import { MobileProductDetailScreen } from './components/mobile/MobileProductDeta
 import { MobileOrdersScreen } from './components/mobile/MobileOrdersScreen';
 import { MobileProfileScreen } from './components/mobile/MobileProfileScreen';
 import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
+import { CustomerEnquiryModal } from './components/mobile/CustomerEnquiryModal';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import AdminApp from './admin/AdminApp';
+import { catalogService } from './services/catalogService';
+import { shopConfig } from './config/shopConfig';
 
 export function App() {
   // Admin Route detection (/admin or #admin)
@@ -51,6 +54,57 @@ export function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
+  // Customer Enquiry Modal State (No customer login, passwords, or OTP required)
+  const [enquiryModalState, setEnquiryModalState] = useState<{
+    isOpen: boolean;
+    pendingAction: PendingCustomerAction | null;
+  }>({
+    isOpen: false,
+    pendingAction: null
+  });
+
+  // Intercept Call / WhatsApp action: open customer enquiry form
+  const handleCustomerAction = useCallback((action: 'call' | 'whatsapp', product?: Product, customText?: string) => {
+    setEnquiryModalState({
+      isOpen: true,
+      pendingAction: {
+        type: action,
+        product,
+        customText
+      }
+    });
+  }, []);
+
+  // Once enquiry is successfully saved into Supabase:
+  const handleEnquirySuccess = useCallback((
+    enquiry: CustomerEnquiry,
+    action: 'call' | 'whatsapp',
+    product?: Product,
+    customText?: string
+  ) => {
+    if (action === 'call') {
+      window.location.href = `tel:${shopConfig.phoneNumber.replace(/[^\d+]/g, '')}`;
+      return;
+    }
+
+    if (action === 'whatsapp') {
+      const refId = enquiry.id ? `#ENQ-${enquiry.id.slice(0, 8).toUpperCase()}` : 'Enquiry';
+      const teluguPart = product?.name?.te ? ` (${product.name.te})` : '';
+      const englishPart = product?.name?.en || 'Store Item';
+      const productSnippet = product
+        ? `\n- Product: ${englishPart}${teluguPart}\n- Price: ₹${product.price}`
+        : '';
+      const customPart = customText ? `\n- Details: ${customText}` : '';
+
+      // Strict Security: Never include customer's email or full address in the public WhatsApp URL
+      const text = encodeURIComponent(
+        `Hello Sai Deveena Traders,\nI submitted an enquiry (${refId}):${productSnippet}${customPart}\n- Name: ${enquiry.name}\n- Village: ${enquiry.villageCity}\n\nPlease confirm product availability and delivery.`
+      );
+      const cleanWaNum = shopConfig.whatsappNumber.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanWaNum}?text=${text}`, '_blank');
+    }
+  }, []);
+
   // Update language and body attribute
   const handleLanguageChange = (lang: Language) => {
     setCurrentLang(lang);
@@ -64,20 +118,16 @@ export function App() {
     document.body.setAttribute('lang', currentLang);
   }, [currentLang]);
 
-  // Fetch catalog.json
+  // Fetch live catalog from Supabase (starts with empty database catalog)
   const fetchCatalog = useCallback(async () => {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const response = await fetch(`/catalog.json?v=${Date.now()}`);
-      if (!response.ok) {
-        throw new Error(`Failed to load catalog (HTTP ${response.status})`);
-      }
-      const data: CatalogData = await response.json();
-      setCatalog(data);
+      const liveCatalog = await catalogService.fetchPublicCatalog();
+      setCatalog(liveCatalog);
     } catch (err: any) {
-      console.error('Error fetching catalog:', err);
-      setLoadError(err.message || 'Unknown network error');
+      console.error('Error fetching live catalog from Supabase:', err);
+      setLoadError(err.message || 'Failed to load catalogue from database');
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +198,9 @@ export function App() {
         onExitToStore={() => {
           setIsAdminRoute(false);
           window.history.pushState(null, '', '/');
+          fetchCatalog();
         }}
+        onRefreshCatalog={fetchCatalog}
       />
     );
   }
@@ -169,8 +221,9 @@ export function App() {
         backgroundColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 0 45px rgba(0, 0, 0, 0.1)',
-        position: 'relative'
+        boxShadow: '0 0 30px rgba(0, 0, 0, 0.08)',
+        position: 'relative',
+        overflowX: 'hidden'
       }}>
         {/* Loading State */}
         {isLoading && (
@@ -227,6 +280,9 @@ export function App() {
                 }
               }}
               onOpenMenu={() => setIsDrawerOpen(true)}
+              currentLang={currentLang}
+              onLanguageChange={handleLanguageChange}
+              onCallStore={() => handleCustomerAction('call')}
             />
 
             {/* Screen Content Area */}
@@ -240,6 +296,7 @@ export function App() {
                   onSelectProduct={(p) => setSelectedProduct(p)}
                   wishlist={wishlist}
                   onToggleWishlist={handleToggleWishlist}
+                  onCustomerAction={handleCustomerAction}
                 />
               ) : activeTab === 'categories' ? (
                 // Screen 2: Categories View (Shows ALL categories first, or drilled-down products)
@@ -252,6 +309,7 @@ export function App() {
                   onSelectProduct={(p) => setSelectedProduct(p)}
                   wishlist={wishlist}
                   onToggleWishlist={handleToggleWishlist}
+                  onCustomerAction={handleCustomerAction}
                 />
               ) : activeTab === 'orders' ? (
                 // Orders View (Completed Orders & WhatsApp/Call list)
@@ -292,6 +350,7 @@ export function App() {
                   }}
                   wishlist={wishlist}
                   onToggleWishlist={handleToggleWishlist}
+                  onCustomerAction={handleCustomerAction}
                 />
               )}
             </main>
@@ -319,6 +378,15 @@ export function App() {
                 setIsAdminRoute(true);
                 window.history.pushState(null, '', '/admin');
               }}
+            />
+
+            {/* Customer Product & Store Enquiry Modal */}
+            <CustomerEnquiryModal
+              isOpen={enquiryModalState.isOpen}
+              onClose={() => setEnquiryModalState({ isOpen: false, pendingAction: null })}
+              pendingAction={enquiryModalState.pendingAction}
+              currentLang={currentLang}
+              onSuccess={handleEnquirySuccess}
             />
           </>
         )}

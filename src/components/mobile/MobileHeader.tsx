@@ -1,11 +1,15 @@
 import React from 'react';
-import { Menu, ArrowLeft } from 'lucide-react';
+import { Menu, ArrowLeft, Languages, Phone } from 'lucide-react';
+import type { Language } from '../../types';
 
 interface MobileHeaderProps {
   title?: string;
   showBack?: boolean;
   onBack?: () => void;
   onOpenMenu: () => void;
+  currentLang?: Language;
+  onLanguageChange?: (lang: Language) => void;
+  onCallStore?: () => void;
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
@@ -13,7 +17,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   showBack = false,
   onBack,
   onOpenMenu,
+  currentLang = 'en',
+  onLanguageChange,
+  onCallStore,
 }) => {
+  const isTe = currentLang === 'te';
+
   return (
     <header style={{
       position: 'sticky',
@@ -21,7 +30,10 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       zIndex: 50,
       backgroundColor: '#ffffff',
       borderBottom: '1px solid #f1f5f9',
-      padding: '0.65rem 1rem',
+      paddingTop: 'calc(0.65rem + env(safe-area-inset-top, 0px))',
+      paddingBottom: '0.65rem',
+      paddingLeft: '1rem',
+      paddingRight: '1rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -47,7 +59,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <ArrowLeft size={22} />
           </button>
           <h1 style={{
-            fontSize: '1.15rem',
+            fontSize: '1.12rem',
             fontWeight: 800,
             color: '#0f172a',
             margin: 0,
@@ -61,10 +73,10 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          {/* Circular Logo Emblem without cut S */}
+          {/* Circular Logo Emblem */}
           <div style={{
-            width: '42px',
-            height: '42px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#ffffff',
@@ -88,7 +100,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               alignItems: 'baseline',
               gap: '0.25rem',
               fontWeight: 900,
-              fontSize: '1.05rem',
+              fontSize: '1rem',
               letterSpacing: '-0.02em',
               lineHeight: 1.15
             }}>
@@ -96,37 +108,93 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               <span style={{ color: '#ea580c' }}>DEVEENA</span>
             </div>
             <div style={{
-              fontSize: '0.58rem',
+              fontSize: '0.56rem',
               fontWeight: 800,
               color: '#64748b',
               letterSpacing: '0.04em',
               lineHeight: 1.1,
               marginTop: '1px'
             }}>
-              TRADERS & GENERAL STORE
+              TRADERS • BHAINSA
             </div>
           </div>
         </div>
       )}
 
-      {/* Right Action: Clean Menu Drawer button only */}
-      <button
-        onClick={onOpenMenu}
-        aria-label="Menu"
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '0.45rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: '#334155',
-          borderRadius: '50%'
-        }}
-      >
-        <Menu size={23} />
-      </button>
+      {/* Right Actions: Language Switcher, Quick Call, and Menu Drawer */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {/* Compact 1-Tap Language Pill */}
+        {onLanguageChange && (
+          <button
+            type="button"
+            onClick={() => onLanguageChange(isTe ? 'en' : 'te')}
+            aria-label="Switch Language"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              padding: '0.3rem 0.55rem',
+              borderRadius: '9999px',
+              backgroundColor: isTe ? '#ecfdf5' : '#f0fdf4',
+              border: '1px solid #86efac',
+              color: '#15803d',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              lineHeight: 1
+            }}
+          >
+            <Languages size={13} style={{ color: '#15803d' }} />
+            <span>{isTe ? 'ENG' : 'తెలుగు'}</span>
+          </button>
+        )}
+
+        {/* Quick Phone Call Button */}
+        <a
+          href="tel:9010454541"
+          onClick={(e) => {
+            if (onCallStore) {
+              e.preventDefault();
+              onCallStore();
+            }
+          }}
+          aria-label="Call Sai Deveena Traders"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#15803d',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textDecoration: 'none'
+          }}
+        >
+          <Phone size={15} />
+        </a>
+
+        {/* Menu Drawer Toggle Button */}
+        <button
+          onClick={onOpenMenu}
+          aria-label="Menu"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '0.35rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#334155',
+            borderRadius: '50%'
+          }}
+        >
+          <Menu size={22} />
+        </button>
+      </div>
     </header>
   );
 };
+

@@ -13,7 +13,9 @@ const TAB_TITLES: Record<AdminTab, { title: string; subtitle: string }> = {
   products: { title: 'Product Catalog Management', subtitle: 'View, filter, and prepare products for database sync' },
   categories: { title: 'Category Organization', subtitle: 'Manage agricultural departments & customer grouping' },
   inventory: { title: 'Inventory & Stock Control', subtitle: 'Stock availability, out-of-stock toggles & price tracking' },
-  orders: { title: 'Customer Inquiries & Orders', subtitle: 'Track direct WhatsApp and phone orders from farmers' },
+  enquiries: { title: 'Customer Product Enquiries', subtitle: 'Review and respond to customer Call & WhatsApp enquiries' },
+  orders: { title: 'Live Orders Management', subtitle: 'Track customer orders, update statuses & record offline sales' },
+  customers: { title: 'Customer Accounts & History', subtitle: 'Manage registered farmers, account statuses & purchase histories' },
   settings: { title: 'Store & Backend Settings', subtitle: 'Shop configuration, contact details & Supabase readiness' }
 };
 

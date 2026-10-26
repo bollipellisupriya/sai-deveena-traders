@@ -21,22 +21,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     {
       id: 'home',
       label: isTe ? 'హోమ్' : 'Home',
-      icon: <Home size={22} />
+      icon: <Home size={21} />
     },
     {
       id: 'categories',
       label: isTe ? 'విభాగాలు' : 'Categories',
-      icon: <LayoutGrid size={22} />
+      icon: <LayoutGrid size={21} />
     },
     {
       id: 'orders',
       label: isTe ? 'ఆర్డర్లు' : 'Orders',
-      icon: <ShoppingBag size={22} />
+      icon: <ShoppingBag size={21} />
     },
     {
       id: 'profile',
       label: isTe ? 'ప్రొఫైల్' : 'Profile',
-      icon: <User size={22} />
+      icon: <User size={21} />
     }
   ];
 
@@ -46,18 +46,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       style={{
         position: 'fixed',
         bottom: 0,
-        left: 0,
-        right: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '100%',
+        maxWidth: '480px',
         zIndex: 60,
         backgroundColor: '#ffffff',
         borderTop: '1px solid #e2e8f0',
-        boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.07)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
-        padding: '0.45rem 0.5rem 0.65rem',
-        maxWidth: '100%',
-        margin: '0 auto'
+        paddingTop: '0.4rem',
+        paddingBottom: 'calc(0.55rem + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: '0.5rem',
+        paddingRight: '0.5rem',
+        boxSizing: 'border-box'
       }}
     >
       {tabs.map((tab) => {
@@ -72,26 +76,35 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.2rem',
+              gap: '0.15rem',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: isActive ? '#15803d' : '#94a3b8',
-              padding: '0.25rem 0.75rem',
-              transition: 'color 0.2s ease, transform 0.15s ease',
-              flex: 1
+              color: isActive ? '#15803d' : '#64748b',
+              padding: '0.2rem 0.4rem',
+              transition: 'all 0.15s ease',
+              flex: 1,
+              minHeight: '44px',
+              WebkitTapHighlightColor: 'transparent'
             }}
           >
             <div style={{
-              transform: isActive ? 'scale(1.08)' : 'scale(1)',
-              transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '3px 12px',
+              borderRadius: '9999px',
+              backgroundColor: isActive ? 'rgba(21, 128, 61, 0.12)' : 'transparent',
+              transition: 'background-color 0.2s ease, transform 0.15s ease',
+              transform: isActive ? 'scale(1.04)' : 'scale(1)'
             }}>
               {tab.icon}
             </div>
             <span style={{
-              fontSize: '0.74rem',
+              fontSize: '0.72rem',
               fontWeight: isActive ? 800 : 600,
-              letterSpacing: '-0.01em'
+              letterSpacing: '-0.01em',
+              lineHeight: 1.15
             }}>
               {tab.label}
             </span>
@@ -101,3 +114,4 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     </nav>
   );
 };
+

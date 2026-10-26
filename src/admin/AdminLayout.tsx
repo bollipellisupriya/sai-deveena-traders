@@ -6,7 +6,9 @@ import { DashboardScreen } from './screens/DashboardScreen';
 import { ProductsScreen } from './screens/ProductsScreen';
 import { CategoriesScreen } from './screens/CategoriesScreen';
 import { InventoryScreen } from './screens/InventoryScreen';
+import { EnquiriesScreen } from './screens/EnquiriesScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
+import { CustomersScreen } from './screens/CustomersScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type { AdminTab } from './types';
 import type { CatalogData } from '../types';
@@ -15,12 +17,14 @@ interface AdminLayoutProps {
   catalog: CatalogData | null;
   onExitToStore: () => void;
   onLogout: () => void;
+  onRefreshCatalog?: () => void;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   catalog,
   onExitToStore,
-  onLogout
+  onLogout,
+  onRefreshCatalog
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,13 +34,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       case 'dashboard':
         return <DashboardScreen catalog={catalog} onNavigateTab={(tab) => setActiveTab(tab)} />;
       case 'products':
-        return <ProductsScreen catalog={catalog} />;
+        return <ProductsScreen catalog={catalog} onRefreshCatalog={onRefreshCatalog} />;
       case 'categories':
-        return <CategoriesScreen catalog={catalog} />;
+        return <CategoriesScreen catalog={catalog} onRefreshCatalog={onRefreshCatalog} />;
       case 'inventory':
-        return <InventoryScreen catalog={catalog} />;
+        return <InventoryScreen catalog={catalog} onRefreshCatalog={onRefreshCatalog} />;
+      case 'enquiries':
+        return <EnquiriesScreen />;
       case 'orders':
         return <OrdersScreen />;
+      case 'customers':
+        return <CustomersScreen />;
       case 'settings':
         return <SettingsScreen />;
       default:

@@ -1,14 +1,78 @@
 import React from 'react';
-import { Database, AlertTriangle } from 'lucide-react';
+import { Database, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { isSupabaseConfigured } from '../../lib/supabase';
 
 interface BackendStatusBannerProps {
   onLearnMore?: () => void;
 }
 
 export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLearnMore }) => {
+  const configured = isSupabaseConfigured();
+
+  if (configured) {
+    return (
+      <aside
+        aria-label="Backend status"
+        style={{
+          backgroundColor: '#f0fdf4',
+          borderBottom: '1px solid #bbf7d0',
+          color: '#166534',
+          padding: '0.45rem 1.25rem',
+          fontSize: '0.8rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          zIndex: 40
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 600 }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            backgroundColor: '#15803d',
+            color: '#ffffff',
+            padding: '0.15rem 0.5rem',
+            borderRadius: '9999px',
+            fontSize: '0.7rem',
+            fontWeight: 800,
+            letterSpacing: '0.03em'
+          }}>
+            <Database size={11} />
+            SUPABASE CONNECTED
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <CheckCircle2 size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
+            Live PostgreSQL catalog active with Row Level Security.
+          </span>
+        </div>
+
+        {onLearnMore && (
+          <button
+            onClick={onLearnMore}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#15803d',
+              fontSize: '0.76rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0
+            }}
+          >
+            System Settings →
+          </button>
+        )}
+      </aside>
+    );
+  }
+
   return (
     <aside
-      aria-label="Admin Phase 1 notice"
+      aria-label="Backend status"
       style={{
         backgroundColor: '#fef3c7',
         borderBottom: '1px solid #fde68a',
@@ -37,11 +101,11 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
           letterSpacing: '0.03em'
         }}>
           <Database size={12} />
-          PHASE 1 UI FOUNDATION
+          CONFIG REQUIRED
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <AlertTriangle size={15} style={{ color: '#d97706', flexShrink: 0 }} />
-          Database connection is pending (Phase 2 setup). You are viewing the UI layout with static catalog data.
+          Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) not detected.
         </span>
       </div>
 
@@ -59,7 +123,7 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
             padding: 0
           }}
         >
-          View Phase 2 Setup Guide →
+          View Configuration Guide →
         </button>
       )}
     </aside>

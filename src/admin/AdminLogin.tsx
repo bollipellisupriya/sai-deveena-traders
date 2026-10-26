@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Mail, ArrowRight, Store, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, Store, AlertTriangle, RefreshCw } from 'lucide-react';
+import { supabase, getSupabaseConfigStatus } from '../lib/supabase';
+import { catalogService } from '../services/catalogService';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -7,13 +9,62 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitToStore }) => {
-  const [email, setEmail] = useState('admin@saideevena.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const configStatus = getSupabaseConfigStatus();
+  const isConfigured = configStatus.isConfigured;
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Enters UI foundation preview mode (real Supabase auth in Phase 2)
-    onLoginSuccess();
+    setErrorMessage(null);
+
+    if (!configStatus.isConfigured) {
+      setErrorMessage(configStatus.message);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Authenticate with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      });
+
+      if (error) {
+        setErrorMessage(error.message || 'Invalid login credentials.');
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        setErrorMessage('Authentication succeeded but user record was not returned.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Enforce Administrator Role Check in public.admin_users
+      const isAdmin = await catalogService.verifyAdminSession();
+
+      if (!isAdmin) {
+        // Sign out unauthorized user immediately
+        await supabase.auth.signOut();
+        setErrorMessage('Access Denied: This account is authenticated but is not an active administrator in public.admin_users.');
+        setLoading(false);
+        return;
+      }
+
+      // 3. Admin verified successfully!
+      onLoginSuccess();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'An unexpected error occurred during login.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,30 +129,50 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
           </div>
         </div>
 
-        {/* Phase 1 Foundation Notice */}
-        <div style={{
-          backgroundColor: '#451a03',
-          border: '1px solid #78350f',
-          borderRadius: '12px',
-          padding: '0.85rem 1rem',
-          marginBottom: '1.5rem',
-          fontSize: '0.78rem',
-          color: '#fef3c7',
-          lineHeight: 1.5,
-          display: 'flex',
-          gap: '0.65rem'
-        }}>
-          <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <strong style={{ color: '#fbbf24' }}>Phase 1 UI Foundation:</strong>
-            <div style={{ marginTop: '0.2rem', color: '#fed7aa' }}>
-              Database & live Supabase authentication will be connected in Phase 2. You can click below to explore the complete admin layout.
+        {/* Error Notification Alert */}
+        {errorMessage && (
+          <div style={{
+            backgroundColor: '#450a0a',
+            border: '1px solid #7f1d1d',
+            borderRadius: '12px',
+            padding: '0.85rem 1rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.8rem',
+            color: '#fecaca',
+            lineHeight: 1.4,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.65rem'
+          }}>
+            <AlertTriangle size={17} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+            <div>{errorMessage}</div>
+          </div>
+        )}
+
+        {/* Environment configuration helper if anon key is not set yet */}
+        {!isConfigured && (
+          <div style={{
+            backgroundColor: '#451a03',
+            border: '1px solid #78350f',
+            borderRadius: '12px',
+            padding: '0.85rem 1rem',
+            marginBottom: '1.25rem',
+            fontSize: '0.78rem',
+            color: '#fef3c7',
+            lineHeight: 1.4,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.65rem'
+          }}>
+            <AlertTriangle size={17} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong>Database Setup Note:</strong> Set <code>VITE_SUPABASE_ANON_KEY</code> in your environment to authenticate live. You can still enter in <em>Preview Mode</em> below.
             </div>
           </div>
-        </div>
+        )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label style={{
               display: 'block',
@@ -110,14 +181,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
               color: '#cbd5e1',
               marginBottom: '0.45rem'
             }}>
-              Admin Email
+              Administrator Email
             </label>
             <div style={{ position: 'relative' }}>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                placeholder="admin@saideevena.com"
+                required={isConfigured}
+                disabled={loading}
                 style={{
                   width: '100%',
                   padding: '0.65rem 0.85rem 0.65rem 2.25rem',
@@ -149,7 +222,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                placeholder="••••••••••••"
+                required={isConfigured}
+                disabled={loading}
                 style={{
                   width: '100%',
                   padding: '0.65rem 0.85rem 0.65rem 2.25rem',
@@ -168,6 +243,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
 
           <button
             type="submit"
+            disabled={loading}
             style={{
               marginTop: '0.5rem',
               width: '100%',
@@ -178,17 +254,27 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
               padding: '0.75rem',
               fontSize: '0.9rem',
               fontWeight: 800,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.45rem',
               boxShadow: '0 4px 14px rgba(21, 128, 61, 0.4)',
-              transition: 'background-color 0.15s ease'
+              transition: 'background-color 0.15s ease',
+              opacity: loading ? 0.75 : 1
             }}
           >
-            <span>Enter Admin Dashboard (Preview)</span>
-            <ArrowRight size={16} />
+            {loading ? (
+              <>
+                <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                <span>Verifying Administrator...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In to Admin Portal</span>
+                <ArrowRight size={16} />
+              </>
+            )}
           </button>
         </form>
 

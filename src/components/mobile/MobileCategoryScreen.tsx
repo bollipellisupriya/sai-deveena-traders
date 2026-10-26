@@ -11,6 +11,7 @@ interface MobileCategoryScreenProps {
   onSelectProduct: (product: Product) => void;
   wishlist: Set<string>;
   onToggleWishlist: (productId: string) => void;
+  onCustomerAction?: (action: 'call' | 'whatsapp', product?: Product, customText?: string) => void;
 }
 
 export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
@@ -21,7 +22,8 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
   currentLang,
   onSelectProduct,
   wishlist,
-  onToggleWishlist
+  onToggleWishlist,
+  onCustomerAction
 }) => {
   const [selectedSubCat, setSelectedSubCat] = useState<string>('All');
   const isTe = currentLang === 'te';
@@ -48,13 +50,17 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
     });
   }, [products, selectedCategory, selectedSubCat]);
 
-  // Quick WhatsApp order
+  // Quick WhatsApp order (guarded by Supabase phone auth)
   const handleQuickOrder = (prod: Product, e: React.MouseEvent) => {
     e.stopPropagation();
-    const text = encodeURIComponent(
-      `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery.`
-    );
-    window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
+    if (onCustomerAction) {
+      onCustomerAction('whatsapp', prod);
+    } else {
+      const text = encodeURIComponent(
+        `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery.`
+      );
+      window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
+    }
   };
 
   // ==========================================
@@ -62,7 +68,11 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
   // ==========================================
   if (!selectedCategory) {
     return (
-      <div style={{ paddingBottom: '6rem', backgroundColor: '#f8fafc' }}>
+      <div style={{
+        paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+        backgroundColor: '#f8fafc',
+        overflowX: 'hidden'
+      }}>
         {/* Top Header Banner */}
         <div style={{ padding: '0.85rem 1rem 0.5rem' }}>
           <div style={{
@@ -121,51 +131,72 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
 
         {/* Categories List Cards */}
         <div style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {categories.map((cat) => {
-            const count = products.filter(p => p.category === cat.id).length;
-            const catName = cat.name[currentLang] || cat.name.en;
-            const catDesc = cat.description?.[currentLang] || cat.description?.en || '';
+          {categories.length === 0 ? (
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              padding: '3rem 1.5rem',
+              textAlign: 'center',
+              color: '#64748b'
+            }}>
+              <Sparkles size={28} style={{ color: '#ea580c', margin: '0 auto 0.5rem' }} />
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>
+                {isTe ? 'విభాగాలు త్వరలో అందుబాటులోకి వస్తాయి' : 'Categories Arriving Soon'}
+              </div>
+              <p style={{ fontSize: '0.8rem', margin: 0 }}>
+                {isTe ? 'సాయి దీవెన ట్రేడర్స్ కొత్త ఉత్పత్తుల విభాగాలను నమోదు చేస్తోంది.' : 'Store departments are being updated live from Supabase.'}
+              </p>
+            </div>
+          ) : (
+            categories.map((cat) => {
+              const count = products.filter(p => p.category === cat.id).length;
+              const catName = cat.name[currentLang] || cat.name.en;
+              const catDesc = cat.description?.[currentLang] || cat.description?.en || '';
 
-            return (
-              <div
-                key={cat.id}
-                onClick={() => {
-                  onSelectCategory(cat.id);
-                  setSelectedSubCat('All');
-                }}
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '16px',
-                  border: '1.5px solid #e2e8f0',
-                  padding: '0.85rem 1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.95rem',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-                  cursor: 'pointer',
-                  transition: 'transform 0.15s ease, border-color 0.15s ease'
-                }}
-              >
-                {/* Category Visual Avatar */}
-                <div style={{
-                  width: '58px',
-                  height: '58px',
-                  borderRadius: '14px',
-                  backgroundColor: '#f0fdf4',
-                  border: '1.5px solid #bbf7d0',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(22, 101, 52, 0.1)'
-                }}>
-                  <img
-                    src={cat.image || '/images/categories/quick-seeds.svg'}
-                    alt={catName}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                </div>
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => {
+                    onSelectCategory(cat.id);
+                    setSelectedSubCat('All');
+                  }}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '16px',
+                    border: '1.5px solid #e2e8f0',
+                    padding: '0.85rem 1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.95rem',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.15s ease, border-color 0.15s ease'
+                  }}
+                >
+                  {/* Category Visual Avatar */}
+                  <div style={{
+                    width: '58px',
+                    height: '58px',
+                    borderRadius: '14px',
+                    backgroundColor: '#f0fdf4',
+                    border: '1.5px solid #bbf7d0',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 6px rgba(22, 101, 52, 0.1)'
+                  }}>
+                    <img
+                      src={cat.image || '/images/categories/quick-seeds.svg'}
+                      alt={catName}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/categories/quick-seeds.svg';
+                      }}
+                    />
+                  </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -219,7 +250,7 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
       </div>
     );
@@ -231,7 +262,11 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
   const categoryTitle = currentCategoryObj ? (currentCategoryObj.name[currentLang] || currentCategoryObj.name.en) : 'Products';
 
   return (
-    <div style={{ paddingBottom: '6rem', backgroundColor: '#f8fafc' }}>
+    <div style={{
+      paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+      backgroundColor: '#f8fafc',
+      overflowX: 'hidden'
+    }}>
       {/* 1. Back to All Categories Bar */}
       <div style={{
         backgroundColor: '#ffffff',
@@ -516,10 +551,17 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                       <span>{isTe ? 'వాట్సాప్' : 'WhatsApp'}</span>
                     </button>
 
-                    {/* Call Button */}
-                    <a
-                      href="tel:9010454541"
-                      onClick={(e) => e.stopPropagation()}
+                    {/* Call Button (guarded by Supabase phone auth) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onCustomerAction) {
+                          onCustomerAction('call', prod);
+                        } else {
+                          window.location.href = 'tel:9010454541';
+                        }
+                      }}
                       title={isTe ? 'కాల్ ద్వారా ఆర్డర్ చేయండి' : 'Order via Phone Call'}
                       style={{
                         backgroundColor: '#ffffff',
@@ -533,14 +575,14 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.25rem',
-                        textDecoration: 'none',
+                        cursor: 'pointer',
                         boxShadow: '0 2px 6px rgba(21, 128, 61, 0.08)',
                         transition: 'all 0.15s ease'
                       }}
                     >
                       <Phone size={13} />
                       <span>{isTe ? 'కాల్' : 'Call'}</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
               );

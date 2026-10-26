@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Search, Heart, ArrowRight, Truck, ShieldCheck, MessageCircle, Sparkles, Phone, Award } from 'lucide-react';
+import React from 'react';
+import { Search, Heart, ArrowRight, Truck, ShieldCheck, MessageCircle, Phone } from 'lucide-react';
 import type { Product, Category, Language } from '../../types';
+import { Hero } from '../Hero';
 
 interface MobileHomeScreenProps {
   products: Product[];
   categories: Category[];
   currentLang: Language;
-  onLanguageChange: (lang: Language) => void;
+  onLanguageChange?: (lang: Language) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSelectCategory: (categoryId: string) => void;
@@ -15,13 +16,14 @@ interface MobileHomeScreenProps {
   onViewAllCategories: () => void;
   wishlist: Set<string>;
   onToggleWishlist: (productId: string) => void;
+  onCustomerAction?: (action: 'call' | 'whatsapp', product?: Product, customText?: string) => void;
 }
 
 export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
   products,
   categories,
   currentLang,
-  onLanguageChange,
+  onLanguageChange: _onLanguageChange,
   searchQuery,
   onSearchChange,
   onSelectCategory,
@@ -29,112 +31,56 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
   onViewAllProducts,
   onViewAllCategories,
   wishlist,
-  onToggleWishlist
+  onToggleWishlist,
+  onCustomerAction
 }) => {
-  const [activeSlide, setActiveSlide] = useState(0);
   const isTe = currentLang === 'te';
 
-  // 8 Quick categories matching reference image (2 rows of 4)
-  const quickCategories = [
-    { id: 'seeds', label: isTe ? 'విత్తనాలు' : 'Seeds', iconImg: '/images/categories/quick-seeds.svg' },
-    { id: 'fertilizers', label: isTe ? 'ఎరువులు' : 'Fertilizers', iconImg: '/images/categories/quick-fertilizers.svg' },
-    { id: 'crop-protection', label: isTe ? 'పంట సంరక్షణ' : 'Crop Care', iconImg: '/images/categories/quick-cropcare.svg' },
-    { id: 'groceries', label: isTe ? 'కిరాణా' : 'Groceries', iconImg: '/images/categories/quick-groceries.svg' },
-    { id: 'household', label: isTe ? 'గృహోపకరణాలు' : 'Household', iconImg: '/images/categories/quick-household.svg' },
-    { id: 'cleaning', label: isTe ? 'క్లీనింగ్' : 'Cleaning', iconImg: '/images/categories/quick-cleaning.svg' },
-    { id: 'personal-care', label: isTe ? 'వ్యక్తిగత సంరక్షణ' : 'Personal Care', iconImg: '/images/categories/quick-personal-care.svg' },
-    { id: 'more', label: isTe ? 'మరిన్ని' : 'More', iconImg: '/images/categories/quick-more.svg' }
-  ];
-
-  // Best Selling Products for the horizontal shelf
-  const bestSellers = products.filter(p => p.featured || ['paddy-seed-hy', 'dap-fert-50kg', 'sunflower-oil-1l', 'maize-seed-hy'].includes(p.id)).slice(0, 4);
-
-  // 4 Main categories for "Shop by Category"
-  const shopByCategories = categories.slice(0, 4).map(c => ({
+  // Dynamic categories directly from active Supabase categories
+  const dynamicCategories = categories.map(c => ({
     id: c.id,
-    name: c.name[currentLang] || c.name.en,
-    img: c.image || '/images/categories/seeds.jpg'
+    label: c.name[currentLang] || c.name.en,
+    iconImg: c.image || '/images/categories/quick-seeds.svg'
   }));
 
-  // Quick WhatsApp order for a product
+  // Dynamic quick categories grid (first 7 + "More" if many categories, or all categories)
+  const quickCategories = dynamicCategories.length > 0
+    ? (dynamicCategories.length > 8
+        ? [...dynamicCategories.slice(0, 7), { id: 'more', label: isTe ? 'మరిన్ని' : 'More', iconImg: '/images/categories/quick-more.svg' }]
+        : dynamicCategories)
+    : [];
+
+  // Best Selling Products for the horizontal shelf
+  const bestSellers = products.filter(p => p.featured || p.inStock !== false).slice(0, 6);
+
+  // Main categories for "Shop by Category"
+  const shopByCategories = categories.slice(0, 6).map(c => ({
+    id: c.id,
+    name: c.name[currentLang] || c.name.en,
+    img: c.image || '/images/categories/quick-seeds.svg'
+  }));
+
+  // Quick WhatsApp order for a product (guarded by Supabase phone auth)
   const handleQuickOrder = (prod: Product, e: React.MouseEvent) => {
     e.stopPropagation();
-    const text = encodeURIComponent(
-      `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery to Bhainsa.`
-    );
-    window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
+    if (onCustomerAction) {
+      onCustomerAction('whatsapp', prod);
+    } else {
+      const text = encodeURIComponent(
+        `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery to Bhainsa.`
+      );
+      window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
+    }
   };
 
   return (
-    <div style={{ paddingBottom: '6rem', backgroundColor: '#f8fafc' }}>
-      {/* 1. Top Language Selection Bar - Above Search (Simple for customers to use) */}
-      <div style={{
-        backgroundColor: '#f0fdf4',
-        borderBottom: '1.5px solid #bbf7d0',
-        padding: '0.45rem 1rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.35rem',
-          fontSize: '0.78rem',
-          fontWeight: 800,
-          color: '#15803d'
-        }}>
-          <Sparkles size={14} style={{ color: '#ea580c' }} />
-          <span>{isTe ? 'భాషను ఎంచుకోండి:' : 'Select Language:'}</span>
-        </div>
-
-        {/* 2 Big Clear Language Switcher Tabs */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.35rem',
-          backgroundColor: '#ffffff',
-          padding: '2px',
-          borderRadius: '9999px',
-          border: '1px solid #86efac'
-        }}>
-          <button
-            onClick={() => onLanguageChange('en')}
-            style={{
-              padding: '0.3rem 0.85rem',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: currentLang === 'en' ? '#15803d' : 'transparent',
-              color: currentLang === 'en' ? '#ffffff' : '#334155',
-              fontSize: '0.78rem',
-              fontWeight: 900,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            English
-          </button>
-          <button
-            onClick={() => onLanguageChange('te')}
-            style={{
-              padding: '0.3rem 0.85rem',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: currentLang === 'te' ? '#15803d' : 'transparent',
-              color: currentLang === 'te' ? '#ffffff' : '#334155',
-              fontSize: '0.78rem',
-              fontWeight: 900,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            తెలుగు
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Search Bar Directly Under Language Header */}
-      <div style={{ padding: '0.75rem 1rem 0.5rem', backgroundColor: '#ffffff' }}>
+    <div style={{
+      paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+      backgroundColor: '#f8fafc',
+      overflowX: 'hidden'
+    }}>
+      {/* 1. Sleek Search Bar */}
+      <div style={{ padding: '0.65rem 1rem 0.4rem', backgroundColor: '#ffffff' }}>
         <div style={{
           position: 'relative',
           display: 'flex',
@@ -142,13 +88,14 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           backgroundColor: '#f1f5f9',
           borderRadius: '9999px',
           border: '1px solid #e2e8f0',
-          padding: '0.65rem 1rem'
+          padding: '0.6rem 1rem',
+          boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.03)'
         }}>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={isTe ? "విత్తనాలు, ఎరువులు, కిరాణా కోసం శోధించండి..." : "Search for seeds, fertilizers, groceries..."}
+            placeholder={isTe ? "విత్తనాలు, ఎరువులు, కూరగాయలు..." : "Search seeds, fertilizers, vegetables..."}
             style={{
               width: '100%',
               background: 'transparent',
@@ -161,7 +108,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           />
           <div style={{
             position: 'absolute',
-            right: '1rem',
+            right: '0.9rem',
             color: '#64748b',
             display: 'flex',
             alignItems: 'center',
@@ -172,358 +119,232 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
         </div>
       </div>
 
-      <div style={{ padding: '0.85rem 1rem' }}>
-        {/* 3. Main Hero Promo Banner (Green Card with Telugu headline & smiling farmer) */}
-        <div style={{
-          position: 'relative',
-          borderRadius: '18px',
-          background: 'linear-gradient(135deg, #14532d 0%, #15803d 55%, #166534 100%)',
-          color: '#ffffff',
-          overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(21, 128, 61, 0.22)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: '175px',
-          padding: '1.25rem 1.15rem',
-          marginBottom: '1rem'
-        }}>
-          {/* Left Text & CTA */}
-          <div style={{ zIndex: 2, maxWidth: '62%' }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 900,
-              color: '#ffffff',
-              lineHeight: 1.25,
-              marginBottom: '0.35rem',
-              letterSpacing: '-0.01em',
-              fontFamily: 'var(--font-telugu)'
-            }}>
-              రైతుల అభివృద్ధి మా లక్ష్యం
-            </h2>
-            <p style={{
-              fontSize: '0.78rem',
-              color: '#dcfce7',
-              fontWeight: 600,
-              marginBottom: '0.85rem',
-              lineHeight: 1.3
-            }}>
-              Quality Products For Better Harvest
-            </p>
-            <button
-              onClick={() => onSelectCategory('seeds')}
-              style={{
-                backgroundColor: '#052e16',
-                color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                padding: '0.45rem 0.95rem',
-                borderRadius: '9999px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)'
-              }}
-            >
-              <span>Shop Now</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
+      <div style={{ padding: '0.75rem 1rem' }}>
+        {/* 2. Main 3D Organic Video Hero Section */}
+        <div style={{ marginBottom: '1rem' }}>
+          <Hero
+            currentLang={currentLang}
+            onExploreClick={onViewAllProducts}
+          />
+        </div>
 
-          {/* Right Farmer Graphic */}
+        {/* 3. Circular Quick Category Navigation (Prominently placed right under Hero) */}
+        {quickCategories.length > 0 && (
           <div style={{
-            position: 'absolute',
-            right: '-10px',
-            bottom: '-15px',
-            width: '150px',
-            height: '185px',
-            zIndex: 1,
-            pointerEvents: 'none'
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            padding: '0.85rem 0.65rem 0.75rem',
+            marginBottom: '1rem',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
           }}>
-            <img
-              src="/images/farmer-hero.svg"
-              alt="Farmer with thumbs up"
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          </div>
-
-          {/* Bottom Center 3 Dots */}
-          <div style={{
-            position: 'absolute',
-            bottom: '0.45rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '0.35rem',
-            zIndex: 3
-          }}>
-            {[0, 1, 2].map((idx) => (
-              <span
-                key={idx}
-                onClick={() => setActiveSlide(idx)}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingLeft: '0.35rem',
+              paddingRight: '0.35rem',
+              marginBottom: '0.65rem'
+            }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                {isTe ? 'ప్రసిద్ధ విభాగాలు' : 'Quick Categories'}
+              </span>
+              <button
+                type="button"
+                onClick={onViewAllCategories}
                 style={{
-                  width: activeSlide === idx ? '16px' : '6px',
-                  height: '6px',
-                  borderRadius: '9999px',
-                  backgroundColor: activeSlide === idx ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#15803d',
+                  fontSize: '0.76rem',
+                  fontWeight: 800,
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* 4. DEDICATED PROMO BANNER 1: FREE DOORSTEP FARM DELIVERY */}
-        <div style={{
-          background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fef3c7 100%)',
-          border: '1.5px solid #fed7aa',
-          borderRadius: '18px',
-          padding: '1.15rem 1rem',
-          boxShadow: '0 6px 18px rgba(234, 88, 12, 0.08)',
-          marginBottom: '0.9rem',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              backgroundColor: '#ea580c',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(234, 88, 12, 0.3)'
-            }}>
-              <Truck size={26} />
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                marginBottom: '0.2rem',
-                flexWrap: 'wrap'
-              }}>
-                <h3 style={{
-                  fontSize: '0.96rem',
-                  fontWeight: 900,
-                  color: '#9a3412',
-                  margin: 0,
-                  lineHeight: 1.2
-                }}>
-                  {isTe ? 'పొలాల వద్దకే ఉచిత డెలివరీ' : 'Doorstep Farm Delivery'}
-                </h3>
-                <span style={{
-                  backgroundColor: '#ea580c',
-                  color: '#ffffff',
-                  fontSize: '0.64rem',
-                  fontWeight: 900,
-                  padding: '0.12rem 0.45rem',
-                  borderRadius: '9999px',
-                  letterSpacing: '0.04em'
-                }}>
-                  FREE &gt; ₹999
-                </span>
-              </div>
-
-              <p style={{
-                fontSize: '0.76rem',
-                color: '#7c2d12',
-                margin: '0 0 0.65rem',
-                fontWeight: 600,
-                lineHeight: 1.4
-              }}>
-                {isTe
-                  ? 'భైంసా మరియు పరిసర గ్రామాల రైతులకు ఎరువులు & విత్తనాలు నేరుగా పొలాల వద్దకే రవాణా.'
-                  : 'Fast field dispatch for seeds, fertilizers & agri equipment directly to your farm.'}
-              </p>
-
-              <a
-                href="https://wa.me/919010454541?text=Hello%20Sai%20Deveena%20Traders,%20I%20want%20to%20inquire%20about%20farm%20doorstep%20delivery%20to%20my%20village."
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  backgroundColor: '#ea580c',
-                  color: '#ffffff',
-                  padding: '0.38rem 0.85rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.74rem',
-                  fontWeight: 800,
-                  textDecoration: 'none',
-                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)'
+                  padding: 0
                 }}
               >
-                <MessageCircle size={13} />
-                <span>{isTe ? 'డెలివరీ బుక్ చేసుకోండి' : 'Book Farm Delivery'}</span>
-              </a>
+                {isTe ? 'అన్నీ చూడండి' : 'See All'}
+              </button>
             </div>
-          </div>
-        </div>
 
-        {/* 5. DEDICATED PROMO BANNER 2: 100% CERTIFIED GENUINE BRANDS & ADVICE */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)',
-          border: '1.5px solid #86efac',
-          borderRadius: '18px',
-          padding: '1.15rem 1rem',
-          boxShadow: '0 6px 18px rgba(22, 101, 52, 0.08)',
-          marginBottom: '1.25rem',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
             <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              backgroundColor: '#15803d',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: '0.75rem 0.35rem',
+              textAlign: 'center'
             }}>
-              <ShieldCheck size={26} />
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                marginBottom: '0.2rem',
-                flexWrap: 'wrap'
-              }}>
-                <h3 style={{
-                  fontSize: '0.96rem',
-                  fontWeight: 900,
-                  color: '#14532d',
-                  margin: 0,
-                  lineHeight: 1.2
-                }}>
-                  {isTe ? '100% అసలైన ధృవీకృత ఉత్పత్తులు' : '100% Certified Genuine Brands'}
-                </h3>
-                <span style={{
-                  backgroundColor: '#15803d',
-                  color: '#ffffff',
-                  fontSize: '0.64rem',
-                  fontWeight: 900,
-                  padding: '0.12rem 0.45rem',
-                  borderRadius: '9999px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem'
-                }}>
-                  <Award size={10} />
-                  <span>GOVT APPROVED</span>
-                </span>
-              </div>
-
-              <p style={{
-                fontSize: '0.76rem',
-                color: '#166534',
-                margin: '0 0 0.65rem',
-                fontWeight: 600,
-                lineHeight: 1.4
-              }}>
-                {isTe
-                  ? 'ప్రభుత్వ నియంత్రిత ధరలు, నాణ్యమైన విత్తనాలు మరియు ఉచిత పంట సంరక్షణ సలహాలు.'
-                  : 'Genuine brands, transparent rates, and personalized crop care consultation.'}
-              </p>
-
-              <a
-                href="tel:9010454541"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  backgroundColor: '#15803d',
-                  color: '#ffffff',
-                  padding: '0.38rem 0.85rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.74rem',
-                  fontWeight: 800,
-                  textDecoration: 'none',
-                  boxShadow: '0 2px 6px rgba(21, 128, 61, 0.25)'
-                }}
-              >
-                <Phone size={13} />
-                <span>{isTe ? 'రైతు సలహాల కోసం కాల్ చేయండి' : 'Call for Crop Advice (9010454541)'}</span>
-              </a>
+              {quickCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    if (cat.id === 'more') {
+                      onViewAllCategories();
+                    } else {
+                      onSelectCategory(cat.id);
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    padding: 0,
+                    WebkitTapHighlightColor: 'transparent'
+                  }}
+                >
+                  {/* Circular Avatar */}
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f8fafc',
+                    border: '1.5px solid #dcfce7',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '0.3rem',
+                    padding: '6px',
+                    transition: 'transform 0.15s ease'
+                  }}>
+                    <img
+                      src={cat.iconImg}
+                      alt={cat.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/categories/quick-seeds.svg';
+                      }}
+                    />
+                  </div>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    lineHeight: 1.15,
+                    maxHeight: '2.3rem',
+                    overflow: 'hidden'
+                  }}>
+                    {cat.label}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 6. Circular Quick Category Navigation (8 Icons in 2 Rows of 4) */}
+        {/* 4. Compact 2-Column Trust & Highlights Strip (Clean & Non-intrusive) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '1rem 0.5rem',
-          margin: '0.5rem 0 1.25rem',
-          textAlign: 'center'
+          gridTemplateColumns: '1fr 1fr',
+          gap: '0.65rem',
+          marginBottom: '1.15rem'
         }}>
-          {quickCategories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                // When clicking "More", open ALL CATEGORIES screen!
-                if (cat.id === 'more') {
-                  onViewAllCategories();
-                } else {
-                  onSelectCategory(cat.id);
-                }
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                padding: 0
-              }}
-            >
-              {/* Circular Avatar */}
+          {/* Card 1: Doorstep Delivery */}
+          <a
+            href="https://wa.me/919010454541?text=Hello%20Sai%20Deveena%20Traders,%20I%20want%20to%20inquire%20about%20farm%20doorstep%20delivery%20to%20my%20village."
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+              border: '1px solid #fed7aa',
+              borderRadius: '14px',
+              padding: '0.75rem 0.65rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.06)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
               <div style={{
-                width: '54px',
-                height: '54px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '50%',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                backgroundColor: '#ea580c',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '0.35rem',
-                padding: '4px',
-                transition: 'transform 0.15s ease'
+                flexShrink: 0
               }}>
-                <img
-                  src={cat.iconImg}
-                  alt={cat.label}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
+                <Truck size={17} />
               </div>
-              <span style={{
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                color: '#334155',
-                lineHeight: 1.15
+              <div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#9a3412', lineHeight: 1.2 }}>
+                  {isTe ? 'పొలాల డెలివరీ' : 'Farm Delivery'}
+                </div>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#ea580c' }}>
+                  FREE &gt; ₹999
+                </div>
+              </div>
+            </div>
+            <div style={{
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              color: '#c2410c',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.2rem',
+              marginTop: '0.2rem'
+            }}>
+              <span>{isTe ? 'ఆర్డర్ చేయండి' : 'WhatsApp Book'}</span>
+              <ArrowRight size={11} />
+            </div>
+          </a>
+
+          {/* Card 2: 100% Certified Genuine Brands */}
+          <a
+            href="tel:9010454541"
+            style={{
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+              border: '1px solid #86efac',
+              borderRadius: '14px',
+              padding: '0.75rem 0.65rem',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 8px rgba(22, 101, 52, 0.06)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.35rem' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#15803d',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
               }}>
-                {cat.label}
-              </span>
-            </button>
-          ))}
+                <ShieldCheck size={17} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#14532d', lineHeight: 1.2 }}>
+                  {isTe ? '100% అసలైనవి' : '100% Certified'}
+                </div>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#15803d' }}>
+                  GOVT APPROVED
+                </div>
+              </div>
+            </div>
+            <div style={{
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              color: '#166534',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.2rem',
+              marginTop: '0.2rem'
+            }}>
+              <span>{isTe ? 'సలహాల కోసం కాల్' : 'Call Advice'}</span>
+              <ArrowRight size={11} />
+            </div>
+          </a>
         </div>
 
         {/* 7. Best Selling Products Section */}
@@ -681,10 +502,17 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                       <span>{isTe ? 'వాట్సాప్' : 'WhatsApp'}</span>
                     </button>
 
-                    {/* Call Button */}
-                    <a
-                      href="tel:9010454541"
-                      onClick={(e) => e.stopPropagation()}
+                    {/* Call Button (guarded by Supabase phone auth) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onCustomerAction) {
+                          onCustomerAction('call', prod);
+                        } else {
+                          window.location.href = 'tel:9010454541';
+                        }
+                      }}
                       title={isTe ? 'కాల్ ద్వారా ఆర్డర్ చేయండి' : 'Order via Phone Call'}
                       style={{
                         backgroundColor: '#ffffff',
@@ -698,14 +526,14 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.25rem',
-                        textDecoration: 'none',
+                        cursor: 'pointer',
                         boxShadow: '0 2px 6px rgba(21, 128, 61, 0.08)',
                         transition: 'all 0.15s ease'
                       }}
                     >
                       <Phone size={13} />
                       <span>{isTe ? 'కాల్' : 'Call'}</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
               );
@@ -778,6 +606,9 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                     src={cat.img}
                     alt={cat.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/categories/quick-seeds.svg';
+                    }}
                   />
                 </div>
                 <span style={{

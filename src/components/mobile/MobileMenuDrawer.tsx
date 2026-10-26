@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Home, LayoutGrid, ShoppingBag, Info, Phone, MessageCircle, MapPin, Globe, ShieldCheck } from 'lucide-react';
+import { X, Home, LayoutGrid, ShoppingBag, Info, Phone, MessageCircle, MapPin, Globe, ShieldCheck, User } from 'lucide-react';
 import type { Language } from '../../types';
 
 interface MobileMenuDrawerProps {
@@ -237,6 +237,31 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
           >
             <ShoppingBag size={19} style={{ color: '#15803d' }} />
             <span>{isTe ? 'నా ఆర్డర్లు' : 'My Orders'}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              onNavigateTab('profile');
+              onClose();
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.85rem',
+              padding: '0.75rem 0.85rem',
+              borderRadius: '10px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: '#0f172a',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              textAlign: 'left'
+            }}
+          >
+            <User size={19} style={{ color: '#15803d' }} />
+            <span>{isTe ? 'రైతు ఖాతా (లాగిన్ / నమోదు)' : 'Farmer Account (Sign In / Register)'}</span>
           </button>
 
           <button

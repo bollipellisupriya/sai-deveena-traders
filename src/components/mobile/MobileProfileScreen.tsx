@@ -1,7 +1,21 @@
-import React from 'react';
-import { MapPin, Phone, Clock, ExternalLink, Headphones, ShieldCheck, Truck, Sprout, Star, Award } from 'lucide-react';
-import type { Language } from '../../types';
+import React, { useState } from 'react';
+import {
+  MapPin,
+  Phone,
+  Clock,
+  ExternalLink,
+  Headphones,
+  ShieldCheck,
+  Truck,
+  Sprout,
+  Star,
+  Award,
+  User,
+  CheckCircle2
+} from 'lucide-react';
+import type { Language, StoredCustomerInfo } from '../../types';
 import { shopConfig } from '../../config/shopConfig';
+import { enquiryService } from '../../services/enquiryService';
 
 interface MobileProfileScreenProps {
   currentLang: Language;
@@ -14,9 +28,168 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
 }) => {
   const isTe = currentLang === 'te';
 
+  // Stored customer enquiry information (cached locally in browser)
+  const [storedCustomer, setStoredCustomer] = useState<StoredCustomerInfo | null>(() => {
+    return enquiryService.getStoredCustomerInfo();
+  });
+
+  const handleClearSavedInfo = () => {
+    if (window.confirm(isTe ? 'సేవ్ చేసిన వివరాలను తొలగించాలా?' : 'Clear your saved enquiry details?')) {
+      localStorage.removeItem('sdt_customer_enquiry_info');
+      setStoredCustomer(null);
+    }
+  };
+
   return (
-    <div style={{ padding: '0.85rem 1rem 6rem', backgroundColor: '#f8fafc' }}>
+    <div style={{
+      padding: '0.85rem 1rem calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+      backgroundColor: '#f8fafc',
+      overflowX: 'hidden'
+    }}>
+      {/* ============================================================ */}
+      {/* 0. Customer Enquiry Contact Profile (No Login Required)      */}
+      {/* ============================================================ */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '20px',
+        padding: '1.25rem',
+        border: storedCustomer ? '1.5px solid #bbf7d0' : '1px solid #e2e8f0',
+        boxShadow: '0 4px 18px rgba(0, 0, 0, 0.05)',
+        marginBottom: '1rem'
+      }}>
+        {storedCustomer ? (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  backgroundColor: '#15803d',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.1rem',
+                  fontWeight: 900,
+                  boxShadow: '0 2px 8px rgba(21, 128, 61, 0.3)'
+                }}>
+                  {storedCustomer.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                      {storedCustomer.name}
+                    </h3>
+                    <span style={{
+                      backgroundColor: '#dcfce7',
+                      color: '#15803d',
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      padding: '0.1rem 0.45rem',
+                      borderRadius: '9999px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.2rem'
+                    }}>
+                      <CheckCircle2 size={11} />
+                      {isTe ? 'సేవ్ చేయబడింది' : 'Enquiry Saved'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                    {storedCustomer.phone}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleClearSavedInfo}
+                title={isTe ? 'సేవ్ చేసిన వివరాలను తొలగించండి' : 'Clear saved details'}
+                style={{
+                  backgroundColor: '#fee2e2',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.4rem 0.65rem',
+                  color: '#b91c1c',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {isTe ? 'తొలగించు' : 'Clear'}
+              </button>
+            </div>
+
+            <div style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              padding: '0.75rem 1rem',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem',
+              fontSize: '0.78rem'
+            }}>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600 }}>
+                  {isTe ? 'గ్రామం / పట్టణం' : 'Village / City'}
+                </div>
+                <div style={{ color: '#0f172a', fontWeight: 800 }}>
+                  {storedCustomer.villageCity || (isTe ? 'భైంసా' : 'Bhainsa')}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600 }}>
+                  {isTe ? 'ప్రాధాన్య సంప్రదింపు' : 'Contact Via'}
+                </div>
+                <div style={{ color: '#0f172a', fontWeight: 800, textTransform: 'capitalize' }}>
+                  {storedCustomer.preferredContact || 'WhatsApp'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              fontSize: '0.72rem',
+              color: '#64748b',
+              marginTop: '0.65rem',
+              textAlign: 'center'
+            }}>
+              {isTe
+                ? 'ఉత్పత్తులపై WhatsApp లేదా కాల్ చేసేటప్పుడు ఈ వివరాలు స్వయంచాలకంగా పూరించబడతాయి.'
+                : 'Your details will automatically autofill when making WhatsApp or Call enquiries.'}
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: '#f0fdf4',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 0.65rem',
+              border: '1.5px solid #bbf7d0'
+            }}>
+              <User size={22} />
+            </div>
+
+            <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.25rem' }}>
+              {isTe ? 'లాగిన్ అవసరం లేదు' : 'No Account Needed'}
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+              {isTe
+                ? 'ఉత్పత్తులను స్వేచ్ఛగా బ్రౌజ్ చేయండి. ఏ ఉత్పత్తి కోసమైనా కాల్ లేదా వాట్సాప్ బటన్‌ను క్లిక్ చేసి వెంటనే విచారించవచ్చు.'
+                : 'Browse our full catalog freely. When ready to enquire, click WhatsApp or Call on any product to connect directly.'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ============================================================ */}
       {/* 1. Verified Merchant Brand Identity Card */}
+      {/* ============================================================ */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '20px',
@@ -145,7 +318,9 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
         </div>
       </div>
 
+      {/* ============================================================ */}
       {/* 2. Four Key Merchant Pillars Grid (2x2) */}
+      {/* ============================================================ */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
@@ -281,7 +456,9 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
         </div>
       </div>
 
+      {/* ============================================================ */}
       {/* 3. Direct Contact Channels Card */}
+      {/* ============================================================ */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '16px',
@@ -394,7 +571,9 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
         </div>
       </div>
 
+      {/* ============================================================ */}
       {/* 4. Address & Timings Card */}
+      {/* ============================================================ */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '16px',
@@ -475,6 +654,7 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
           </div>
         </div>
       </div>
+
     </div>
   );
 };

@@ -10,6 +10,7 @@ interface MobileProductDetailScreenProps {
   onSelectProduct: (product: Product) => void;
   wishlist: Set<string>;
   onToggleWishlist: (productId: string) => void;
+  onCustomerAction?: (action: 'call' | 'whatsapp', product?: Product, customText?: string) => void;
 }
 
 export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps> = ({
@@ -18,7 +19,8 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
   currentLang,
   onSelectProduct,
   wishlist,
-  onToggleWishlist
+  onToggleWishlist,
+  onCustomerAction
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedThumb, setSelectedThumb] = useState(0);
@@ -50,18 +52,30 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
   const { url: whatsappUrl } = getProductWhatsappUrl(product, currentLang);
 
   const handleBuyNow = () => {
-    if (quantity === 1 && whatsappUrl) {
-      window.open(whatsappUrl, '_blank');
-      return;
+    const customText = quantity > 1
+      ? `Hello Sai Deveena Traders, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and payment/delivery details.`
+      : undefined;
+
+    if (onCustomerAction) {
+      onCustomerAction('whatsapp', product, customText);
+    } else {
+      if (quantity === 1 && whatsappUrl) {
+        window.open(whatsappUrl, '_blank');
+        return;
+      }
+      const text = encodeURIComponent(
+        customText || `Hello Sai Deveena Traders, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and payment/delivery details.`
+      );
+      window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
     }
-    const text = encodeURIComponent(
-      `Hello Sai Deveena Traders, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and payment/delivery details.`
-    );
-    window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
   };
 
   return (
-    <div style={{ paddingBottom: '6.5rem', backgroundColor: '#ffffff' }}>
+    <div style={{
+      paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))',
+      backgroundColor: '#ffffff',
+      overflowX: 'hidden'
+    }}>
       {/* 1. Main Product Showcase & Thumbnails */}
       <div style={{
         position: 'relative',
@@ -346,8 +360,16 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
             <span>{isTe ? 'వాట్సాప్ ఆర్డర్' : 'WhatsApp Order'}</span>
           </button>
 
-          <a
-            href="tel:9010454541"
+          {/* Call Shop Button (guarded by Supabase phone auth) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onCustomerAction) {
+                onCustomerAction('call', product);
+              } else {
+                window.location.href = 'tel:9010454541';
+              }
+            }}
             style={{
               backgroundColor: '#ffffff',
               color: '#15803d',
@@ -360,13 +382,13 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.45rem',
-              textDecoration: 'none',
+              cursor: 'pointer',
               boxShadow: '0 2px 6px rgba(21, 128, 61, 0.1)'
             }}
           >
             <Phone size={17} />
             <span>{isTe ? 'కాల్ ఆర్డర్' : 'Call to Order'}</span>
-          </a>
+          </button>
         </div>
 
         {/* 3 Trust Badges Matching Screen 3 */}
