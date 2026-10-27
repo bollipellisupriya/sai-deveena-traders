@@ -17,35 +17,38 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
           backgroundColor: '#f0fdf4',
           borderBottom: '1px solid #bbf7d0',
           color: '#166534',
-          padding: '0.45rem 1.25rem',
-          fontSize: '0.8rem',
+          padding: '0.45rem 0.85rem',
+          fontSize: '0.78rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '0.5rem',
-          zIndex: 40
+          gap: '0.45rem',
+          zIndex: 25,
+          width: '100%',
+          boxSizing: 'border-box'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, flexWrap: 'wrap', minWidth: 0 }}>
           <span style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.3rem',
             backgroundColor: '#15803d',
             color: '#ffffff',
-            padding: '0.15rem 0.5rem',
+            padding: '0.12rem 0.45rem',
             borderRadius: '9999px',
-            fontSize: '0.7rem',
+            fontSize: '0.68rem',
             fontWeight: 800,
-            letterSpacing: '0.03em'
+            letterSpacing: '0.03em',
+            whiteSpace: 'nowrap'
           }}>
             <Database size={11} />
             SUPABASE CONNECTED
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <CheckCircle2 size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
-            Live PostgreSQL catalog active with Row Level Security.
+            Live PostgreSQL catalog active with RLS.
           </span>
         </div>
 
@@ -60,10 +63,11 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
               fontWeight: 800,
               cursor: 'pointer',
               textDecoration: 'underline',
-              padding: 0
+              padding: 0,
+              flexShrink: 0
             }}
           >
-            System Settings →
+            Settings →
           </button>
         )}
       </aside>
@@ -77,35 +81,38 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
         backgroundColor: '#fef3c7',
         borderBottom: '1px solid #fde68a',
         color: '#92400e',
-        padding: '0.55rem 1.25rem',
-        fontSize: '0.82rem',
+        padding: '0.45rem 0.85rem',
+        fontSize: '0.78rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '0.5rem',
-        zIndex: 40
+        gap: '0.45rem',
+        zIndex: 25,
+        width: '100%',
+        boxSizing: 'border-box'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, flexWrap: 'wrap', minWidth: 0 }}>
         <span style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '0.3rem',
           backgroundColor: '#f59e0b',
           color: '#ffffff',
-          padding: '0.15rem 0.5rem',
+          padding: '0.12rem 0.45rem',
           borderRadius: '9999px',
-          fontSize: '0.72rem',
+          fontSize: '0.68rem',
           fontWeight: 800,
-          letterSpacing: '0.03em'
+          letterSpacing: '0.03em',
+          whiteSpace: 'nowrap'
         }}>
-          <Database size={12} />
+          <Database size={11} />
           CONFIG REQUIRED
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <AlertTriangle size={15} style={{ color: '#d97706', flexShrink: 0 }} />
-          Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) not detected.
+          <AlertTriangle size={14} style={{ color: '#d97706', flexShrink: 0 }} />
+          Supabase credentials required for live sync.
         </span>
       </div>
 
@@ -116,14 +123,15 @@ export const BackendStatusBanner: React.FC<BackendStatusBannerProps> = ({ onLear
             background: 'none',
             border: 'none',
             color: '#b45309',
-            fontSize: '0.78rem',
+            fontSize: '0.76rem',
             fontWeight: 800,
             cursor: 'pointer',
             textDecoration: 'underline',
-            padding: 0
+            padding: 0,
+            flexShrink: 0
           }}
         >
-          View Configuration Guide →
+          Guide →
         </button>
       )}
     </aside>

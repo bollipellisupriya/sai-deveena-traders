@@ -467,13 +467,13 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                 key={ord.id}
                 style={{
                   backgroundColor: '#ffffff',
-                  borderRadius: '16px',
+                  borderRadius: '14px',
                   border: '1px solid #e2e8f0',
-                  padding: '1.25rem',
+                  padding: '1rem',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.85rem'
+                  gap: '0.75rem'
                 }}
               >
                 {/* Order Header */}
@@ -483,11 +483,11 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                   justifyContent: 'space-between',
                   flexWrap: 'wrap',
                   gap: '0.65rem',
-                  paddingBottom: '0.75rem',
+                  paddingBottom: '0.65rem',
                   borderBottom: '1px solid #f1f5f9'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.98rem', fontWeight: 900, color: '#0f172a' }}>
                       #{ord.orderNumber}
                     </span>
                     <span style={{ fontSize: '0.76rem', color: '#64748b' }}>

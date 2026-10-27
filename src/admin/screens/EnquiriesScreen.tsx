@@ -236,12 +236,7 @@ export const EnquiriesScreen: React.FC = () => {
       </div>
 
       {/* 2. Top Metric Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1.5rem'
-      }}>
+      <div className="admin-metrics-grid">
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '14px',
@@ -430,154 +425,296 @@ export const EnquiriesScreen: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Date & Ref</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Customer Details</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Village / Location</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Product Inquired</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Contact Via</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEnquiries.map((enq) => {
-                  const dateStr = new Date(enq.createdAt).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  });
-                  const refShort = `#ENQ-${enq.id.slice(0, 8).toUpperCase()}`;
+          <>
+            {/* Mobile Cards View (Visible on < 768px, perfect touch alignment) */}
+            <div className="admin-mobile-cards" style={{ padding: '0.75rem' }}>
+              {filteredEnquiries.map((enq) => {
+                const dateStr = new Date(enq.createdAt).toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+                const refShort = `#ENQ-${enq.id.slice(0, 8).toUpperCase()}`;
 
-                  return (
-                    <tr
-                      key={enq.id}
-                      style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        transition: 'background-color 0.1s ease',
-                        fontSize: '0.84rem'
-                      }}
-                    >
-                      {/* Date & Ref */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{refShort}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>{dateStr}</div>
-                      </td>
+                return (
+                  <div
+                    key={enq.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      padding: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.65rem',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    {/* Header: Ref & Date on Left, Status Badge on Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.45rem' }}>
+                      <div>
+                        <span style={{ fontWeight: 800, fontSize: '0.8rem', color: '#0f172a' }}>{refShort}</span>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{dateStr}</div>
+                      </div>
+                      <div>{renderStatusBadge(enq.status)}</div>
+                    </div>
 
-                      {/* Customer Details */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{enq.name}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '3px' }}>
-                          <span style={{ color: '#15803d', fontWeight: 700, fontSize: '0.8rem' }}>+91 {enq.phone}</span>
-                          <a
-                            href={`https://wa.me/91${enq.phone}?text=Hello%20${encodeURIComponent(enq.name)},%20this%20is%20Sai%20Deveena%20Traders%20following%20up%20on%20your%20enquiry.`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Chat on WhatsApp"
-                            style={{ color: '#15803d', display: 'flex', alignItems: 'center' }}
-                          >
-                            <MessageCircle size={14} />
-                          </a>
-                          <a
-                            href={`tel:${enq.phone}`}
-                            title="Call Customer"
-                            style={{ color: '#2563eb', display: 'flex', alignItems: 'center' }}
-                          >
-                            <Phone size={14} />
-                          </a>
+                    {/* Customer Name & Phone with Direct Actions */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {enq.name}
                         </div>
-                        {enq.email && (
-                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
-                            {enq.email}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Location */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 700, color: '#334155' }}>
-                          <MapPin size={13} style={{ color: '#ea580c' }} />
-                          <span>{enq.villageCity}</span>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#15803d', marginTop: '2px' }}>
+                          +91 {enq.phone}
                         </div>
-                        {enq.address && (
-                          <div style={{
-                            fontSize: '0.72rem',
-                            color: '#64748b',
-                            marginTop: '2px',
-                            maxWidth: '180px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {enq.address}
-                          </div>
-                        )}
-                      </td>
+                      </div>
 
-                      {/* Product */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, color: '#0f172a' }}>
-                          <Package size={14} style={{ color: '#15803d' }} />
-                          <span>{enq.productName || 'General Store Inquiry'}</span>
-                        </div>
-                      </td>
-
-                      {/* Contact Via */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          color: enq.preferredContact === 'whatsapp' ? '#15803d' : '#2563eb'
-                        }}>
-                          {enq.preferredContact === 'whatsapp' ? <MessageCircle size={13} /> : <Phone size={13} />}
-                          <span style={{ textTransform: 'capitalize' }}>{enq.preferredContact}</span>
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        {renderStatusBadge(enq.status)}
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
-                        <button
-                          onClick={() => {
-                            setSelectedEnquiry(enq);
-                            setAdminNotes(enq.notes || '');
-                          }}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                        <a
+                          href={`https://wa.me/91${enq.phone}?text=Hello%20${encodeURIComponent(enq.name)},%20this%20is%20Sai%20Deveena%20Traders%20following%20up%20on%20your%20enquiry.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Chat on WhatsApp"
                           style={{
-                            backgroundColor: '#f1f5f9',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '8px',
-                            padding: '0.35rem 0.65rem',
-                            fontSize: '0.78rem',
-                            fontWeight: 800,
-                            color: '#334155',
-                            cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '0.3rem'
+                            justifyContent: 'center',
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            textDecoration: 'none'
                           }}
                         >
-                          <Eye size={13} />
-                          <span>Details</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          <MessageCircle size={16} />
+                        </a>
+                        <a
+                          href={`tel:${enq.phone}`}
+                          title="Call Customer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: '#dbeafe',
+                            color: '#2563eb',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <Phone size={15} />
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Location & Product Badges */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.78rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#334155', fontWeight: 600 }}>
+                        <MapPin size={13} style={{ color: '#ea580c', flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {enq.villageCity}{enq.address ? `, ${enq.address}` : ''}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0f172a', fontWeight: 700 }}>
+                        <Package size={13} style={{ color: '#15803d', flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {enq.productName || 'General Store Inquiry'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Footer Action: Preferred Contact & View Details */}
+                    <div style={{ paddingTop: '0.45rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        color: enq.preferredContact === 'whatsapp' ? '#15803d' : '#2563eb'
+                      }}>
+                        Via: {enq.preferredContact === 'whatsapp' ? 'WhatsApp' : 'Phone Call'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedEnquiry(enq);
+                          setAdminNotes(enq.notes || '');
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          backgroundColor: '#f1f5f9',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          padding: '0.35rem 0.65rem',
+                          fontSize: '0.76rem',
+                          fontWeight: 800,
+                          color: '#334155',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Eye size={13} />
+                        <span>View Details</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (Visible on >= 768px) */}
+            <div className="admin-desktop-table" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                    <th style={{ padding: '0.75rem 1rem' }}>Date & Ref</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Customer Details</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Village / Location</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Product Inquired</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Contact Via</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEnquiries.map((enq) => {
+                    const dateStr = new Date(enq.createdAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+                    const refShort = `#ENQ-${enq.id.slice(0, 8).toUpperCase()}`;
+
+                    return (
+                      <tr
+                        key={enq.id}
+                        style={{
+                          borderBottom: '1px solid #f1f5f9',
+                          transition: 'background-color 0.1s ease',
+                          fontSize: '0.84rem'
+                        }}
+                      >
+                        {/* Date & Ref */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a' }}>{refShort}</div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>{dateStr}</div>
+                        </td>
+
+                        {/* Customer Details */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a' }}>{enq.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '3px' }}>
+                            <span style={{ color: '#15803d', fontWeight: 700, fontSize: '0.8rem' }}>+91 {enq.phone}</span>
+                            <a
+                              href={`https://wa.me/91${enq.phone}?text=Hello%20${encodeURIComponent(enq.name)},%20this%20is%20Sai%20Deveena%20Traders%20following%20up%20on%20your%20enquiry.`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Chat on WhatsApp"
+                              style={{ color: '#15803d', display: 'flex', alignItems: 'center' }}
+                            >
+                              <MessageCircle size={14} />
+                            </a>
+                            <a
+                              href={`tel:${enq.phone}`}
+                              title="Call Customer"
+                              style={{ color: '#2563eb', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Phone size={14} />
+                            </a>
+                          </div>
+                          {enq.email && (
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                              {enq.email}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Location */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 700, color: '#334155' }}>
+                            <MapPin size={13} style={{ color: '#ea580c' }} />
+                            <span>{enq.villageCity}</span>
+                          </div>
+                          {enq.address && (
+                            <div style={{
+                              fontSize: '0.72rem',
+                              color: '#64748b',
+                              marginTop: '2px',
+                              maxWidth: '180px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {enq.address}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Product */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, color: '#0f172a' }}>
+                            <Package size={14} style={{ color: '#15803d' }} />
+                            <span>{enq.productName || 'General Store Inquiry'}</span>
+                          </div>
+                        </td>
+
+                        {/* Contact Via */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontSize: '0.74rem',
+                            fontWeight: 800,
+                            color: enq.preferredContact === 'whatsapp' ? '#15803d' : '#2563eb'
+                          }}>
+                            {enq.preferredContact === 'whatsapp' ? <MessageCircle size={13} /> : <Phone size={13} />}
+                            <span style={{ textTransform: 'capitalize' }}>{enq.preferredContact}</span>
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          {renderStatusBadge(enq.status)}
+                        </td>
+
+                        {/* Actions */}
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
+                          <button
+                            onClick={() => {
+                              setSelectedEnquiry(enq);
+                              setAdminNotes(enq.notes || '');
+                            }}
+                            style={{
+                              backgroundColor: '#f1f5f9',
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '8px',
+                              padding: '0.35rem 0.65rem',
+                              fontSize: '0.78rem',
+                              fontWeight: 800,
+                              color: '#334155',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem'
+                            }}
+                          >
+                            <Eye size={13} />
+                            <span>Details</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

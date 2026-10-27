@@ -122,11 +122,7 @@ export const CustomersScreen: React.FC = () => {
       )}
 
       {/* 1. Header & Summary Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem'
-      }}>
+      <div className="admin-metrics-grid">
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '16px',
@@ -316,7 +312,135 @@ export const CustomersScreen: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <>
+            {/* Mobile Customer Cards (Visible on < 768px) */}
+            <div className="admin-mobile-cards" style={{ padding: '0.75rem' }}>
+              {customers.map((c) => {
+                const initials = c.fullName
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase() || 'C';
+
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      padding: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.65rem',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                        <div style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '50%',
+                          backgroundColor: c.status === 'suspended' ? '#fee2e2' : '#dcfce7',
+                          color: c.status === 'suspended' ? '#dc2626' : '#15803d',
+                          fontWeight: 900,
+                          fontSize: '0.82rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {initials}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {c.fullName}
+                          </div>
+                          {c.villageOrCity && (
+                            <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '2px' }}>
+                              <MapPin size={12} style={{ color: '#ea580c' }} />
+                              <span>{c.villageOrCity}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <span style={{
+                        backgroundColor: c.status === 'active' ? '#dcfce7' : c.status === 'suspended' ? '#fee2e2' : '#f1f5f9',
+                        color: c.status === 'active' ? '#15803d' : c.status === 'suspended' ? '#dc2626' : '#64748b',
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '9999px',
+                        textTransform: 'uppercase',
+                        flexShrink: 0
+                      }}>
+                        {c.status}
+                      </span>
+                    </div>
+
+                    {/* Stats & Phone Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', backgroundColor: '#f8fafc', padding: '0.5rem 0.65rem', borderRadius: '8px' }}>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Orders: </span>
+                        <strong style={{ color: '#0f172a' }}>{c.orderCount || 0}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Spend: </span>
+                        <strong style={{ color: '#0f172a' }}>₹{(c.totalSpent || 0).toLocaleString('en-IN')}</strong>
+                      </div>
+                      {c.phone && (
+                        <a
+                          href={`tel:${c.phone}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            color: '#2563eb',
+                            fontWeight: 700,
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <Phone size={12} />
+                          <span>Call</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div style={{ paddingTop: '0.45rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                        ID: {c.id.slice(0, 8)}...
+                      </span>
+                      <button
+                        onClick={() => handleOpenDetail(c.id)}
+                        style={{
+                          backgroundColor: '#f8fafc',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          padding: '0.35rem 0.75rem',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Eye size={13} />
+                        <span>View Orders</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (Visible on >= 768px) */}
+            <div className="admin-desktop-table" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
@@ -487,7 +611,8 @@ export const CustomersScreen: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+        </>
+      )}
       </div>
 
       {/* 4. Customer Detail & Order History Modal */}

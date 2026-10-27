@@ -125,8 +125,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
       {/* 1. Metric Cards Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
+        gap: '0.75rem'
       }}>
         {metrics.map((m, i) => (
           <div
@@ -134,9 +134,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
             onClick={() => onNavigateTab(m.tab)}
             style={{
               backgroundColor: '#ffffff',
-              borderRadius: '16px',
+              borderRadius: '14px',
               border: '1px solid #e2e8f0',
-              padding: '1.25rem',
+              padding: '0.85rem',
               display: 'flex',
               alignItems: 'flex-start',
               justifyContent: 'space-between',
@@ -145,22 +145,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
             }}
           >
-            <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b', marginBottom: '0.35rem' }}>
+            <div style={{ minWidth: 0, flex: 1, paddingRight: '0.35rem' }}>
+              <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {m.title}
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
                 {loading ? '...' : m.value}
               </div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginTop: '0.45rem' }}>
+              <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, marginTop: '0.35rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {m.sub}
               </div>
             </div>
 
             <div style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
               backgroundColor: m.bg,
               display: 'flex',
               alignItems: 'center',
@@ -178,11 +178,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
         backgroundColor: '#ffffff',
         borderRadius: '16px',
         border: '1px solid #e2e8f0',
-        padding: '1.5rem',
+        padding: '1.15rem',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
             <div style={{
               width: '36px',
               height: '36px',
@@ -191,16 +191,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
               color: '#15803d',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
-              <Database size={20} />
+              <Database size={18} />
             </div>
-            <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ fontSize: '0.98rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
                 Supabase Live Catalog Connection
               </h2>
-              <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600 }}>
-                Client connected to PostgreSQL tables (admin_users, categories, products)
+              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                PostgreSQL tables connected with RLS
               </span>
             </div>
           </div>
@@ -210,8 +211,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
             color: isSupabaseConfigured() ? '#15803d' : '#b45309',
             fontSize: '0.72rem',
             fontWeight: 800,
-            padding: '0.25rem 0.65rem',
-            borderRadius: '9999px'
+            padding: '0.2rem 0.6rem',
+            borderRadius: '9999px',
+            flexShrink: 0
           }}>
             {isSupabaseConfigured() ? 'Connected' : 'Setup Required'}
           </span>
@@ -219,34 +221,34 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '1rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '0.75rem',
           backgroundColor: '#f8fafc',
-          padding: '1rem',
+          padding: '0.85rem',
           borderRadius: '12px',
           border: '1px solid #e2e8f0'
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-            <CheckCircle2 size={18} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+            <CheckCircle2 size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Database RLS Policies</div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Protected against unauthenticated modifications. Public reads active items only.</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Database RLS Policies</div>
+              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Protected against unauthenticated modifications.</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-            <CheckCircle2 size={18} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+            <CheckCircle2 size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Admin Auth Validation</div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Verified against public.admin_users for active administrator status.</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Admin Auth Validation</div>
+              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Verified against public.admin_users table.</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-            <CheckCircle2 size={18} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+            <CheckCircle2 size={16} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Dynamic Storefront</div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Customer site reflects newly added and edited database records.</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>Dynamic Storefront</div>
+              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Customer site reflects newly added live records.</div>
             </div>
           </div>
         </div>
@@ -255,8 +257,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ catalog, onNav
       {/* 3. Quick Action Hub & Recent Products Preview */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1.25rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '1rem'
       }}>
         {/* Quick Action Shortcuts */}
         <div style={{

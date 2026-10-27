@@ -986,6 +986,189 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ==========================================================================
+   Admin Portal Responsive & Mobile Alignment System
+   (Applies strictly to /admin portal without touching storefront website)
+   ========================================================================== */
+.admin-layout-root {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  background-color: #f8fafc;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.admin-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100vw;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-main-container {
+  flex: 1;
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+@media (min-width: 768px) {
+  .admin-main-container {
+    padding: 1.5rem;
+  }
+}
+
+/* Admin Header Mobile Alignment */
+.admin-header-root {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .admin-header-root {
+    padding: 0.9rem 1.5rem;
+  }
+}
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .admin-header-left {
+    gap: 0.85rem;
+  }
+}
+
+.admin-header-title {
+  font-size: 1.02rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 175px;
+}
+
+@media (min-width: 480px) {
+  .admin-header-title {
+    max-width: 260px;
+    font-size: 1.15rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-header-title {
+    max-width: none;
+    font-size: 1.25rem;
+    white-space: normal;
+  }
+}
+
+.admin-portal-badge {
+  display: none !important;
+}
+
+@media (min-width: 640px) {
+  .admin-portal-badge {
+    display: inline-block !important;
+  }
+}
+
+.admin-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .admin-right-actions {
+    gap: 0.75rem;
+  }
+}
+
+.admin-storefront-btn-text {
+  display: none;
+}
+
+@media (min-width: 520px) {
+  .admin-storefront-btn-text {
+    display: inline;
+  }
+}
+
+.admin-user-pill-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .admin-user-pill-text {
+    display: inline;
+  }
+}
+
+/* Metric Cards Responsive Grid (2 columns on mobile, 4 on desktop) */
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Mobile Cards vs Desktop Table Layout */
+.admin-mobile-cards {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-desktop-table {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .admin-mobile-cards {
+    display: none !important;
+  }
+  .admin-desktop-table {
+    display: block !important;
+  }
+}
+
+
 
 
 

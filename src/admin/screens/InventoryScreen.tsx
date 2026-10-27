@@ -121,50 +121,50 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onRefreshCatal
       {/* Stats Summary Cards */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: '1rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+        gap: '0.65rem'
       }}>
         <div style={{
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '14px',
           border: '1px solid #e2e8f0',
-          padding: '1rem 1.25rem',
+          padding: '0.85rem 1rem',
           boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
         }}>
-          <div style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
-            Total Catalog Items
+          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+            Total Items
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
             {products.length}
           </div>
         </div>
 
         <div style={{
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '14px',
           border: '1px solid #e2e8f0',
-          padding: '1rem 1.25rem',
+          padding: '0.85rem 1rem',
           boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
         }}>
-          <div style={{ fontSize: '0.76rem', color: '#15803d', fontWeight: 700, textTransform: 'uppercase' }}>
-            In Stock (Available)
+          <div style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 700, textTransform: 'uppercase' }}>
+            In Stock
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#15803d', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#15803d', marginTop: '0.2rem' }}>
             {inStockCount}
           </div>
         </div>
 
         <div style={{
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '14px',
           border: '1px solid #e2e8f0',
-          padding: '1rem 1.25rem',
+          padding: '0.85rem 1rem',
           boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
         }}>
-          <div style={{ fontSize: '0.76rem', color: '#b91c1c', fontWeight: 700, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '0.72rem', color: '#b91c1c', fontWeight: 700, textTransform: 'uppercase' }}>
             Out of Stock
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#b91c1c', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#b91c1c', marginTop: '0.2rem' }}>
             {outOfStockCount}
           </div>
         </div>
@@ -276,75 +276,164 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onRefreshCatal
             </div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Product</th>
-                  <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Category</th>
-                  <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Current Price</th>
-                  <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Availability</th>
-                  <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>Quick Toggle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => {
-                  const inStock = p.inStock !== false;
-                  const isUpdating = updatingId === p.id;
+          <>
+            {/* Mobile Inventory Cards (Visible on < 768px) */}
+            <div className="admin-mobile-cards" style={{ padding: '0.75rem' }}>
+              {filtered.map((p) => {
+                const inStock = p.inStock !== false;
+                const isUpdating = updatingId === p.id;
 
-                  return (
-                    <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '0.85rem 1.25rem' }}>
-                        <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>{p.name.en}</div>
-                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.name.te}</div>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
-                        {p.category}
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.92rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹{p.price}
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
+                return (
+                  <div
+                    key={p.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      padding: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.65rem',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                          {p.name.en}
+                        </div>
+                        {p.name.te && (
+                          <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '2px' }}>
+                            {p.name.te}
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '3px' }}>
+                          Category: <span style={{ fontWeight: 700, color: '#334155' }}>{p.category}</span>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>
+                          ₹{p.price}
+                        </div>
                         <span style={{
                           backgroundColor: inStock ? '#dcfce7' : '#fee2e2',
                           color: inStock ? '#15803d' : '#b91c1c',
-                          fontSize: '0.72rem',
+                          fontSize: '0.68rem',
                           fontWeight: 800,
-                          padding: '0.2rem 0.55rem',
+                          padding: '0.15rem 0.5rem',
                           borderRadius: '9999px',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '0.3rem'
+                          gap: '0.25rem',
+                          marginTop: '4px'
                         }}>
-                          {inStock ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                          {inStock ? 'Available' : 'Out of Stock'}
+                          {inStock ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
+                          {inStock ? 'In Stock' : 'Out of Stock'}
                         </span>
-                      </td>
-                      <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleToggleStock(p)}
-                          disabled={isUpdating}
-                          style={{
-                            backgroundColor: inStock ? '#ffffff' : '#15803d',
-                            color: inStock ? '#b91c1c' : '#ffffff',
-                            border: inStock ? '1.5px solid #fca5a5' : 'none',
-                            borderRadius: '8px',
-                            padding: '0.35rem 0.75rem',
-                            fontSize: '0.76rem',
+                      </div>
+                    </div>
+
+                    <div style={{ paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9' }}>
+                      <button
+                        onClick={() => handleToggleStock(p)}
+                        disabled={isUpdating}
+                        style={{
+                          width: '100%',
+                          backgroundColor: inStock ? '#ffffff' : '#15803d',
+                          color: inStock ? '#b91c1c' : '#ffffff',
+                          border: inStock ? '1.5px solid #fca5a5' : 'none',
+                          borderRadius: '10px',
+                          padding: '0.55rem',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          cursor: isUpdating ? 'not-allowed' : 'pointer',
+                          opacity: isUpdating ? 0.6 : 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.45rem'
+                        }}
+                      >
+                        {isUpdating ? 'Updating...' : inStock ? 'Mark Out of Stock' : 'Mark Available (In Stock)'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (Visible on >= 768px) */}
+            <div className="admin-desktop-table" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Product</th>
+                    <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Category</th>
+                    <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Current Price</th>
+                    <th style={{ padding: '0.75rem 1rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Availability</th>
+                    <th style={{ padding: '0.75rem 1.25rem', fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>Quick Toggle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => {
+                    const inStock = p.inStock !== false;
+                    const isUpdating = updatingId === p.id;
+
+                    return (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.85rem 1.25rem' }}>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>{p.name.en}</div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{p.name.te}</div>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
+                          {p.category}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', fontSize: '0.92rem', fontWeight: 900, color: '#0f172a' }}>
+                          ₹{p.price}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <span style={{
+                            backgroundColor: inStock ? '#dcfce7' : '#fee2e2',
+                            color: inStock ? '#15803d' : '#b91c1c',
+                            fontSize: '0.72rem',
                             fontWeight: 800,
-                            cursor: isUpdating ? 'not-allowed' : 'pointer',
-                            opacity: isUpdating ? 0.6 : 1
-                          }}
-                        >
-                          {isUpdating ? 'Saving...' : inStock ? 'Mark Out of Stock' : 'Mark In Stock'}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: '9999px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem'
+                          }}>
+                            {inStock ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                            {inStock ? 'Available' : 'Out of Stock'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>
+                          <button
+                            onClick={() => handleToggleStock(p)}
+                            disabled={isUpdating}
+                            style={{
+                              backgroundColor: inStock ? '#ffffff' : '#15803d',
+                              color: inStock ? '#b91c1c' : '#ffffff',
+                              border: inStock ? '1.5px solid #fca5a5' : 'none',
+                              borderRadius: '8px',
+                              padding: '0.35rem 0.75rem',
+                              fontSize: '0.76rem',
+                              fontWeight: 800,
+                              cursor: isUpdating ? 'not-allowed' : 'pointer',
+                              opacity: isUpdating ? 0.6 : 1
+                            }}
+                          >
+                            {isUpdating ? 'Saving...' : inStock ? 'Mark Out of Stock' : 'Mark In Stock'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

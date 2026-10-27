@@ -27,20 +27,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   const current = TAB_TITLES[activeTab];
 
   return (
-    <header style={{
-      backgroundColor: '#ffffff',
-      borderBottom: '1px solid #e2e8f0',
-      padding: '0.9rem 1.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 30,
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
-    }}>
+    <header className="admin-header-root">
       {/* Left: Mobile hamburger & Screen Title */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="admin-header-left">
         <button
           onClick={onOpenMobileMenu}
           aria-label="Open Admin Menu"
@@ -51,34 +40,33 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             color: '#0f172a',
             cursor: 'pointer',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexShrink: 0
           }}
           className="admin-mobile-menu-btn"
         >
           <Menu size={22} />
         </button>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h1 style={{
-              fontSize: '1.25rem',
-              fontWeight: 900,
-              color: '#0f172a',
-              margin: 0,
-              lineHeight: 1.2
-            }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <h1 className="admin-header-title">
               {current.title}
             </h1>
-            <span style={{
-              backgroundColor: '#f1f5f9',
-              color: '#475569',
-              fontSize: '0.68rem',
-              fontWeight: 800,
-              padding: '0.15rem 0.5rem',
-              borderRadius: '9999px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}>
+            <span
+              className="admin-portal-badge"
+              style={{
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                padding: '0.15rem 0.5rem',
+                borderRadius: '9999px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                flexShrink: 0
+              }}
+            >
               Admin Portal
             </span>
           </div>
@@ -94,9 +82,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       </div>
 
       {/* Right: Quick Storefront Link & Admin Profile Pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div className="admin-right-actions">
         <button
           onClick={onExitToStore}
+          title="Exit to Customer Storefront"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -104,39 +93,42 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             backgroundColor: '#f8fafc',
             border: '1px solid #cbd5e1',
             borderRadius: '8px',
-            padding: '0.45rem 0.85rem',
+            padding: '0.45rem 0.75rem',
             fontSize: '0.78rem',
             fontWeight: 700,
             color: '#334155',
             cursor: 'pointer',
-            transition: 'all 0.15s ease'
+            transition: 'all 0.15s ease',
+            flexShrink: 0
           }}
         >
-          <span>Storefront</span>
+          <span className="admin-storefront-btn-text">Storefront</span>
           <ExternalLink size={14} />
         </button>
 
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.6rem',
+          gap: '0.45rem',
           backgroundColor: '#0f172a',
           color: '#ffffff',
-          padding: '0.35rem 0.75rem',
-          borderRadius: '9999px'
+          padding: '0.35rem 0.65rem',
+          borderRadius: '9999px',
+          flexShrink: 0
         }}>
           <div style={{
-            width: '24px',
-            height: '24px',
+            width: '22px',
+            height: '22px',
             borderRadius: '50%',
             backgroundColor: '#15803d',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
-            <ShieldCheck size={14} />
+            <ShieldCheck size={13} />
           </div>
-          <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>Admin User</span>
+          <span className="admin-user-pill-text" style={{ fontSize: '0.78rem', fontWeight: 800 }}>Admin User</span>
         </div>
       </div>
 

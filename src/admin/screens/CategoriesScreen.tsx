@@ -442,8 +442,8 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
         /* Category Cards Grid */
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '0.85rem'
         }}>
           {categories.map((cat) => {
             const itemCount = products.filter((p) => p.category === cat.id).length;

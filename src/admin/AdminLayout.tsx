@@ -53,12 +53,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      backgroundColor: '#f8fafc',
-      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
+    <div className="admin-layout-root">
       {/* Sidebar (Desktop Persistent & Mobile Drawer) */}
       <AdminSidebar
         activeTab={activeTab}
@@ -70,7 +65,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       />
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="admin-main-wrapper">
         {/* Top Header */}
         <AdminHeader
           activeTab={activeTab}
@@ -82,7 +77,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <BackendStatusBanner onLearnMore={() => setActiveTab('settings')} />
 
         {/* Screen View */}
-        <main style={{ flex: 1, padding: '1.5rem' }}>
+        <main className="admin-main-container">
           {renderScreen()}
         </main>
       </div>
