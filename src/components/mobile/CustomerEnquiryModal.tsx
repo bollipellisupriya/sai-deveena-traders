@@ -172,45 +172,47 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
         backgroundColor: '#ffffff',
         borderRadius: '24px',
         width: '100%',
-        maxWidth: '440px',
+        maxWidth: '460px',
         maxHeight: '92vh',
         overflowY: 'auto',
-        boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.25)',
+        boxShadow: '0 25px 50px -12px rgba(5, 46, 22, 0.35), 0 0 0 1.5px rgba(134, 239, 172, 0.4)',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column'
       }}>
-        {/* Header Bar */}
+        {/* Lush Emerald Green Header Bar */}
         <div style={{
-          padding: '1.15rem 1.25rem',
-          borderBottom: '1px solid #f1f5f9',
+          padding: '1.2rem 1.35rem',
+          borderBottom: '1px solid rgba(134, 239, 172, 0.3)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#f8fafc',
+          background: 'linear-gradient(135deg, #052e16 0%, #15803d 60%, #16a34a 100%)',
           borderTopLeftRadius: '24px',
-          borderTopRightRadius: '24px'
+          borderTopRightRadius: '24px',
+          color: '#ffffff',
+          boxShadow: '0 4px 15px rgba(5, 46, 22, 0.25)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '38px',
+              height: '38px',
               borderRadius: '50%',
-              backgroundColor: '#15803d',
-              color: '#ffffff',
+              backgroundColor: '#ffffff',
+              color: '#15803d',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.25)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
             }}>
-              {pendingAction?.type === 'call' ? <Phone size={18} /> : <MessageCircle size={18} />}
+              {pendingAction?.type === 'call' ? <Phone size={20} /> : <MessageCircle size={20} />}
             </div>
             <div>
-              <h2 style={{ fontSize: '1.02rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
-                {isTe ? 'ఉత్పత్తి విచారణ' : 'Product Enquiry'}
+              <h2 style={{ fontSize: '1.08rem', fontWeight: 900, color: '#ffffff', margin: 0, lineHeight: 1.2 }}>
+                {isTe ? 'ఉత్పత్తి విచారణ' : 'Customer Enquiry'}
               </h2>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                Sai Deveena Traders • Bhainsa
+              <div style={{ fontSize: '0.75rem', color: '#bbf7d0', fontWeight: 700, marginTop: '2px' }}>
+                🌾 Sai Deveena Traders • Bhainsa
               </div>
             </div>
           </div>
@@ -219,19 +221,20 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
             onClick={onClose}
             aria-label="Close Enquiry Modal"
             style={{
-              background: '#e2e8f0',
-              border: 'none',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.35)',
               borderRadius: '50%',
-              width: '30px',
-              height: '30px',
+              width: '32px',
+              height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#475569'
+              color: '#ffffff',
+              transition: 'background-color 0.2s ease'
             }}
           >
-            <X size={16} />
+            <X size={17} />
           </button>
         </div>
 
@@ -414,15 +417,20 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
               )}
 
               {/* Full Name Field */}
-              <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
                   fontWeight: 800,
-                  color: '#334155',
-                  marginBottom: '0.35rem'
+                  color: '#14532d',
+                  marginBottom: '0.4rem'
                 }}>
-                  {isTe ? 'పూర్తి పేరు *' : 'Full Name *'}
+                  <span>{isTe ? 'పూర్తి పేరు' : 'Full Name'} <span style={{ color: '#16a34a' }}>*</span></span>
+                  <span style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700, backgroundColor: '#dcfce7', padding: '0.12rem 0.5rem', borderRadius: '9999px', border: '1px solid #86efac' }}>
+                    {isTe ? 'రైతు పేరు' : 'Farmer / Customer'}
+                  </span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -431,44 +439,57 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={isTe ? "ఉదా: రమేష్ కుమార్" : "e.g. Ramesh Kumar"}
                     disabled={isSubmitting}
+                    className="green-field-input"
                     style={{
                       width: '100%',
-                      padding: '0.65rem 0.85rem 0.65rem 2.2rem',
-                      borderRadius: '10px',
-                      border: errors.fullName ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
+                      padding: '0.72rem 0.95rem 0.72rem 2.5rem',
+                      borderRadius: '14px',
+                      border: errors.fullName ? '2px solid #ef4444' : '1.5px solid #86efac',
+                      backgroundColor: errors.fullName ? '#fef2f2' : '#f0fdf4',
+                      fontSize: '0.9rem',
                       color: '#0f172a',
+                      fontWeight: 600,
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
-                  <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <User size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#16a34a' }} />
                 </div>
                 {errors.fullName && (
-                  <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: '3px', fontWeight: 600 }}>
-                    {errors.fullName}
+                  <div style={{ color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={13} />
+                    <span>{errors.fullName}</span>
                   </div>
                 )}
               </div>
 
               {/* Mobile Number Field */}
-              <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
                   fontWeight: 800,
-                  color: '#334155',
-                  marginBottom: '0.35rem'
+                  color: '#14532d',
+                  marginBottom: '0.4rem'
                 }}>
-                  {isTe ? 'మొబైల్ నంబర్ (OTP అవసరం లేదు) *' : 'Mobile Number (No OTP required) *'}
+                  <span>{isTe ? 'మొబైల్ నంబర్' : 'Mobile Number'} <span style={{ color: '#16a34a' }}>*</span></span>
+                  <span style={{ fontSize: '0.68rem', color: '#166534', backgroundColor: '#dcfce7', padding: '0.12rem 0.5rem', borderRadius: '9999px', fontWeight: 800, border: '1px solid #86efac' }}>
+                    {isTe ? 'OTP అవసరం లేదు' : 'No OTP needed'}
+                  </span>
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <div style={{
                     position: 'absolute',
-                    left: '0.75rem',
-                    fontSize: '0.84rem',
-                    fontWeight: 800,
-                    color: '#64748b',
+                    left: '0.65rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 900,
+                    color: '#166534',
+                    backgroundColor: '#dcfce7',
+                    padding: '0.22rem 0.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #86efac',
                     pointerEvents: 'none'
                   }}>
                     +91
@@ -480,35 +501,45 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                     placeholder="9010454541"
                     disabled={isSubmitting}
+                    className="green-field-input"
                     style={{
                       width: '100%',
-                      padding: '0.65rem 0.85rem 0.65rem 2.8rem',
-                      borderRadius: '10px',
-                      border: errors.phone ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
+                      padding: '0.72rem 0.95rem 0.72rem 3.5rem',
+                      borderRadius: '14px',
+                      border: errors.phone ? '2px solid #ef4444' : '1.5px solid #86efac',
+                      backgroundColor: errors.phone ? '#fef2f2' : '#f0fdf4',
+                      fontSize: '0.92rem',
+                      fontWeight: 700,
                       color: '#0f172a',
+                      letterSpacing: '0.04em',
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
                 </div>
                 {errors.phone && (
-                  <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: '3px', fontWeight: 600 }}>
-                    {errors.phone}
+                  <div style={{ color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={13} />
+                    <span>{errors.phone}</span>
                   </div>
                 )}
               </div>
 
               {/* Village / City Field */}
-              <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
                   fontWeight: 800,
-                  color: '#334155',
-                  marginBottom: '0.35rem'
+                  color: '#14532d',
+                  marginBottom: '0.4rem'
                 }}>
-                  {isTe ? 'గ్రామం / పట్టణం *' : 'Village / City *'}
+                  <span>{isTe ? 'గ్రామం / పట్టణం' : 'Village / City'} <span style={{ color: '#16a34a' }}>*</span></span>
+                  <span style={{ fontSize: '0.68rem', color: '#15803d', fontWeight: 700, backgroundColor: '#dcfce7', padding: '0.12rem 0.5rem', borderRadius: '9999px', border: '1px solid #86efac' }}>
+                    {isTe ? 'స్థలం' : 'Location'}
+                  </span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -517,36 +548,45 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                     onChange={(e) => setVillageCity(e.target.value)}
                     placeholder={isTe ? "ఉదా: భైంసా, నిర్మల్" : "e.g. Bhainsa, Nirmal"}
                     disabled={isSubmitting}
+                    className="green-field-input"
                     style={{
                       width: '100%',
-                      padding: '0.65rem 0.85rem 0.65rem 2.2rem',
-                      borderRadius: '10px',
-                      border: errors.villageCity ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
+                      padding: '0.72rem 0.95rem 0.72rem 2.5rem',
+                      borderRadius: '14px',
+                      border: errors.villageCity ? '2px solid #ef4444' : '1.5px solid #86efac',
+                      backgroundColor: errors.villageCity ? '#fef2f2' : '#f0fdf4',
+                      fontSize: '0.9rem',
                       color: '#0f172a',
+                      fontWeight: 600,
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
-                  <MapPin size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <MapPin size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#16a34a' }} />
                 </div>
                 {errors.villageCity && (
-                  <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: '3px', fontWeight: 600 }}>
-                    {errors.villageCity}
+                  <div style={{ color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={13} />
+                    <span>{errors.villageCity}</span>
                   </div>
                 )}
               </div>
 
               {/* Email Address (Optional) */}
-              <div style={{ marginBottom: '0.85rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  marginBottom: '0.35rem'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  color: '#14532d',
+                  marginBottom: '0.4rem'
                 }}>
-                  {isTe ? 'ఈమెయిల్ చిరునామా (ఐచ్ఛికం)' : 'Email Address (Optional)'}
+                  <span>{isTe ? 'ఈమెయిల్ చిరునామా' : 'Email Address'}</span>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, backgroundColor: '#f1f5f9', padding: '0.12rem 0.5rem', borderRadius: '9999px' }}>
+                    {isTe ? 'ఐచ్ఛికం' : 'Optional'}
+                  </span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -555,36 +595,45 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="farmer@example.com"
                     disabled={isSubmitting}
+                    className="green-field-input"
                     style={{
                       width: '100%',
-                      padding: '0.65rem 0.85rem 0.65rem 2.2rem',
-                      borderRadius: '10px',
-                      border: errors.email ? '1.5px solid #ef4444' : '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
+                      padding: '0.72rem 0.95rem 0.72rem 2.5rem',
+                      borderRadius: '14px',
+                      border: errors.email ? '2px solid #ef4444' : '1.5px solid #86efac',
+                      backgroundColor: errors.email ? '#fef2f2' : '#f0fdf4',
+                      fontSize: '0.9rem',
                       color: '#0f172a',
+                      fontWeight: 600,
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
-                  <Mail size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#16a34a' }} />
                 </div>
                 {errors.email && (
-                  <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: '3px', fontWeight: 600 }}>
-                    {errors.email}
+                  <div style={{ color: '#dc2626', fontSize: '0.74rem', marginTop: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <AlertCircle size={13} />
+                    <span>{errors.email}</span>
                   </div>
                 )}
               </div>
 
               {/* Full Address (Optional) */}
-              <div style={{ marginBottom: '0.95rem' }}>
+              <div style={{ marginBottom: '1.15rem' }}>
                 <label style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  marginBottom: '0.35rem'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  color: '#14532d',
+                  marginBottom: '0.4rem'
                 }}>
-                  {isTe ? 'పూర్తి డెలివరీ చిరునామా / ల్యాండ్‌మార్క్ (ఐచ్ఛికం)' : 'Delivery Address / Landmark (Optional)'}
+                  <span>{isTe ? 'డెలివరీ చిరునామా / ల్యాండ్‌మార్క్' : 'Delivery Address / Landmark'}</span>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, backgroundColor: '#f1f5f9', padding: '0.12rem 0.5rem', borderRadius: '9999px' }}>
+                    {isTe ? 'ఐచ్ఛికం' : 'Optional'}
+                  </span>
                 </label>
                 <textarea
                   rows={2}
@@ -592,13 +641,16 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder={isTe ? "ఉదా: మార్కెట్ యార్డ్ దగ్గర, భైంసా" : "e.g. Near Market Yard, Bhainsa"}
                   disabled={isSubmitting}
+                  className="green-field-textarea"
                   style={{
                     width: '100%',
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.86rem',
+                    padding: '0.72rem 0.95rem',
+                    borderRadius: '14px',
+                    border: '1.5px solid #86efac',
+                    backgroundColor: '#f0fdf4',
+                    fontSize: '0.88rem',
                     color: '#0f172a',
+                    fontWeight: 600,
                     outline: 'none',
                     resize: 'none',
                     boxSizing: 'border-box'
@@ -606,18 +658,19 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                 />
               </div>
 
-              {/* Preferred Contact Method */}
+              {/* Colorful Preferred Contact Method */}
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{
                   display: 'block',
-                  fontSize: '0.78rem',
+                  fontSize: '0.82rem',
                   fontWeight: 800,
-                  color: '#334155',
-                  marginBottom: '0.45rem'
+                  color: '#14532d',
+                  marginBottom: '0.5rem'
                 }}>
                   {isTe ? 'ఎలా సంప్రదించాలి?' : 'Preferred Contact Method'}
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  {/* WhatsApp Option Button */}
                   <button
                     type="button"
                     onClick={() => setPreferredContact('whatsapp')}
@@ -625,21 +678,26 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.45rem',
-                      padding: '0.6rem',
-                      borderRadius: '10px',
-                      border: preferredContact === 'whatsapp' ? '2px solid #15803d' : '1px solid #cbd5e1',
-                      backgroundColor: preferredContact === 'whatsapp' ? '#f0fdf4' : '#ffffff',
-                      color: preferredContact === 'whatsapp' ? '#15803d' : '#475569',
-                      fontSize: '0.82rem',
+                      gap: '0.55rem',
+                      padding: '0.72rem 0.85rem',
+                      borderRadius: '14px',
+                      border: preferredContact === 'whatsapp' ? '2px solid #16a34a' : '1.5px solid #86efac',
+                      background: preferredContact === 'whatsapp'
+                        ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                        : '#f0fdf4',
+                      color: preferredContact === 'whatsapp' ? '#ffffff' : '#15803d',
+                      fontSize: '0.86rem',
                       fontWeight: 800,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      boxShadow: preferredContact === 'whatsapp' ? '0 4px 14px rgba(22, 163, 74, 0.35)' : 'none',
+                      transition: 'all 0.2s ease'
                     }}
                   >
-                    <MessageCircle size={16} />
+                    <MessageCircle size={18} />
                     <span>WhatsApp</span>
                   </button>
 
+                  {/* Phone Call Option Button */}
                   <button
                     type="button"
                     onClick={() => setPreferredContact('call')}
@@ -647,75 +705,79 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.45rem',
-                      padding: '0.6rem',
-                      borderRadius: '10px',
-                      border: preferredContact === 'call' ? '2px solid #15803d' : '1px solid #cbd5e1',
-                      backgroundColor: preferredContact === 'call' ? '#f0fdf4' : '#ffffff',
-                      color: preferredContact === 'call' ? '#15803d' : '#475569',
-                      fontSize: '0.82rem',
+                      gap: '0.55rem',
+                      padding: '0.72rem 0.85rem',
+                      borderRadius: '14px',
+                      border: preferredContact === 'call' ? '2px solid #0284c7' : '1.5px solid #bae6fd',
+                      background: preferredContact === 'call'
+                        ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
+                        : '#f0f9ff',
+                      color: preferredContact === 'call' ? '#ffffff' : '#0369a1',
+                      fontSize: '0.86rem',
                       fontWeight: 800,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      boxShadow: preferredContact === 'call' ? '0 4px 14px rgba(2, 132, 199, 0.35)' : 'none',
+                      transition: 'all 0.2s ease'
                     }}
                   >
-                    <Phone size={16} />
+                    <Phone size={18} />
                     <span>Phone Call</span>
                   </button>
                 </div>
               </div>
 
-              {/* Privacy Notice */}
+              {/* Privacy Notice Card */}
               <div style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: '0.45rem',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '0.65rem 0.75rem',
-                marginBottom: '1.25rem',
-                color: '#64748b',
-                fontSize: '0.72rem',
-                lineHeight: 1.4
+                gap: '0.55rem',
+                backgroundColor: '#f0fdf4',
+                border: '1.5px solid #bbf7d0',
+                borderRadius: '14px',
+                padding: '0.75rem 0.85rem',
+                marginBottom: '1.35rem',
+                color: '#166534',
+                fontSize: '0.74rem',
+                lineHeight: 1.45
               }}>
-                <ShieldCheck size={16} style={{ color: '#15803d', flexShrink: 0, marginTop: '1px' }} />
+                <ShieldCheck size={18} style={{ color: '#16a34a', flexShrink: 0, marginTop: '1px' }} />
                 <span>
                   {isTe
                     ? 'మీ వివరాలు గోప్యంగా ఉంచబడతాయి. కేవలం సాయి దీవెన ట్రేడర్స్ మీ విచారణకు ప్రతిస్పందించడానికి మాత్రమే వీటిని ఉపయోగిస్తుంది.'
-                    : 'Your details will only be used by Sai Deveena Traders to respond to your product enquiry.'}
+                    : 'Your details are secure. Used only by Sai Deveena Traders to assist your product enquiry.'}
                 </span>
               </div>
 
-              {/* Submit Button */}
+              {/* Lush Vibrant Emerald Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
                 style={{
                   width: '100%',
-                  backgroundColor: '#15803d',
+                  background: 'linear-gradient(135deg, #16a34a 0%, #15803d 50%, #14532d 100%)',
                   color: '#ffffff',
-                  border: 'none',
+                  border: '1px solid rgba(134, 239, 172, 0.4)',
                   borderRadius: '9999px',
-                  padding: '0.78rem',
-                  fontSize: '0.92rem',
-                  fontWeight: 800,
+                  padding: '0.85rem 1rem',
+                  fontSize: '0.94rem',
+                  fontWeight: 900,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.5rem',
+                  gap: '0.55rem',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(21, 128, 61, 0.3)',
-                  transition: 'background-color 0.15s ease'
+                  boxShadow: '0 8px 24px rgba(22, 163, 74, 0.4)',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                 }}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                    <Loader2 size={19} style={{ animation: 'spin 1s linear infinite' }} />
                     <span>{isTe ? 'నమోదవుతోంది...' : 'Submitting Enquiry...'}</span>
                   </>
                 ) : (
                   <>
-                    <Send size={16} />
+                    <Send size={18} />
                     <span>
                       {preferredContact === 'whatsapp'
                         ? (isTe ? 'విచారణ పంపి WhatsApp తెరవండి' : 'Submit & Open WhatsApp')

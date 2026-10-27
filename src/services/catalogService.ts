@@ -191,15 +191,46 @@ export const catalogService = {
 
   /**
    * Admin: Deletes a category
+   * Checks for linked products before deleting to prevent foreign key violation (products_category_id_fkey).
    */
   async deleteCategory(id: string): Promise<CatalogServiceResult<boolean>> {
     try {
+      // 1. Check if any products are linked to this category
+      const { count, error: countErr } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', id);
+
+      if (countErr) {
+        console.warn('Could not verify linked product count before category deletion:', countErr);
+      } else if (count && count > 0) {
+        return {
+          data: false,
+          error: `Cannot delete category: ${count} ${count === 1 ? 'product is' : 'products are'} currently linked to it. Please reassign or delete these products first.`
+        };
+      }
+
+      // 2. Perform category deletion
       const { error } = await supabase
         .from('categories')
         .delete()
         .eq('id', id);
 
-      if (error) return { data: false, error: error.message };
+      if (error) {
+        // Handle PostgreSQL foreign key constraint violation (code 23503)
+        if (
+          error.code === '23503' ||
+          error.message?.includes('products_category_id_fkey') ||
+          error.message?.includes('foreign key constraint')
+        ) {
+          return {
+            data: false,
+            error: 'Cannot delete category: One or more products are still linked to it. Please reassign or delete these products first.'
+          };
+        }
+        return { data: false, error: error.message };
+      }
+
       return { data: true, error: null };
     } catch (err: any) {
       return { data: false, error: err.message || 'Failed to delete category' };

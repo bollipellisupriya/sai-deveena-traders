@@ -208,22 +208,19 @@ export function App() {
   return (
     <div className="mobile-app-root" style={{
       minHeight: '100vh',
-      backgroundColor: '#f1f5f9',
+      backgroundColor: '#ffffff',
       display: 'flex',
-      justifyContent: 'center',
+      flexDirection: 'column',
       fontFamily: currentLang === 'te' ? 'var(--font-telugu)' : 'var(--font-sans)'
     }}>
-      {/* App Shell Container */}
-      <div className="mobile-app-shell" style={{
-        width: '100%',
-        maxWidth: '480px',
+      {/* App Shell Container (Fluid on mobile, centered and expansive on tablet/desktop) */}
+      <div className="app-responsive-shell" style={{
         minHeight: '100vh',
         backgroundColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 0 30px rgba(0, 0, 0, 0.08)',
         position: 'relative',
-        overflowX: 'hidden'
+        overflowX: 'clip'
       }}>
         {/* Loading State */}
         {isLoading && (
@@ -283,6 +280,10 @@ export function App() {
               currentLang={currentLang}
               onLanguageChange={handleLanguageChange}
               onCallStore={() => handleCustomerAction('call')}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
 
             {/* Screen Content Area */}

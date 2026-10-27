@@ -43,6 +43,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Bottom Navigation"
+      className="mobile-bottom-bar"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -51,16 +52,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         width: '100%',
         maxWidth: '480px',
         zIndex: 60,
-        backgroundColor: '#ffffff',
-        borderTop: '1px solid #e2e8f0',
-        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.07)',
+        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+        boxShadow: '0 -4px 25px rgba(0, 0, 0, 0.08), 0 -1px 3px rgba(22, 163, 74, 0.05)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
-        paddingTop: '0.4rem',
+        paddingTop: '0.45rem',
         paddingBottom: 'calc(0.55rem + env(safe-area-inset-bottom, 0px))',
-        paddingLeft: '0.5rem',
-        paddingRight: '0.5rem',
+        paddingLeft: '0.65rem',
+        paddingRight: '0.65rem',
         boxSizing: 'border-box'
       }}
     >
@@ -76,27 +79,30 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.15rem',
+              gap: '0.2rem',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               color: isActive ? '#15803d' : '#64748b',
-              padding: '0.2rem 0.4rem',
-              transition: 'all 0.15s ease',
+              padding: '0.2rem 0.5rem',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               flex: 1,
               minHeight: '44px',
-              WebkitTapHighlightColor: 'transparent'
+              WebkitTapHighlightColor: 'transparent',
+              position: 'relative'
             }}
           >
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '3px 12px',
+              padding: '4px 14px',
               borderRadius: '9999px',
-              backgroundColor: isActive ? 'rgba(21, 128, 61, 0.12)' : 'transparent',
-              transition: 'background-color 0.2s ease, transform 0.15s ease',
-              transform: isActive ? 'scale(1.04)' : 'scale(1)'
+              backgroundColor: isActive ? '#dcfce7' : 'transparent',
+              color: isActive ? '#15803d' : '#64748b',
+              boxShadow: isActive ? '0 2px 8px rgba(22, 163, 74, 0.2)' : 'none',
+              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: isActive ? 'scale(1.08)' : 'scale(1)'
             }}>
               {tab.icon}
             </div>
@@ -104,10 +110,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               fontSize: '0.72rem',
               fontWeight: isActive ? 800 : 600,
               letterSpacing: '-0.01em',
-              lineHeight: 1.15
+              lineHeight: 1.15,
+              color: isActive ? '#15803d' : '#64748b',
+              transition: 'color 0.2s ease'
             }}>
               {tab.label}
             </span>
+            {isActive && (
+              <span style={{
+                position: 'absolute',
+                bottom: '1px',
+                width: '4px',
+                height: '4px',
+                borderRadius: '50%',
+                backgroundColor: '#16a34a'
+              }} />
+            )}
           </button>
         );
       })}

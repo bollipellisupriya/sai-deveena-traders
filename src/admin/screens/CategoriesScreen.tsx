@@ -273,22 +273,32 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
 
   const handleDelete = async (cat: Category) => {
     const itemCount = products.filter((p) => p.category === cat.id).length;
-    const confirmText = itemCount > 0
-      ? `This category contains ${itemCount} products. Are you sure you want to delete "${cat.name.en}"?`
-      : `Are you sure you want to delete the category "${cat.name.en}"?`;
+    
+    // Explicitly prevent deletion if any products are linked to this category
+    if (itemCount > 0) {
+      setStatusMessage({
+        type: 'error',
+        text: `Cannot delete category "${cat.name.en}": ${itemCount} ${itemCount === 1 ? 'product is' : 'products are'} currently linked to it. Please reassign or delete these products first.`
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
-    if (!window.confirm(confirmText)) return;
+    if (!window.confirm(`Are you sure you want to delete the category "${cat.name.en}"? This action cannot be undone.`)) {
+      return;
+    }
 
     setActionLoading(true);
     const res = await catalogService.deleteCategory(cat.id);
     if (res.error) {
-      setStatusMessage({ type: 'error', text: `Failed to delete category: ${res.error}` });
+      setStatusMessage({ type: 'error', text: res.error });
     } else {
-      setStatusMessage({ type: 'success', text: `Category "${cat.name.en}" deleted.` });
+      setStatusMessage({ type: 'success', text: `Category "${cat.name.en}" deleted successfully.` });
       loadData();
       onRefreshCatalog?.();
     }
     setActionLoading(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -516,14 +526,14 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
                       </button>
                       <button
                         onClick={() => handleDelete(cat)}
-                        title="Delete category"
+                        title={itemCount > 0 ? `Cannot delete: ${itemCount} ${itemCount === 1 ? 'product is' : 'products are'} assigned to this category` : 'Delete category'}
                         style={{
-                          backgroundColor: '#fee2e2',
+                          backgroundColor: itemCount > 0 ? '#f1f5f9' : '#fee2e2',
                           border: 'none',
                           borderRadius: '8px',
                           padding: '0.35rem',
-                          cursor: 'pointer',
-                          color: '#b91c1c'
+                          cursor: itemCount > 0 ? 'not-allowed' : 'pointer',
+                          color: itemCount > 0 ? '#94a3b8' : '#b91c1c'
                         }}
                       >
                         <Trash2 size={14} />
