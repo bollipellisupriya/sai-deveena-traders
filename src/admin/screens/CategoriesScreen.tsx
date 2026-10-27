@@ -335,19 +335,21 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
         backgroundColor: '#ffffff',
         borderRadius: '16px',
         border: '1px solid #e2e8f0',
-        padding: '1rem 1.25rem',
+        padding: '0.75rem 1rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '0.85rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+        gap: '0.65rem',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div>
-          <div style={{ fontSize: '0.96rem', fontWeight: 900, color: '#0f172a' }}>
+        <div style={{ minWidth: 0, flex: '1 1 180px' }}>
+          <div style={{ fontSize: '0.94rem', fontWeight: 900, color: '#0f172a' }}>
             Store Categories ({categories.length})
           </div>
-          <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
             Manage agricultural product departments synced live with Supabase
           </div>
         </div>
@@ -442,8 +444,8 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
         /* Category Cards Grid */
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '0.85rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '0.75rem'
         }}>
           {categories.map((cat) => {
             const itemCount = products.filter((p) => p.category === cat.id).length;
@@ -454,14 +456,15 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
                 key={cat.id}
                 style={{
                   backgroundColor: '#ffffff',
-                  borderRadius: '16px',
+                  borderRadius: '14px',
                   border: '1px solid #e2e8f0',
-                  padding: '1.25rem',
+                  padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                  opacity: isActive ? 1 : 0.75
+                  opacity: isActive ? 1 : 0.75,
+                  boxSizing: 'border-box'
                 }}
               >
                 <div>

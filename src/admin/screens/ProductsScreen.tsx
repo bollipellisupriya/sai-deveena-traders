@@ -272,20 +272,21 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ onRefreshCatalog
       )}
 
       {/* Top Toolbar */}
+      {/* Top Toolbar */}
       <div style={{
         backgroundColor: '#ffffff',
-        borderRadius: '16px',
+        borderRadius: '14px',
         border: '1px solid #e2e8f0',
-        padding: '1rem 1.25rem',
+        padding: '0.75rem',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.85rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+        flexDirection: 'column',
+        gap: '0.65rem',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         {/* Search */}
-        <div style={{ position: 'relative', flex: '1 1 250px', maxWidth: '400px' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <input
             type="text"
             value={search}
@@ -293,83 +294,96 @@ export const ProductsScreen: React.FC<ProductsScreenProps> = ({ onRefreshCatalog
             placeholder="Search products by title, Telugu, brand..."
             style={{
               width: '100%',
-              padding: '0.55rem 0.85rem 0.55rem 2.25rem',
-              borderRadius: '10px',
+              padding: '0.5rem 0.75rem 0.5rem 2.2rem',
+              borderRadius: '8px',
               border: '1px solid #cbd5e1',
-              fontSize: '0.84rem',
+              fontSize: '0.82rem',
               color: '#0f172a',
               outline: 'none',
-              backgroundColor: '#f8fafc'
+              backgroundColor: '#f8fafc',
+              boxSizing: 'border-box'
             }}
           />
-          <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
         </div>
 
         {/* Filter & Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Filter size={15} style={{ color: '#64748b' }} />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.45rem',
+          width: '100%'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: '1 1 130px', minWidth: 0 }}>
+            <Filter size={14} style={{ color: '#64748b', flexShrink: 0 }} />
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               style={{
-                padding: '0.55rem 0.85rem',
-                borderRadius: '10px',
+                width: '100%',
+                padding: '0.45rem 0.65rem',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
-                fontSize: '0.82rem',
+                fontSize: '0.78rem',
                 color: '#334155',
                 backgroundColor: '#f8fafc',
                 cursor: 'pointer',
                 outline: 'none',
-                fontWeight: 600
+                fontWeight: 600,
+                minWidth: 0
               }}
             >
               <option value="all">All Categories ({products.length})</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name.en} ({c.name.te})
+                  {c.name.en}
                 </option>
               ))}
             </select>
           </div>
 
-          <button
-            onClick={loadData}
-            title="Refresh database records"
-            style={{
-              background: 'none',
-              border: '1px solid #cbd5e1',
-              borderRadius: '10px',
-              padding: '0.5rem',
-              color: '#475569',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <RefreshCw size={16} className={loading ? 'spin' : ''} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+            <button
+              onClick={loadData}
+              title="Refresh database records"
+              style={{
+                background: 'none',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                padding: '0.45rem',
+                color: '#475569',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <RefreshCw size={15} className={loading ? 'spin' : ''} />
+            </button>
 
-          <button
-            onClick={handleOpenCreate}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: '#15803d',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '0.55rem 1rem',
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(21, 128, 61, 0.25)'
-            }}
-          >
-            <Plus size={16} />
-            <span>Add Product</span>
-          </button>
+            <button
+              onClick={handleOpenCreate}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                backgroundColor: '#15803d',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.45rem 0.8rem',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(21, 128, 61, 0.25)',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Plus size={15} />
+              <span>Add Product</span>
+            </button>
+          </div>
         </div>
       </div>
 

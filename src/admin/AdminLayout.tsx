@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminHeader } from './components/AdminHeader';
+import { AdminMobileBottomNav } from './components/AdminMobileBottomNav';
 import { BackendStatusBanner } from './components/BackendStatusBanner';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { ProductsScreen } from './screens/ProductsScreen';
@@ -80,6 +81,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <main className="admin-main-container">
           {renderScreen()}
         </main>
+
+        {/* Website-Style Mobile Bottom Navigation Bar (< 768px) */}
+        <AdminMobileBottomNav
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab)}
+          onOpenMoreMenu={() => setIsMobileMenuOpen(true)}
+        />
       </div>
     </div>
   );

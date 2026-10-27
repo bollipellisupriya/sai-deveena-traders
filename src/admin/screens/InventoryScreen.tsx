@@ -173,38 +173,39 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ onRefreshCatal
       {/* Top Filter Bar */}
       <div style={{
         backgroundColor: '#ffffff',
-        borderRadius: '16px',
+        borderRadius: '14px',
         border: '1px solid #e2e8f0',
-        padding: '1rem 1.25rem',
+        padding: '0.75rem',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.85rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)'
+        flexDirection: 'column',
+        gap: '0.65rem',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', flex: 1 }}>
-          <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: '380px' }}>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search items for quick stock control..."
-              style={{
-                width: '100%',
-                padding: '0.55rem 0.85rem 0.55rem 2.25rem',
-                borderRadius: '10px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.84rem',
-                color: '#0f172a',
-                outline: 'none',
-                backgroundColor: '#f8fafc'
-              }}
-            />
-            <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-          </div>
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search items for quick stock control..."
+            style={{
+              width: '100%',
+              padding: '0.5rem 0.75rem 0.5rem 2.2rem',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.82rem',
+              color: '#0f172a',
+              outline: 'none',
+              backgroundColor: '#f8fafc',
+              boxSizing: 'border-box'
+            }}
+          />
+          <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+        </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.45rem', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', overflowX: 'auto', maxWidth: '100%', paddingBottom: '2px' }}>
             {(['all', 'in_stock', 'out_of_stock'] as const).map((filterKey) => (
               <button
                 key={filterKey}
