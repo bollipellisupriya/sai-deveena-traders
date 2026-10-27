@@ -7,6 +7,7 @@ import type {
 } from '../types';
 
 const STORED_CUSTOMER_KEY = 'sdt_customer_enquiry_info';
+const RECENT_ENQUIRIES_KEY = 'sdt_recent_enquiries';
 
 // Helper to clean Indian phone number to 10 digits
 export function cleanIndianPhoneNumber(rawPhone: string): string {
@@ -71,6 +72,53 @@ export const enquiryService = {
       localStorage.setItem(STORED_CUSTOMER_KEY, JSON.stringify(info));
     } catch (e) {
       console.warn('Unable to cache customer enquiry details in localStorage', e);
+    }
+  },
+
+  /**
+   * Get recent enquiries sent from this browser/device
+   */
+  getRecentEnquiries(): CustomerEnquiry[] {
+    try {
+      const stored = localStorage.getItem(RECENT_ENQUIRIES_KEY);
+      if (stored) {
+        return JSON.parse(stored) as CustomerEnquiry[];
+      }
+      // Fallback: If no list exists but user has cached customer info, return synthesized enquiry
+      const storedCustomer = this.getStoredCustomerInfo();
+      if (storedCustomer && storedCustomer.name && storedCustomer.phone) {
+        return [{
+          id: 'recent_prev',
+          name: storedCustomer.name,
+          phone: storedCustomer.phone,
+          email: storedCustomer.email || null,
+          villageCity: storedCustomer.villageCity || 'Bhainsa',
+          address: storedCustomer.address || null,
+          preferredContact: storedCustomer.preferredContact || 'whatsapp',
+          productId: null,
+          productName: 'Agricultural Product / Store Enquiry',
+          status: 'new',
+          notes: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Save an enquiry to recent enquiries list in localStorage
+   */
+  saveRecentEnquiry(enquiry: CustomerEnquiry): void {
+    try {
+      const existing = this.getRecentEnquiries().filter(e => e.id !== 'recent_prev');
+      const updated = [enquiry, ...existing.filter(e => e.id !== enquiry.id)].slice(0, 20);
+      localStorage.setItem(RECENT_ENQUIRIES_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Unable to cache recent enquiry in localStorage', e);
     }
   },
 
@@ -159,6 +207,9 @@ export const enquiryService = {
         address: input.address?.trim() || '',
         preferredContact: input.preferredContact
       });
+
+      // Track in recent enquiries on this device
+      this.saveRecentEnquiry(enquiry);
 
       return {
         success: true,

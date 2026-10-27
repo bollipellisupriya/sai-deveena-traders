@@ -96,9 +96,9 @@ export function App() {
         : '';
       const customPart = customText ? `\n- Details: ${customText}` : '';
 
-      // Strict Security: Never include customer's email or full address in the public WhatsApp URL
+      // Include customer name, phone, and village in the WhatsApp enquiry message
       const text = encodeURIComponent(
-        `Hello Sai Deveena Traders,\nI submitted an enquiry (${refId}):${productSnippet}${customPart}\n- Name: ${enquiry.name}\n- Village: ${enquiry.villageCity}\n\nPlease confirm product availability and delivery.`
+        `Hello Sai Deveena Traders,\nI submitted an enquiry (${refId}):${productSnippet}${customPart}\n- Name: ${enquiry.name}\n- Phone: ${enquiry.phone}\n- Village: ${enquiry.villageCity}\n\nPlease confirm product availability and delivery.`
       );
       const cleanWaNum = shopConfig.whatsappNumber.replace(/\D/g, '');
       window.open(`https://wa.me/${cleanWaNum}?text=${text}`, '_blank');

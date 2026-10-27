@@ -9,12 +9,12 @@ import {
   MapPin,
   Package,
   ArrowRight,
-  LogIn,
   AlertCircle
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { customerAuthService, type CustomerUser } from '../../services/customerAuthService';
-import type { Language, Order } from '../../types';
+import { enquiryService } from '../../services/enquiryService';
+import type { Language, Order, CustomerEnquiry } from '../../types';
 
 interface MobileOrdersScreenProps {
   currentLang: Language;
@@ -25,10 +25,11 @@ interface MobileOrdersScreenProps {
 export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
   currentLang,
   onExplore,
-  onOpenAuthModal
+  onOpenAuthModal: _onOpenAuthModal
 }) => {
   const isTe = currentLang === 'te';
   const [orders, setOrders] = useState<Order[]>([]);
+  const [recentEnquiries, setRecentEnquiries] = useState<CustomerEnquiry[]>([]);
   const [currentUser, setCurrentUser] = useState<CustomerUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,10 +66,27 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
 
     loadCustomerOrders();
 
+    // Load recent enquiries sent from this browser
+    try {
+      const localEnqs = enquiryService.getRecentEnquiries();
+      setRecentEnquiries(localEnqs);
+    } catch (e) {
+      console.warn('Could not load recent enquiries', e);
+    }
+
     return () => {
       mounted = false;
     };
   }, []);
+
+  // Follow up on a specific enquiry via WhatsApp
+  const handleFollowUpEnquiry = (enq: CustomerEnquiry) => {
+    const ref = enq.id && enq.id !== 'recent_prev' ? `#ENQ-${enq.id.slice(0, 8).toUpperCase()}` : 'Enquiry';
+    const message = encodeURIComponent(
+      `Hello Sai Deveena Traders,\nI want to follow up on my enquiry (${ref}):\n- Product: ${enq.productName || 'Agricultural items'}\n- Name: ${enq.name}\n- Phone: ${enq.phone}\n- Village: ${enq.villageCity}\n\nPlease confirm availability and latest rates.`
+    );
+    window.open(`https://wa.me/919010454541?text=${message}`, '_blank');
+  };
 
   // Send an order list to WhatsApp
   const handleSendOrderToWhatsApp = (order: Order) => {
@@ -201,60 +219,167 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
         </div>
       )}
 
-      {/* 2. Unauthenticated State: Prompt to sign in */}
-      {!currentUser && !loading && (
+      {/* 2. Customer Recent Enquiries (No login required) */}
+      {recentEnquiries.length > 0 && (
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+            <h3 style={{ fontSize: '0.98rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Clock size={16} style={{ color: '#15803d' }} />
+              <span>{isTe ? 'మీ ఇటీవలి విచారణలు' : 'Your Recent Enquiries'}</span>
+            </h3>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#15803d', backgroundColor: '#dcfce7', padding: '2px 8px', borderRadius: '9999px' }}>
+              {recentEnquiries.length} {isTe ? 'యాక్టివ్' : 'Active'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {recentEnquiries.map((enq) => {
+              const refId = enq.id && enq.id !== 'recent_prev' ? `#ENQ-${enq.id.slice(0, 8).toUpperCase()}` : 'ENQUIRY';
+              return (
+                <div key={enq.id} style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  border: '1.5px solid #86efac',
+                  boxShadow: '0 3px 12px rgba(22, 163, 74, 0.06)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.45rem', gap: '0.5rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#166534', backgroundColor: '#f0fdf4', padding: '2px 7px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                        {refId}
+                      </span>
+                      <h4 style={{ fontSize: '0.94rem', fontWeight: 900, color: '#0f172a', margin: '0.35rem 0 0.15rem 0' }}>
+                        {enq.productName || (isTe ? 'వ్యవసాయ ఉత్పత్తుల విచారణ' : 'Agricultural Product Enquiry')}
+                      </h4>
+                    </div>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#b45309', backgroundColor: '#fef3c7', padding: '2px 8px', borderRadius: '9999px', whiteSpace: 'nowrap' }}>
+                      {isTe ? 'స్వీకరించబడింది' : 'Enquiry Received'}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                    <span>👤 {enq.name}</span>
+                    <span>📞 {enq.phone}</span>
+                    <span>📍 {enq.villageCity}</span>
+                  </div>
+
+                  <div style={{
+                    fontSize: '0.72rem',
+                    color: '#15803d',
+                    backgroundColor: '#f0fdf4',
+                    padding: '0.4rem 0.65rem',
+                    borderRadius: '8px',
+                    marginBottom: '0.75rem',
+                    fontWeight: 700
+                  }}>
+                    {isTe
+                      ? '✓ మీ విచారణ నమోదైంది. మా బృందం ధర & లభ్యత వివరాలతో సంప్రదిస్తుంది.'
+                      : '✓ Enquiry logged. Our team is reviewing stock and connects via WhatsApp/Phone.'}
+                  </div>
+
+                  {/* Action buttons to follow up */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleFollowUpEnquiry(enq)}
+                      style={{
+                        backgroundColor: '#25d366',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '0.55rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <MessageCircle size={14} />
+                      <span>{isTe ? 'వాట్సాప్ ఫాలో-అప్' : 'WhatsApp Follow-up'}</span>
+                    </button>
+                    <a
+                      href="tel:9010454541"
+                      style={{
+                        backgroundColor: '#f8fafc',
+                        color: '#0f172a',
+                        border: '1.2px solid #cbd5e1',
+                        borderRadius: '10px',
+                        padding: '0.55rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <Phone size={13} style={{ color: '#ea580c' }} />
+                      <span>{isTe ? 'కాల్ చేయండి' : 'Call Store'}</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 3. Empty State when customer has no enquiries and no formal orders */}
+      {!currentUser && recentEnquiries.length === 0 && !loading && (
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
-          padding: '1.5rem',
+          padding: '2rem 1.5rem',
           textAlign: 'center',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
           marginBottom: '1rem'
         }}>
           <div style={{
-            width: '52px',
-            height: '52px',
+            width: '54px',
+            height: '54px',
             borderRadius: '50%',
-            backgroundColor: '#e0f2fe',
-            color: '#0284c7',
+            backgroundColor: '#f0fdf4',
+            color: '#15803d',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 0.75rem'
           }}>
-            <LogIn size={24} />
+            <ShoppingBag size={26} />
           </div>
-          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
-            {isTe ? 'మీ ఆర్డర్లను చూడటానికి లాగిన్ అవ్వండి' : 'Sign In to View Your Orders'}
+          <h3 style={{ fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
+            {isTe ? 'ఇంకా ఎలాంటి విచారణలు లేదా ఆర్డర్లు లేవు' : 'No Enquiries or Orders Yet'}
           </h3>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1rem', lineHeight: 1.45 }}>
+          <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1.25rem', lineHeight: 1.45, maxWidth: '320px', margin: '0 auto 1.25rem' }}>
             {isTe
-              ? 'మీ ఖాతాకు లాగిన్ చేసి గత ఆర్డర్లు మరియు ప్రస్తుత డెలివరీ స్థితిని ట్రాక్ చేయండి.'
-              : 'Sign in to access your registered orders, tracking numbers, and live delivery updates.'}
+              ? 'మీరు ఏదైనా ఉత్పత్తిపై వాట్సాప్ లేదా కాల్ చేసినప్పుడు, మీ విచారణ ఇక్కడ స్వయంచాలకంగా ట్రాక్ అవుతుంది.'
+              : 'When you tap Call or WhatsApp on any product, your enquiry will be tracked here for easy follow-up.'}
           </p>
-          {onOpenAuthModal && (
-            <button
-              onClick={onOpenAuthModal}
-              style={{
-                backgroundColor: '#15803d',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.65rem 1.5rem',
-                fontSize: '0.84rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)'
-              }}
-            >
-              <span>{isTe ? 'లాగిన్ / రిజిస్టర్' : 'Sign In / Register'}</span>
-              <ArrowRight size={15} />
-            </button>
-          )}
+          <button
+            onClick={onExplore}
+            style={{
+              backgroundColor: '#15803d',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '0.65rem 1.5rem',
+              fontSize: '0.84rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)'
+            }}
+          >
+            <span>{isTe ? 'ఉత్పత్తులను బ్రౌజ్ చేయండి' : 'Browse Products'}</span>
+            <ArrowRight size={15} />
+          </button>
         </div>
       )}
 
