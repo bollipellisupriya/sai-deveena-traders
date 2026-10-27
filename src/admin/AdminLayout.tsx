@@ -42,7 +42,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       case 'enquiries':
         return <EnquiriesScreen />;
       case 'orders':
-        return <OrdersScreen />;
+        return <OrdersScreen onNavigateTab={(tab) => setActiveTab(tab)} />;
       case 'customers':
         return <CustomersScreen />;
       case 'settings':

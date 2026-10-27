@@ -37,8 +37,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'products', label: 'Products', icon: <Package size={18} /> },
     { id: 'categories', label: 'Categories', icon: <FolderTree size={18} /> },
     { id: 'inventory', label: 'Inventory & Stock', icon: <Boxes size={18} />, badge: 'Live' },
-    { id: 'enquiries', label: 'Customer Enquiries', icon: <MessageSquare size={18} /> },
-    { id: 'orders', label: 'Orders & Inquiries', icon: <ClipboardList size={18} /> },
+    { id: 'enquiries', label: 'Customer Enquiries', icon: <MessageSquare size={18} />, badge: 'New' },
+    { id: 'orders', label: 'Orders & Sales', icon: <ClipboardList size={18} /> },
     { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> }
   ];

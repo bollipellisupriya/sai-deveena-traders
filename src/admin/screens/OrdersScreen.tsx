@@ -11,12 +11,14 @@ import {
   AlertCircle,
   X,
   Trash2,
-  User
+  User,
+  MessageSquare
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { customerService } from '../../services/customerService';
 import { catalogService } from '../../services/catalogService';
 import type { Order, OrderStatus, OrderSource, PaymentMethod, Product, CustomerProfile } from '../../types';
+import type { AdminTab } from '../types';
 
 const STATUS_OPTIONS: { id: string; label: string; color: string; bg: string }[] = [
   { id: 'all', label: 'All Orders', color: '#0f172a', bg: '#f1f5f9' },
@@ -29,7 +31,11 @@ const STATUS_OPTIONS: { id: string; label: string; color: string; bg: string }[]
   { id: 'cancelled', label: 'Cancelled', color: '#dc2626', bg: '#fee2e2' }
 ];
 
-export const OrdersScreen: React.FC = () => {
+interface OrdersScreenProps {
+  onNavigateTab?: (tab: AdminTab) => void;
+}
+
+export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -397,28 +403,54 @@ export const OrdersScreen: React.FC = () => {
           }}>
             <ClipboardList size={36} style={{ margin: '0 auto 0.75rem', color: '#cbd5e1' }} />
             <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
-              No Orders Found
+              No Orders Recorded Yet
             </div>
-            <div style={{ fontSize: '0.82rem', maxWidth: '380px', margin: '0 auto 1.25rem' }}>
+            <div style={{ fontSize: '0.84rem', maxWidth: '440px', margin: '0 auto 1.35rem', lineHeight: 1.5 }}>
               {statusFilter !== 'all' || search
                 ? 'No live orders match your selected filters.'
-                : 'Customer web orders, phone inquiries, and WhatsApp orders will appear here dynamically.'}
+                : 'Confirmed sales and offline orders appear here. If you are looking for product enquiries submitted by customers via WhatsApp or Phone, please check Customer Enquiries.'}
             </div>
-            <button
-              onClick={handleOpenManualModal}
-              style={{
-                backgroundColor: '#15803d',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.55rem 1.25rem',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              Record First Phone/WhatsApp Order
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {onNavigateTab && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('enquiries')}
+                  style={{
+                    backgroundColor: '#15803d',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '0.6rem 1.35rem',
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)'
+                  }}
+                >
+                  <MessageSquare size={15} />
+                  <span>View Customer Enquiries</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleOpenManualModal}
+                style={{
+                  backgroundColor: '#f8fafc',
+                  color: '#0f172a',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '9999px',
+                  padding: '0.6rem 1.35rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                + Record Offline Order
+              </button>
+            </div>
           </div>
         ) : (
           orders.map((ord) => {
