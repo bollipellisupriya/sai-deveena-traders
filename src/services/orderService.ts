@@ -458,6 +458,12 @@ export const orderService = {
         return { data: null, error: 'Your cart is empty. Please add items before checking out.' };
       }
 
+      const validKey = (idempotencyKey && idempotencyKey.trim() !== '')
+        ? idempotencyKey.trim()
+        : (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? `guest_${crypto.randomUUID()}`
+            : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`);
+
       const rpcArgs = {
         p_customer_name: guestData.fullName.trim(),
         p_customer_phone: guestData.phone.trim(),
@@ -473,7 +479,7 @@ export const orderService = {
         p_customer_email: guestData.email?.trim() || null,
         p_payment_method: guestData.paymentMethod || 'cash_on_delivery',
         p_order_source: 'web',
-        p_idempotency_key: idempotencyKey || null
+        p_idempotency_key: validKey
       };
 
       const { data, error } = await supabase.rpc('create_guest_order_secure', rpcArgs);

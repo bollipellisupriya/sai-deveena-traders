@@ -179,8 +179,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsSubmittingOrder(true);
     try {
-      // Generate a unique idempotency key for this submission attempt
-      const idempotencyKey = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      // Generate a strong, unique idempotency key for this submission attempt
+      const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? `guest_${crypto.randomUUID()}`
+        : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`;
 
       const orderPayloadItems = items.map(it => ({
         productId: it.product.id,
