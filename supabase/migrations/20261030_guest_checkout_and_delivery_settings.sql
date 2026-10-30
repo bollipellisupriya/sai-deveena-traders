@@ -3,58 +3,75 @@
 -- File: supabase/migrations/20261030_guest_checkout_and_delivery_settings.sql
 -- Production-Ready, Hardened Guest Checkout, Delivery Rules & Secure Tracking
 --
--- Security Corrections & Verification:
+-- Security Audit & Compatibility Hardening:
 --  1. pgcrypto failure halts migration with clear exception (no silent ignore).
---  2. Internal crypto helpers: REVOKED from PUBLIC, anon, and authenticated.
---     Callable ONLY internally by SECURITY DEFINER order creation function.
---  3. Idempotency hash: Deterministic Normalized JSONB payload with SHA-256.
---  4. Production orders.status constraint preserves all 7 existing valid statuses:
+--  2. Dynamic resolution of pgcrypto schema: search_path locked to strictly
+--     the extension's namespace + pg_catalog, preventing object substitution.
+--  3. Internal crypto helpers: REVOKED from PUBLIC, anon, and authenticated.
+--  4. Idempotency hash: Deterministic Normalized JSONB payload with SHA-256,
+--     including normalized order_source and all customer and line item fields.
+--  5. Two-phase verification: Validates all products, active status, in_stock,
+--     and prices BEFORE inserting order header. Fully atomic transaction.
+--  6. Production orders.status constraint preserves all 7 existing valid statuses:
 --     'pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped',
 --     'delivered', 'cancelled', plus 'pending_confirmation' and 'out_for_delivery'.
---  5. public.categories, category images, and admin authentication remain untouched.
---  6. Full search_path lockdown (empty search_path) on all public-facing functions.
+--  7. public.categories, category images, and admin authentication remain untouched.
+--  8. Strict RLS and privilege lockdown: anon cannot read, write, or delete orders.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 0. CRYPTOGRAPHIC EXTENSION SETUP (STRICT HALT ON ERROR)
+-- 0. CRYPTOGRAPHIC EXTENSION SETUP & HARDENED WRAPPERS
 -- ----------------------------------------------------------------------------
 DO $$
+DECLARE
+  v_ext_schema TEXT;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto') THEN
+  -- 0A. Verify or install pgcrypto extension; fail loudly if unavailable
+  SELECT n.nspname INTO v_ext_schema
+  FROM pg_catalog.pg_extension e
+  JOIN pg_catalog.pg_namespace n ON e.extnamespace = n.oid
+  WHERE e.extname = 'pgcrypto';
+
+  IF v_ext_schema IS NULL THEN
     BEGIN
       CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+      v_ext_schema := 'extensions';
     EXCEPTION WHEN OTHERS THEN
       BEGIN
-        CREATE EXTENSION pgcrypto;
+        CREATE EXTENSION pgcrypto WITH SCHEMA public;
+        v_ext_schema := 'public';
       EXCEPTION WHEN OTHERS THEN
         RAISE EXCEPTION 'Prerequisite Failure: pgcrypto extension is required but could not be installed: %', SQLERRM;
       END;
     END;
   END IF;
+
+  -- 0B. Dynamically define crypto wrappers with search_path restricted
+  -- EXCLUSIVELY to the extension namespace and pg_catalog (prevents object substitution)
+  EXECUTE pg_catalog.format($func$
+    CREATE OR REPLACE FUNCTION public.crypto_gen_random_bytes(p_len INTEGER)
+    RETURNS BYTEA
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    SET search_path = %I, pg_catalog
+    AS $f$
+    BEGIN
+      RETURN gen_random_bytes(p_len);
+    END;
+    $f$;
+
+    CREATE OR REPLACE FUNCTION public.crypto_sha256_hex(p_input TEXT)
+    RETURNS TEXT
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    SET search_path = %I, pg_catalog
+    AS $f$
+    BEGIN
+      RETURN encode(digest(p_input, 'sha256'), 'hex');
+    END;
+    $f$;
+  $func$, v_ext_schema, v_ext_schema);
 END $$;
-
--- Internal Crypto Helpers (Search path fixed; permissions revoked from external roles)
-CREATE OR REPLACE FUNCTION public.crypto_gen_random_bytes(p_len INTEGER)
-RETURNS BYTEA
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = extensions, public, pg_catalog
-AS $$
-BEGIN
-  RETURN gen_random_bytes(p_len);
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.crypto_sha256_hex(p_input TEXT)
-RETURNS TEXT
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = extensions, public, pg_catalog
-AS $$
-BEGIN
-  RETURN encode(digest(p_input, 'sha256'), 'hex');
-END;
-$$;
 
 -- Revoke execute from external API roles so they cannot be invoked via PostgREST RPC.
 -- Usable internally by SECURITY DEFINER order creation.
@@ -138,7 +155,7 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'pincode'
+    WHERE table_schema = 'public' AND table_name = 'pincode'
   ) THEN
     ALTER TABLE public.orders ADD COLUMN pincode TEXT;
   END IF;
@@ -223,6 +240,14 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.order_items TO authenticated;
 
 -- ----------------------------------------------------------------------------
 -- 5. SECURE GUEST & AUTHENTICATED ORDER CREATION FUNCTION
+-- Features:
+--  - Validates mandatory idempotency key
+--  - Normalizes customer details and validates formats
+--  - Aggregates duplicate product IDs in submitted cart before checks
+--  - Locks products (FOR SHARE ORDER BY id ASC) to verify stock and price
+--  - Rolls back completely if any item validation or stock check fails
+--  - Computes deterministic normalized JSONB hash with SHA-256 (including order_source)
+--  - Handles simultaneous duplicates via unique index conflict handling
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_guest_order_secure(
   p_customer_name TEXT,
@@ -274,6 +299,7 @@ DECLARE
   v_payload_hash TEXT;
   v_clean_idempotency_key TEXT;
   v_normalized_items JSONB;
+  v_validated_items JSONB := '[]'::jsonb;
 BEGIN
   -- 1. Validate Mandatory Non-Empty Idempotency Key
   v_clean_idempotency_key := pg_catalog.btrim(COALESCE(p_idempotency_key, ''));
@@ -350,6 +376,7 @@ BEGIN
   ) agg;
 
   -- 4. Calculate Deterministic Normalized JSONB SHA-256 Payload Hash
+  -- Includes normalized order_source and all customer and line item data
   v_canonical_json := pg_catalog.jsonb_build_object(
     'customer_name', v_norm_name,
     'customer_phone', v_clean_phone,
@@ -360,12 +387,13 @@ BEGIN
     'landmark', v_norm_landmark,
     'delivery_instructions', v_norm_instructions,
     'payment_method', v_norm_payment,
+    'order_source', v_order_source,
     'items', COALESCE(v_normalized_items, '[]'::jsonb)
   );
 
   v_payload_hash := public.crypto_sha256_hex(v_canonical_json::TEXT);
 
-  -- 5. Safe Idempotency Check
+  -- 5. Safe Idempotency Check: Return existing order if identical request already submitted
   SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
   INTO v_existing_order
   FROM public.orders
@@ -411,93 +439,8 @@ BEGIN
       USING ERRCODE = 'P0001';
   END IF;
 
-  -- 7. Generate Cryptographic 256-bit Guest Access Token (32 CSPRNG bytes => 64 hex chars)
-  v_guest_token := 'gst_' || pg_catalog.encode(public.crypto_gen_random_bytes(32), 'hex');
-
-  -- Generate Unique Order Number (SDT-YYYYMMDD-SEQ)
-  v_order_num := 'SDT-' || pg_catalog.to_char(pg_catalog.now(), 'YYYYMMDD') || '-' || pg_catalog.lpad(pg_catalog.nextval('public.order_number_seq')::TEXT, 4, '0');
-
-  v_full_location := pg_catalog.btrim(p_delivery_address) || ', ' || pg_catalog.btrim(p_village_town) || ' - ' || v_clean_pincode;
-  v_user_id := (SELECT auth.uid());
-
-  -- 8. Insert Order Header with race-condition handling
-  BEGIN
-    INSERT INTO public.orders (
-      order_number,
-      customer_id,
-      customer_name,
-      customer_phone,
-      customer_email,
-      delivery_location,
-      village_town,
-      pincode,
-      landmark,
-      delivery_instructions,
-      idempotency_key,
-      idempotency_hash,
-      guest_access_token,
-      order_source,
-      status,
-      payment_method,
-      payment_status,
-      subtotal,
-      delivery_charge,
-      discount,
-      total_amount,
-      notes
-    ) VALUES (
-      v_order_num,
-      v_user_id,
-      pg_catalog.btrim(p_customer_name),
-      v_clean_phone,
-      NULLIF(pg_catalog.btrim(COALESCE(p_customer_email, '')), ''),
-      v_full_location,
-      pg_catalog.btrim(p_village_town),
-      v_clean_pincode,
-      NULLIF(pg_catalog.btrim(COALESCE(p_landmark, '')), ''),
-      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), ''),
-      v_clean_idempotency_key,
-      v_payload_hash,
-      v_guest_token,
-      v_order_source,
-      'pending',
-      v_norm_payment,
-      'pending',
-      0,
-      0,
-      0,
-      0,
-      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), '')
-    ) RETURNING id INTO v_order_id;
-
-  EXCEPTION WHEN unique_violation THEN
-    SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
-    INTO v_existing_order
-    FROM public.orders
-    WHERE idempotency_key = v_clean_idempotency_key
-    LIMIT 1;
-
-    IF FOUND THEN
-      IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
-        RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
-          USING ERRCODE = '23505';
-      END IF;
-
-      RETURN jsonb_build_object(
-        'orderId', v_existing_order.id,
-        'orderNumber', v_existing_order.order_number,
-        'subtotal', v_existing_order.subtotal,
-        'deliveryCharge', v_existing_order.delivery_charge,
-        'totalAmount', v_existing_order.total_amount,
-        'status', v_existing_order.status,
-        'guestAccessToken', v_existing_order.guest_access_token,
-        'isDuplicate', true
-      );
-    END IF;
-    RAISE;
-  END;
-
-  -- 9. Validate Aggregated Items, Prices, and Insert Items with Deadlock-Free Row Locking
+  -- 7. Pre-Validation of Products & Prices with Deadlock-Safe Row Locking
+  -- Validates all items, active status, and real DB prices BEFORE touching public.orders
   FOR v_item IN 
     SELECT 
       (elem->>'productId')::TEXT AS prod_id,
@@ -540,6 +483,129 @@ BEGIN
     v_line_total := v_unit_price * v_item.qty;
     v_subtotal := v_subtotal + v_line_total;
 
+    -- Accumulate validated item details in memory
+    v_validated_items := v_validated_items || pg_catalog.jsonb_build_array(
+      pg_catalog.jsonb_build_object(
+        'product_id', v_prod.id,
+        'product_name_en', v_prod.name_en,
+        'product_name_te', v_prod.name_te,
+        'brand', v_prod.brand,
+        'pack_size', v_prod.pack_size,
+        'quantity', v_item.qty,
+        'unit_price', v_unit_price,
+        'total_price', v_line_total
+      )
+    );
+  END LOOP;
+
+  -- 8. Calculate Final Verified Delivery Charge & Grand Total
+  IF v_subtotal >= v_free_threshold THEN
+    v_calculated_delivery := 0.00;
+  ELSE
+    v_calculated_delivery := v_configured_fee;
+  END IF;
+
+  v_calculated_delivery := COALESCE(v_calculated_delivery, 50.00);
+  v_grand_total := COALESCE(v_subtotal, 0.00) + v_calculated_delivery;
+
+  -- 9. Generate Cryptographic 256-bit Guest Access Token (32 CSPRNG bytes => 64 hex chars)
+  v_guest_token := 'gst_' || pg_catalog.encode(public.crypto_gen_random_bytes(32), 'hex');
+
+  -- Generate Unique Order Number (SDT-YYYYMMDD-SEQ)
+  v_order_num := 'SDT-' || pg_catalog.to_char(pg_catalog.now(), 'YYYYMMDD') || '-' || pg_catalog.lpad(pg_catalog.nextval('public.order_number_seq')::TEXT, 4, '0');
+
+  v_full_location := pg_catalog.btrim(p_delivery_address) || ', ' || pg_catalog.btrim(p_village_town) || ' - ' || v_clean_pincode;
+  v_user_id := (SELECT auth.uid());
+
+  -- 10. Atomic Insertion of Order Header with race-condition handling
+  BEGIN
+    INSERT INTO public.orders (
+      order_number,
+      customer_id,
+      customer_name,
+      customer_phone,
+      customer_email,
+      delivery_location,
+      village_town,
+      pincode,
+      landmark,
+      delivery_instructions,
+      idempotency_key,
+      idempotency_hash,
+      guest_access_token,
+      order_source,
+      status,
+      payment_method,
+      payment_status,
+      subtotal,
+      delivery_charge,
+      discount,
+      total_amount,
+      notes
+    ) VALUES (
+      v_order_num,
+      v_user_id,
+      pg_catalog.btrim(p_customer_name),
+      v_clean_phone,
+      NULLIF(pg_catalog.btrim(COALESCE(p_customer_email, '')), ''),
+      v_full_location,
+      pg_catalog.btrim(p_village_town),
+      v_clean_pincode,
+      NULLIF(pg_catalog.btrim(COALESCE(p_landmark, '')), ''),
+      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), ''),
+      v_clean_idempotency_key,
+      v_payload_hash,
+      v_guest_token,
+      v_order_source,
+      'pending',
+      v_norm_payment,
+      'pending',
+      v_subtotal,
+      v_calculated_delivery,
+      0,
+      v_grand_total,
+      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), '')
+    ) RETURNING id INTO v_order_id;
+
+  EXCEPTION WHEN unique_violation THEN
+    SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+    INTO v_existing_order
+    FROM public.orders
+    WHERE idempotency_key = v_clean_idempotency_key
+    LIMIT 1;
+
+    IF FOUND THEN
+      IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
+        RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
+          USING ERRCODE = '23505';
+      END IF;
+
+      RETURN jsonb_build_object(
+        'orderId', v_existing_order.id,
+        'orderNumber', v_existing_order.order_number,
+        'subtotal', v_existing_order.subtotal,
+        'deliveryCharge', v_existing_order.delivery_charge,
+        'totalAmount', v_existing_order.total_amount,
+        'status', v_existing_order.status,
+        'guestAccessToken', v_existing_order.guest_access_token,
+        'isDuplicate', true
+      );
+    END IF;
+    RAISE;
+  END;
+
+  -- 11. Insert Verified Line Items Atomically
+  FOR v_item IN SELECT * FROM jsonb_to_recordset(v_validated_items) AS x(
+    product_id TEXT,
+    product_name_en TEXT,
+    product_name_te TEXT,
+    brand TEXT,
+    pack_size TEXT,
+    quantity INTEGER,
+    unit_price NUMERIC(12,2),
+    total_price NUMERIC(12,2)
+  )
+  LOOP
     INSERT INTO public.order_items (
       order_id,
       product_id,
@@ -552,34 +618,16 @@ BEGIN
       total_price
     ) VALUES (
       v_order_id,
-      v_prod.id,
-      v_prod.name_en,
-      v_prod.name_te,
-      v_prod.brand,
-      v_prod.pack_size,
-      v_item.qty,
-      v_unit_price,
-      v_line_total
+      v_item.product_id,
+      v_item.product_name_en,
+      v_item.product_name_te,
+      v_item.brand,
+      v_item.pack_size,
+      v_item.quantity,
+      v_item.unit_price,
+      v_item.total_price
     );
   END LOOP;
-
-  -- 10. Calculate Server-Enforced Delivery Charge
-  IF v_subtotal >= v_free_threshold THEN
-    v_calculated_delivery := 0.00;
-  ELSE
-    v_calculated_delivery := v_configured_fee;
-  END IF;
-
-  v_calculated_delivery := COALESCE(v_calculated_delivery, 50.00);
-  v_grand_total := COALESCE(v_subtotal, 0.00) + v_calculated_delivery;
-
-  -- 11. Finalize Order Totals
-  UPDATE public.orders
-  SET 
-    subtotal = v_subtotal,
-    delivery_charge = v_calculated_delivery,
-    total_amount = v_grand_total
-  WHERE id = v_order_id;
 
   RETURN jsonb_build_object(
     'orderId', v_order_id,
