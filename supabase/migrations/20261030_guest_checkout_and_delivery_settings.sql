@@ -3,21 +3,20 @@
 -- File: supabase/migrations/20261030_guest_checkout_and_delivery_settings.sql
 -- Production-Ready, Hardened Guest Checkout, Delivery Rules & Secure Tracking
 --
--- Security Enhancements:
---  1. Verified pgcrypto Extension for 32-byte Cryptographic CSPRNG Tracking Tokens.
---  2. Canonical SHA-256 payload hashing for tamper-proof idempotency checks.
---  3. Normalized and complete customer attributes in the idempotency payload hash.
---  4. Mandatory non-empty idempotency key requirement for every guest order.
---  5. Cart duplicate product aggregation prior to stock and quantity validation.
---  6. Confidentiality: Guest tracking token never exposed via anonymous tables or lookups.
---  7. Non-destructive Order Status Constraint: preserves all existing valid statuses.
---  8. Fail-safe delivery calculations: missing store_settings cannot cause NULL or unintended free delivery.
---  9. Fully qualified SECURITY DEFINER functions with locked search_path.
--- 10. Strict RLS and permission revoking: anon cannot read, insert, update or delete orders directly.
+-- Security Corrections & Verification:
+--  1. pgcrypto failure halts migration with clear exception (no silent ignore).
+--  2. Internal crypto helpers: REVOKED from PUBLIC, anon, and authenticated.
+--     Callable ONLY internally by SECURITY DEFINER order creation function.
+--  3. Idempotency hash: Deterministic Normalized JSONB payload with SHA-256.
+--  4. Production orders.status constraint preserves all 7 existing valid statuses:
+--     'pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped',
+--     'delivered', 'cancelled', plus 'pending_confirmation' and 'out_for_delivery'.
+--  5. public.categories, category images, and admin authentication remain untouched.
+--  6. Full search_path lockdown (empty search_path) on all public-facing functions.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 0. CRYPTOGRAPHIC EXTENSION SETUP
+-- 0. CRYPTOGRAPHIC EXTENSION SETUP (STRICT HALT ON ERROR)
 -- ----------------------------------------------------------------------------
 DO $$
 BEGIN
@@ -26,15 +25,15 @@ BEGIN
       CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
     EXCEPTION WHEN OTHERS THEN
       BEGIN
-        CREATE EXTENSION IF NOT EXISTS pgcrypto;
+        CREATE EXTENSION pgcrypto;
       EXCEPTION WHEN OTHERS THEN
-        NULL;
+        RAISE EXCEPTION 'Prerequisite Failure: pgcrypto extension is required but could not be installed: %', SQLERRM;
       END;
     END;
   END IF;
 END $$;
 
--- Hardened Crypto Helpers with fixed search_path to resolve across extensions/public
+-- Internal Crypto Helpers (Search path fixed; permissions revoked from external roles)
 CREATE OR REPLACE FUNCTION public.crypto_gen_random_bytes(p_len INTEGER)
 RETURNS BYTEA
 LANGUAGE plpgsql
@@ -57,11 +56,10 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.crypto_gen_random_bytes(INTEGER) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.crypto_gen_random_bytes(INTEGER) TO anon, authenticated;
-
-REVOKE ALL ON FUNCTION public.crypto_sha256_hex(TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.crypto_sha256_hex(TEXT) TO anon, authenticated;
+-- Revoke execute from external API roles so they cannot be invoked via PostgREST RPC.
+-- Usable internally by SECURITY DEFINER order creation.
+REVOKE ALL ON FUNCTION public.crypto_gen_random_bytes(INTEGER) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.crypto_sha256_hex(TEXT) FROM PUBLIC, anon, authenticated;
 
 
 -- ----------------------------------------------------------------------------
@@ -79,7 +77,6 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
 
 COMMENT ON TABLE public.store_settings IS 'Global store configuration for delivery rules and business contacts. Publicly readable, admin editable.';
 
--- Insert default settings row if missing
 INSERT INTO public.store_settings (
   id,
   free_delivery_threshold,
@@ -94,12 +91,10 @@ INSERT INTO public.store_settings (
   '919010454541'
 ) ON CONFLICT (id) DO NOTHING;
 
--- Permissions on store_settings
 ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON public.store_settings TO anon, authenticated;
 GRANT INSERT, UPDATE ON public.store_settings TO authenticated;
 
--- RLS: Public / anon read-only; Active admins can update/insert
 DROP POLICY IF EXISTS "Public can view store settings" ON public.store_settings;
 CREATE POLICY "Public can view store settings"
   ON public.store_settings
@@ -122,7 +117,6 @@ CREATE POLICY "Admins can insert store settings"
   TO authenticated
   WITH CHECK (public.is_admin());
 
--- Updated_at trigger for store_settings
 DROP TRIGGER IF EXISTS trg_store_settings_updated_at ON public.store_settings;
 CREATE TRIGGER trg_store_settings_updated_at
   BEFORE UPDATE ON public.store_settings
@@ -135,7 +129,6 @@ CREATE TRIGGER trg_store_settings_updated_at
 -- ----------------------------------------------------------------------------
 DO $$
 BEGIN
-  -- Village / Town
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'village_town'
@@ -143,7 +136,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN village_town TEXT;
   END IF;
 
-  -- PIN Code
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'pincode'
@@ -151,7 +143,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN pincode TEXT;
   END IF;
 
-  -- Landmark
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'landmark'
@@ -159,7 +150,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN landmark TEXT;
   END IF;
 
-  -- Delivery Instructions
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'delivery_instructions'
@@ -167,7 +157,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN delivery_instructions TEXT;
   END IF;
 
-  -- Idempotency Key (to prevent duplicate submissions)
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'idempotency_key'
@@ -175,7 +164,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN idempotency_key TEXT;
   END IF;
 
-  -- Idempotency SHA-256 Payload Hash (to verify payload identity and prevent key hijacking)
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'idempotency_hash'
@@ -183,7 +171,6 @@ BEGIN
     ALTER TABLE public.orders ADD COLUMN idempotency_hash TEXT;
   END IF;
 
-  -- High-Entropy Cryptographic Guest Access Token (64 hex characters from 32 bytes)
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'guest_access_token'
@@ -192,21 +179,21 @@ BEGIN
   END IF;
 END $$;
 
--- Idempotency unique partial index
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency_key 
   ON public.orders(idempotency_key) 
   WHERE idempotency_key IS NOT NULL;
 
--- Guest access token unique partial index
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_guest_access_token 
   ON public.orders(guest_access_token) 
   WHERE guest_access_token IS NOT NULL;
 
+
 -- ----------------------------------------------------------------------------
 -- 3. STATUS CONSTRAINT SAFE PRESERVATION
--- Preserves ALL historical and active statuses in production:
--- 'pending', 'pending_confirmation', 'confirmed', 'processing',
--- 'ready_for_pickup', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'.
+-- Preserves ALL 7 historical statuses:
+--   'pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped', 'delivered', 'cancelled'
+-- And adds new statuses:
+--   'pending_confirmation', 'out_for_delivery'
 -- ----------------------------------------------------------------------------
 ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
 ALTER TABLE public.orders ADD CONSTRAINT orders_status_check CHECK (status IN (
@@ -221,9 +208,9 @@ ALTER TABLE public.orders ADD CONSTRAINT orders_status_check CHECK (status IN (
   'cancelled'
 ));
 
+
 -- ----------------------------------------------------------------------------
 -- 4. SEQUENCE & TABLE SECURITY LOCKDOWN
--- Ensure anonymous users have zero direct table or sequence permissions.
 -- ----------------------------------------------------------------------------
 REVOKE ALL ON SEQUENCE public.order_number_seq FROM PUBLIC, anon;
 GRANT USAGE, SELECT ON SEQUENCE public.order_number_seq TO authenticated;
@@ -235,25 +222,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.order_items TO authenticated;
 
 
 -- ----------------------------------------------------------------------------
--- 5. INVENTORY ARCHITECTURE NOTE
--- The current store architecture manages inventory via a boolean availability flag
--- (`in_stock: boolean`) on `public.products`. No artificial columns are invented.
--- To prevent overselling and mid-transaction data drift, products are row-locked
--- using `FOR SHARE ORDER BY id ASC` (preventing concurrent deadlocks).
---
--- FUTURE NUMERICAL RESERVATION ARCHITECTURE SPECIFICATION:
--- When numerical stock deduction is adopted, the required schema additions are:
---   1. ALTER TABLE public.products ADD COLUMN stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0);
---   2. Atomic conditional decrement:
---        UPDATE public.products SET stock_quantity = stock_quantity - v_qty
---        WHERE id = v_prod_id AND stock_quantity >= v_qty;
---      IF NOT FOUND THEN RAISE EXCEPTION 'Insufficient stock for product "%"', v_prod_name;
---   3. An inventory transactions ledger table `inventory_logs` recording (order_id, product_id, delta, created_at).
--- ----------------------------------------------------------------------------
-
-
--- ----------------------------------------------------------------------------
--- 6. SECURE GUEST & AUTHENTICATED ORDER CREATION FUNCTION
+-- 5. SECURE GUEST & AUTHENTICATED ORDER CREATION FUNCTION
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_guest_order_secure(
   p_customer_name TEXT,
@@ -301,7 +270,7 @@ DECLARE
   v_order_source TEXT;
   v_full_location TEXT;
   v_user_id UUID;
-  v_canonical_payload TEXT;
+  v_canonical_json JSONB;
   v_payload_hash TEXT;
   v_clean_idempotency_key TEXT;
   v_normalized_items JSONB;
@@ -354,7 +323,6 @@ BEGIN
   END IF;
 
   -- 3. Validate and Aggregate Cart Items
-  -- Aggregates duplicate product IDs into unified quantities before stock and price checks
   IF p_items IS NULL OR jsonb_typeof(p_items) <> 'array' OR jsonb_array_length(p_items) = 0 THEN
     RAISE EXCEPTION 'Order must contain at least one valid product item.' USING ERRCODE = 'P0002';
   END IF;
@@ -381,21 +349,23 @@ BEGIN
     GROUP BY pg_catalog.btrim(COALESCE(elem->>'productId', elem->>'id', ''))
   ) agg;
 
-  -- 4. Calculate Canonical SHA-256 Payload Hash
-  v_canonical_payload := 'name:' || v_norm_name || 
-                         '|phone:' || v_clean_phone || 
-                         '|addr:' || v_norm_address || 
-                         '|village:' || v_norm_village || 
-                         '|pin:' || v_clean_pincode || 
-                         '|landmark:' || v_norm_landmark || 
-                         '|inst:' || v_norm_instructions || 
-                         '|pay:' || v_norm_payment || 
-                         '|email:' || v_norm_email || 
-                         '|items:' || COALESCE(v_normalized_items::TEXT, '[]');
+  -- 4. Calculate Deterministic Normalized JSONB SHA-256 Payload Hash
+  v_canonical_json := pg_catalog.jsonb_build_object(
+    'customer_name', v_norm_name,
+    'customer_phone', v_clean_phone,
+    'customer_email', v_norm_email,
+    'delivery_address', v_norm_address,
+    'village_town', v_norm_village,
+    'pincode', v_clean_pincode,
+    'landmark', v_norm_landmark,
+    'delivery_instructions', v_norm_instructions,
+    'payment_method', v_norm_payment,
+    'items', COALESCE(v_normalized_items, '[]'::jsonb)
+  );
 
-  v_payload_hash := public.crypto_sha256_hex(v_canonical_payload);
+  v_payload_hash := public.crypto_sha256_hex(v_canonical_json::TEXT);
 
-  -- 5. Safe Idempotency Check: Return existing order if identical request already submitted
+  -- 5. Safe Idempotency Check
   SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
   INTO v_existing_order
   FROM public.orders
@@ -420,7 +390,7 @@ BEGIN
     );
   END IF;
 
-  -- 6. Fetch Delivery Settings with Strict Non-Null Fallbacks
+  -- 6. Fetch Delivery Settings with Strict Fallbacks
   SELECT 
     COALESCE(free_delivery_threshold, 199.00),
     COALESCE(delivery_fee, 50.00),
@@ -436,14 +406,12 @@ BEGIN
     v_delivery_enabled := true;
   END IF;
 
-  -- Hard Rejection if delivery is disabled
   IF NOT v_delivery_enabled THEN
     RAISE EXCEPTION 'Online delivery is currently disabled. Please contact the store directly via WhatsApp or phone.'
       USING ERRCODE = 'P0001';
   END IF;
 
-  -- 7. Generate Cryptographic 256-bit Guest Access Token
-  -- Exactly 32 bytes from pgcrypto's CSPRNG, encoded as 64 hex characters
+  -- 7. Generate Cryptographic 256-bit Guest Access Token (32 CSPRNG bytes => 64 hex chars)
   v_guest_token := 'gst_' || pg_catalog.encode(public.crypto_gen_random_bytes(32), 'hex');
 
   -- Generate Unique Order Number (SDT-YYYYMMDD-SEQ)
@@ -452,7 +420,7 @@ BEGIN
   v_full_location := pg_catalog.btrim(p_delivery_address) || ', ' || pg_catalog.btrim(p_village_town) || ' - ' || v_clean_pincode;
   v_user_id := (SELECT auth.uid());
 
-  -- 8. Insert Order Header with concurrency exception handling
+  -- 8. Insert Order Header with race-condition handling
   BEGIN
     INSERT INTO public.orders (
       order_number,
@@ -503,7 +471,6 @@ BEGIN
     ) RETURNING id INTO v_order_id;
 
   EXCEPTION WHEN unique_violation THEN
-    -- Simultaneous duplicate submission caught by unique index
     SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
     INTO v_existing_order
     FROM public.orders
@@ -546,7 +513,6 @@ BEGIN
       RAISE EXCEPTION 'Invalid quantity % for product "%". Must be between 1 and 1000.', v_item.qty, v_item.prod_id USING ERRCODE = 'P0002';
     END IF;
 
-    -- Deadlock-safe row-lock check on products
     SELECT 
       id, name_en, name_te, brand, pack_size, price, active, in_stock
     INTO v_prod
@@ -628,7 +594,6 @@ BEGIN
 END;
 $$;
 
--- Grant execution to anon and authenticated
 REVOKE ALL ON FUNCTION public.create_guest_order_secure(
   TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
 ) FROM PUBLIC;
@@ -639,10 +604,7 @@ GRANT EXECUTE ON FUNCTION public.create_guest_order_secure(
 
 
 -- ----------------------------------------------------------------------------
--- 7. SECURE GUEST ORDER LOOKUP VIA CRYPTOGRAPHIC TOKEN
--- Replaces old lookup based on order number and last 4 digits.
--- Prevents order enumeration and protects customer privacy.
--- Masks sensitive telephone and full street details.
+-- 6. SECURE GUEST ORDER LOOKUP VIA CRYPTOGRAPHIC TOKEN
 -- ----------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS public.get_guest_order_status(TEXT, TEXT);
 
@@ -663,7 +625,6 @@ DECLARE
 BEGIN
   v_clean_token := pg_catalog.btrim(COALESCE(p_guest_access_token, ''));
   
-  -- Tokens are high-entropy strings (minimum 32 chars)
   IF pg_catalog.length(v_clean_token) < 32 THEN
     RETURN NULL;
   END IF;
@@ -677,14 +638,12 @@ BEGIN
     RETURN NULL;
   END IF;
 
-  -- Mask customer phone: e.g. "XXXXXX1234"
   IF pg_catalog.length(v_order.customer_phone) >= 4 THEN
     v_masked_phone := 'XXXXXX' || pg_catalog.right(v_order.customer_phone, 4);
   ELSE
     v_masked_phone := 'XXXXXX';
   END IF;
 
-  -- Mask street address to protect customer privacy
   v_masked_location := '***, ' || COALESCE(v_order.village_town, '') || ' - ' || COALESCE(v_order.pincode, '');
 
   SELECT jsonb_agg(
@@ -721,6 +680,5 @@ $$;
 REVOKE ALL ON FUNCTION public.get_guest_order_by_token(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_guest_order_by_token(TEXT) TO anon, authenticated;
 
--- Ensure anonymous users CANNOT update or read orders directly under any circumstances
 REVOKE SELECT, INSERT, UPDATE, DELETE ON public.orders FROM PUBLIC, anon;
 REVOKE SELECT, INSERT, UPDATE, DELETE ON public.order_items FROM PUBLIC, anon;
