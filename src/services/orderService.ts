@@ -74,6 +74,7 @@ function mapDbOrder(raw: any): Order {
     landmark: raw.landmark || null,
     deliveryInstructions: raw.delivery_instructions || null,
     idempotencyKey: raw.idempotency_key || null,
+    guestAccessToken: raw.guest_access_token || null,
     orderSource: raw.order_source as OrderSource,
     status: raw.status as OrderStatus,
     paymentMethod: raw.payment_method as PaymentMethod,
@@ -443,6 +444,7 @@ export const orderService = {
       deliveryCharge: number;
       totalAmount: number;
       status: string;
+      guestAccessToken?: string;
       isDuplicate?: boolean;
     } | null;
     error: string | null;
@@ -485,6 +487,34 @@ export const orderService = {
     } catch (err: any) {
       console.error('Unexpected error in createGuestOrderSecure:', err);
       return { data: null, error: err.message || 'Failed to place order.' };
+    }
+  },
+
+  /**
+   * Secure Guest Order Lookup via high-entropy access token.
+   * Prevents unauthorized order enumeration or leaking customer data.
+   */
+  async getGuestOrderByToken(token: string): Promise<{ data: any | null; error: string | null }> {
+    if (!isSupabaseConfigured()) {
+      return { data: null, error: 'Database service is not configured.' };
+    }
+
+    try {
+      if (!token || token.trim() === '') {
+        return { data: null, error: 'Invalid or missing tracking token.' };
+      }
+
+      const { data, error } = await supabase.rpc('get_guest_order_by_token', {
+        p_guest_access_token: token.trim()
+      });
+
+      if (error) {
+        return { data: null, error: error.message };
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      return { data: null, error: err.message || 'Failed to fetch order.' };
     }
   }
 };

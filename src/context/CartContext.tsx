@@ -170,6 +170,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Your cart is empty. Please add items before checking out.' };
     }
 
+    if (!deliverySettings.deliveryEnabled) {
+      return {
+        success: false,
+        error: 'Online delivery is currently disabled. Please contact the store directly via WhatsApp or phone.'
+      };
+    }
+
     setIsSubmittingOrder(true);
     try {
       // Generate a unique idempotency key for this submission attempt
@@ -203,6 +210,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         landmark: guestData.landmark?.trim() || null,
         deliveryInstructions: guestData.deliveryInstructions?.trim() || null,
         idempotencyKey,
+        guestAccessToken: confirmedData.guestAccessToken || null,
         orderSource: 'web',
         status: 'pending',
         paymentMethod: guestData.paymentMethod || 'cash_on_delivery',

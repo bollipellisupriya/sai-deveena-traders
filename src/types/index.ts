@@ -101,6 +101,7 @@ export interface Order {
   landmark?: string | null;
   deliveryInstructions?: string | null;
   idempotencyKey?: string | null;
+  guestAccessToken?: string | null;
   orderSource: OrderSource;
   status: OrderStatus;
   paymentMethod: PaymentMethod;

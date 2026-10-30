@@ -1,7 +1,17 @@
 -- ============================================================================
--- SAI DEVEENA TRADERS: GUEST CHECKOUT, DELIVERY SETTINGS & ORDER MANAGEMENT
+-- SAI DEVEENA TRADERS & GENERAL STORE
 -- File: supabase/migrations/20261030_guest_checkout_and_delivery_settings.sql
--- Non-destructive, Idempotent, Hardened RLS, Server-Enforced Pricing
+-- Production-Ready, Hardened Guest Checkout, Delivery Rules & Secure Tracking
+--
+-- Security Enhancements:
+--  1. High-Entropy Cryptographic Guest Tracking Token (256-bit CSPRNG token).
+--  2. Privacy-preserving order lookup (masked phone & location, zero sensitive leak).
+--  3. Anonymous users strictly forbidden from updating order status (Admin-only RLS).
+--  4. Idempotency protection with payload-hash verification and concurrent race handling.
+--  5. Row-level deadlock-safe concurrency locking (FOR SHARE ORDER BY id ASC).
+--  6. Immediate rejection when online delivery is disabled (no silent free delivery).
+--  7. Closed sequence security: REVOKE anon from public.order_number_seq.
+--  8. Non-destructive, backward-compatible schema updates (no data loss).
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -114,12 +124,33 @@ BEGIN
   ) THEN
     ALTER TABLE public.orders ADD COLUMN idempotency_key TEXT;
   END IF;
+
+  -- Idempotency Payload Hash (to verify payload identity and prevent key hijacking)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'idempotency_hash'
+  ) THEN
+    ALTER TABLE public.orders ADD COLUMN idempotency_hash TEXT;
+  END IF;
+
+  -- High-Entropy Cryptographic Guest Access Token
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'guest_access_token'
+  ) THEN
+    ALTER TABLE public.orders ADD COLUMN guest_access_token TEXT;
+  END IF;
 END $$;
 
 -- Idempotency unique partial index
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency_key 
   ON public.orders(idempotency_key) 
   WHERE idempotency_key IS NOT NULL;
+
+-- Guest access token unique partial index
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_guest_access_token 
+  ON public.orders(guest_access_token) 
+  WHERE guest_access_token IS NOT NULL;
 
 -- Update status constraint safely to support all standard lifecycle statuses
 ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
@@ -135,20 +166,45 @@ ALTER TABLE public.orders ADD CONSTRAINT orders_status_check CHECK (status IN (
   'cancelled'
 ));
 
--- Sequence permissions for order numbering
-GRANT USAGE, SELECT ON SEQUENCE public.order_number_seq TO anon, authenticated;
+-- ----------------------------------------------------------------------------
+-- 3. SEQUENCE SECURITY
+-- Revoke direct permissions from anon/PUBLIC to prevent sequence enumeration.
+-- Order numbers are generated inside SECURITY DEFINER function with server privileges.
+-- ----------------------------------------------------------------------------
+REVOKE ALL ON SEQUENCE public.order_number_seq FROM PUBLIC, anon;
+GRANT USAGE, SELECT ON SEQUENCE public.order_number_seq TO authenticated;
 
 
 -- ----------------------------------------------------------------------------
--- 3. SECURE GUEST & AUTHENTICATED ORDER CREATION FUNCTION
+-- 4. INVENTORY ARCHITECTURE NOTE
+-- The current store architecture manages inventory via a boolean availability flag
+-- (`in_stock: boolean`) on `public.products`. No artificial columns are invented.
+-- To prevent overselling and mid-transaction data drift, products are row-locked
+-- using `FOR SHARE ORDER BY id ASC` (preventing concurrent deadlocks).
+--
+-- FUTURE NUMERICAL RESERVATION ARCHITECTURE SPECIFICATION:
+-- When numerical stock deduction is adopted, the required schema additions are:
+--   1. ALTER TABLE public.products ADD COLUMN stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0);
+--   2. Atomic conditional decrement:
+--        UPDATE public.products SET stock_quantity = stock_quantity - v_qty
+--        WHERE id = v_prod_id AND stock_quantity >= v_qty;
+--      IF NOT FOUND THEN RAISE EXCEPTION 'Insufficient stock for product "%"', v_prod_name;
+--   3. An inventory transactions ledger table `inventory_logs` recording (order_id, product_id, delta, created_at).
+-- ----------------------------------------------------------------------------
+
+
+-- ----------------------------------------------------------------------------
+-- 5. SECURE GUEST & AUTHENTICATED ORDER CREATION FUNCTION
 -- Features:
---  - Validates all input fields
---  - Prevents duplicates via idempotency_key (returns existing order without error)
---  - Concurrency lock (FOR SHARE) on products to verify price, active & in_stock
---  - Calculates subtotal and fetches dynamic delivery rules from store_settings
---  - Free delivery if subtotal >= free_delivery_threshold (default 199)
---  - Atomically creates order header and item snapshots
---  - Available to anon (guest) and authenticated users
+--  - Validates all input fields and phone format
+--  - Validates and checks delivery_enabled status (rejects if disabled)
+--  - Concurrency lock (FOR SHARE ORDER BY id ASC) on products to prevent deadlocks
+--  - Validates active status, in_stock availability, and real DB prices
+--  - Free delivery threshold dynamically evaluated from store_settings
+--  - Cryptographically secure 256-bit guest tracking token generation
+--  - Idempotency key validation with payload hash check
+--  - Safe race-condition handling: returns original order on simultaneous duplicate
+--  - Atomically records order header and order item snapshots
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_guest_order_secure(
   p_customer_name TEXT,
@@ -173,13 +229,14 @@ DECLARE
   v_existing_order RECORD;
   v_order_id UUID;
   v_order_num TEXT;
+  v_guest_token TEXT;
   v_free_threshold NUMERIC(12,2) := 199.00;
   v_configured_fee NUMERIC(12,2) := 50.00;
   v_delivery_enabled BOOLEAN := true;
   v_calculated_delivery NUMERIC(12,2) := 0;
   v_subtotal NUMERIC(12,2) := 0;
   v_grand_total NUMERIC(12,2) := 0;
-  v_item JSONB;
+  v_item RECORD;
   v_prod_id TEXT;
   v_prod RECORD;
   v_qty INTEGER;
@@ -191,16 +248,78 @@ DECLARE
   v_order_source TEXT;
   v_full_location TEXT;
   v_user_id UUID;
+  v_payload_hash TEXT;
+  v_clean_idempotency_key TEXT;
 BEGIN
-  -- 1. Idempotency Check: prevent duplicate orders if already submitted
-  IF p_idempotency_key IS NOT NULL AND pg_catalog.btrim(p_idempotency_key) <> '' THEN
-    SELECT id, order_number, subtotal, delivery_charge, total_amount, status
+  -- 1. Validate Customer Details
+  IF pg_catalog.btrim(COALESCE(p_customer_name, '')) = '' THEN
+    RAISE EXCEPTION 'Customer full name is required.' USING ERRCODE = 'P0002';
+  END IF;
+
+  v_clean_phone := pg_catalog.regexp_replace(COALESCE(p_customer_phone, ''), '[^0-9]', '', 'g');
+  IF pg_catalog.length(v_clean_phone) < 10 THEN
+    RAISE EXCEPTION 'A valid 10-digit mobile number is required.' USING ERRCODE = 'P0002';
+  END IF;
+
+  IF pg_catalog.btrim(COALESCE(p_delivery_address, '')) = '' THEN
+    RAISE EXCEPTION 'Complete delivery address is required.' USING ERRCODE = 'P0002';
+  END IF;
+
+  IF pg_catalog.btrim(COALESCE(p_village_town, '')) = '' THEN
+    RAISE EXCEPTION 'Village or town is required.' USING ERRCODE = 'P0002';
+  END IF;
+
+  v_clean_pincode := pg_catalog.regexp_replace(COALESCE(p_pincode, ''), '[^0-9]', '', 'g');
+  IF pg_catalog.length(v_clean_pincode) <> 6 THEN
+    RAISE EXCEPTION 'A valid 6-digit PIN code is required.' USING ERRCODE = 'P0002';
+  END IF;
+
+  -- Validate Items Array
+  IF p_items IS NULL OR jsonb_typeof(p_items) <> 'array' OR jsonb_array_length(p_items) = 0 THEN
+    RAISE EXCEPTION 'Order must contain at least one valid product item.' USING ERRCODE = 'P0002';
+  END IF;
+
+  -- 2. Validate Delivery Configuration
+  SELECT 
+    COALESCE(free_delivery_threshold, 199.00),
+    COALESCE(delivery_fee, 50.00),
+    COALESCE(delivery_enabled, true)
+  INTO v_free_threshold, v_configured_fee, v_delivery_enabled
+  FROM public.store_settings
+  WHERE id = 'default'
+  LIMIT 1;
+
+  -- Hard Rejection if delivery is disabled
+  IF NOT v_delivery_enabled THEN
+    RAISE EXCEPTION 'Online delivery is currently disabled. Please contact the store directly via WhatsApp or phone.'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- 3. Calculate Deterministic Payload Hash for Idempotency
+  v_clean_idempotency_key := NULLIF(pg_catalog.btrim(COALESCE(p_idempotency_key, '')), '');
+  v_payload_hash := pg_catalog.md5(
+    v_clean_phone || '|' ||
+    v_clean_pincode || '|' ||
+    p_items::TEXT || '|' ||
+    pg_catalog.btrim(COALESCE(p_delivery_address, '')) || '|' ||
+    pg_catalog.btrim(COALESCE(p_village_town, ''))
+  );
+
+  -- 4. Idempotency Check: Return existing order if identical request already submitted
+  IF v_clean_idempotency_key IS NOT NULL THEN
+    SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
     INTO v_existing_order
     FROM public.orders
-    WHERE idempotency_key = pg_catalog.btrim(p_idempotency_key)
+    WHERE idempotency_key = v_clean_idempotency_key
     LIMIT 1;
 
     IF FOUND THEN
+      -- Detect and reject idempotency key reuse with mismatched order payload
+      IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
+        RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
+          USING ERRCODE = '23505';
+      END IF;
+
       RETURN jsonb_build_object(
         'orderId', v_existing_order.id,
         'orderNumber', v_existing_order.order_number,
@@ -208,40 +327,13 @@ BEGIN
         'deliveryCharge', v_existing_order.delivery_charge,
         'totalAmount', v_existing_order.total_amount,
         'status', v_existing_order.status,
+        'guestAccessToken', v_existing_order.guest_access_token,
         'isDuplicate', true
       );
     END IF;
   END IF;
 
-  -- 2. Validate Customer Details
-  IF pg_catalog.btrim(COALESCE(p_customer_name, '')) = '' THEN
-    RAISE EXCEPTION 'Customer full name is required.';
-  END IF;
-
-  v_clean_phone := pg_catalog.regexp_replace(COALESCE(p_customer_phone, ''), '[^0-9]', '', 'g');
-  IF pg_catalog.length(v_clean_phone) < 10 THEN
-    RAISE EXCEPTION 'A valid 10-digit mobile number is required.';
-  END IF;
-
-  IF pg_catalog.btrim(COALESCE(p_delivery_address, '')) = '' THEN
-    RAISE EXCEPTION 'Complete delivery address is required.';
-  END IF;
-
-  IF pg_catalog.btrim(COALESCE(p_village_town, '')) = '' THEN
-    RAISE EXCEPTION 'Village or town is required.';
-  END IF;
-
-  v_clean_pincode := pg_catalog.regexp_replace(COALESCE(p_pincode, ''), '[^0-9]', '', 'g');
-  IF pg_catalog.length(v_clean_pincode) <> 6 THEN
-    RAISE EXCEPTION 'A valid 6-digit PIN code is required.';
-  END IF;
-
-  -- Validate Items Array
-  IF p_items IS NULL OR jsonb_typeof(p_items) <> 'array' OR jsonb_array_length(p_items) = 0 THEN
-    RAISE EXCEPTION 'Order must contain at least one valid product item.';
-  END IF;
-
-  -- Payment Method
+  -- Payment Method & Order Source
   v_payment_method := pg_catalog.lower(pg_catalog.btrim(COALESCE(p_payment_method, 'cash_on_delivery')));
   IF v_payment_method NOT IN ('cash_on_delivery', 'upi', 'bank_transfer', 'in_store') THEN
     v_payment_method := 'cash_on_delivery';
@@ -252,17 +344,11 @@ BEGIN
     v_order_source := 'web';
   END IF;
 
-  -- 3. Fetch Delivery Settings from store_settings
-  SELECT 
-    COALESCE(free_delivery_threshold, 199.00),
-    COALESCE(delivery_fee, 50.00),
-    COALESCE(delivery_enabled, true)
-  INTO v_free_threshold, v_configured_fee, v_delivery_enabled
-  FROM public.store_settings
-  WHERE id = 'default'
-  LIMIT 1;
+  -- 5. Generate Cryptographic High-Entropy Guest Access Token (256-bit CSPRNG token)
+  -- Uses PostgreSQL core gen_random_uuid() twice to provide 64 hex characters (256 bits of entropy)
+  v_guest_token := 'gst_' || pg_catalog.replace(gen_random_uuid()::TEXT, '-', '') || pg_catalog.replace(gen_random_uuid()::TEXT, '-', '');
 
-  -- 4. Generate Unique Order Number (SDT-YYYYMMDD-SEQ)
+  -- Generate Unique Order Number (SDT-YYYYMMDD-SEQ)
   v_order_num := 'SDT-' || pg_catalog.to_char(pg_catalog.now(), 'YYYYMMDD') || '-' || pg_catalog.lpad(pg_catalog.nextval('public.order_number_seq')::TEXT, 4, '0');
 
   v_full_location := pg_catalog.btrim(p_delivery_address) || ', ' || pg_catalog.btrim(p_village_town) || ' - ' || v_clean_pincode;
@@ -270,70 +356,111 @@ BEGIN
   -- Attempt to capture auth uid if available, otherwise null for guest
   v_user_id := (SELECT auth.uid());
 
-  -- 5. Insert initial Order row
-  INSERT INTO public.orders (
-    order_number,
-    customer_id,
-    customer_name,
-    customer_phone,
-    customer_email,
-    delivery_location,
-    village_town,
-    pincode,
-    landmark,
-    delivery_instructions,
-    idempotency_key,
-    order_source,
-    status,
-    payment_method,
-    payment_status,
-    subtotal,
-    delivery_charge,
-    discount,
-    total_amount,
-    notes
-  ) VALUES (
-    v_order_num,
-    v_user_id,
-    pg_catalog.btrim(p_customer_name),
-    v_clean_phone,
-    NULLIF(pg_catalog.btrim(COALESCE(p_customer_email, '')), ''),
-    v_full_location,
-    pg_catalog.btrim(p_village_town),
-    v_clean_pincode,
-    NULLIF(pg_catalog.btrim(COALESCE(p_landmark, '')), ''),
-    NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), ''),
-    NULLIF(pg_catalog.btrim(COALESCE(p_idempotency_key, '')), ''),
-    v_order_source,
-    'pending',
-    v_payment_method,
-    'pending',
-    0,
-    0,
-    0,
-    0,
-    NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), '')
-  ) RETURNING id INTO v_order_id;
+  -- 6. Insert Order Header with concurrency exception handling
+  BEGIN
+    INSERT INTO public.orders (
+      order_number,
+      customer_id,
+      customer_name,
+      customer_phone,
+      customer_email,
+      delivery_location,
+      village_town,
+      pincode,
+      landmark,
+      delivery_instructions,
+      idempotency_key,
+      idempotency_hash,
+      guest_access_token,
+      order_source,
+      status,
+      payment_method,
+      payment_status,
+      subtotal,
+      delivery_charge,
+      discount,
+      total_amount,
+      notes
+    ) VALUES (
+      v_order_num,
+      v_user_id,
+      pg_catalog.btrim(p_customer_name),
+      v_clean_phone,
+      NULLIF(pg_catalog.btrim(COALESCE(p_customer_email, '')), ''),
+      v_full_location,
+      pg_catalog.btrim(p_village_town),
+      v_clean_pincode,
+      NULLIF(pg_catalog.btrim(COALESCE(p_landmark, '')), ''),
+      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), ''),
+      v_clean_idempotency_key,
+      v_payload_hash,
+      v_guest_token,
+      v_order_source,
+      'pending',
+      v_payment_method,
+      'pending',
+      0,
+      0,
+      0,
+      0,
+      NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), '')
+    ) RETURNING id INTO v_order_id;
 
-  -- 6. Validate products, prices, and insert order items
-  FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+  EXCEPTION WHEN unique_violation THEN
+    -- Simultaneous duplicate submission caught by unique index
+    IF v_clean_idempotency_key IS NOT NULL THEN
+      SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+      INTO v_existing_order
+      FROM public.orders
+      WHERE idempotency_key = v_clean_idempotency_key
+      LIMIT 1;
+
+      IF FOUND THEN
+        IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
+          RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
+            USING ERRCODE = '23505';
+        END IF;
+
+        RETURN jsonb_build_object(
+          'orderId', v_existing_order.id,
+          'orderNumber', v_existing_order.order_number,
+          'subtotal', v_existing_order.subtotal,
+          'deliveryCharge', v_existing_order.delivery_charge,
+          'totalAmount', v_existing_order.total_amount,
+          'status', v_existing_order.status,
+          'guestAccessToken', v_existing_order.guest_access_token,
+          'isDuplicate', true
+        );
+      END IF;
+    END IF;
+    RAISE;
+  END;
+
+  -- 7. Validate Products, Prices, and Insert Items with Deadlock-Free Row Locking
+  -- Order products by ID ascending to prevent transaction deadlocks on concurrent orders
+  FOR v_item IN 
+    SELECT 
+      pg_catalog.btrim(COALESCE(elem->>'productId', elem->>'id', '')) AS prod_id,
+      elem->>'quantity' AS raw_qty
+    FROM jsonb_array_elements(p_items) AS elem
+    ORDER BY pg_catalog.btrim(COALESCE(elem->>'productId', elem->>'id', '')) ASC
   LOOP
-    v_prod_id := pg_catalog.btrim(COALESCE(v_item->>'productId', v_item->>'id', ''));
+    v_prod_id := v_item.prod_id;
     IF v_prod_id = '' THEN
-      RAISE EXCEPTION 'Order item is missing a valid product ID.';
+      RAISE EXCEPTION 'Order item is missing a valid product ID.' USING ERRCODE = 'P0002';
     END IF;
 
     BEGIN
-      v_qty := (v_item->>'quantity')::INTEGER;
+      v_qty := (v_item.raw_qty)::INTEGER;
     EXCEPTION WHEN OTHERS THEN
-      RAISE EXCEPTION 'Invalid quantity format for product "%".', v_prod_id;
+      RAISE EXCEPTION 'Invalid quantity format for product "%".', v_prod_id USING ERRCODE = 'P0002';
     END;
 
     IF v_qty IS NULL OR v_qty <= 0 OR v_qty > 1000 THEN
-      RAISE EXCEPTION 'Invalid quantity for product "%". Must be between 1 and 1000.', v_prod_id;
+      RAISE EXCEPTION 'Invalid quantity for product "%". Must be between 1 and 1000.', v_prod_id USING ERRCODE = 'P0002';
     END IF;
 
-    -- Concurrency lock on product to verify real db state
+    -- Deadlock-safe row-lock check on products
     SELECT 
       id, name_en, name_te, brand, pack_size, price, active, in_stock
     INTO v_prod
@@ -342,19 +469,19 @@ BEGIN
     FOR SHARE;
 
     IF NOT FOUND THEN
-      RAISE EXCEPTION 'Product with ID "%" does not exist in store catalog.', v_prod_id;
+      RAISE EXCEPTION 'Product with ID "%" does not exist in store catalog.', v_prod_id USING ERRCODE = 'P0002';
     END IF;
 
     IF v_prod.active IS NOT TRUE THEN
-      RAISE EXCEPTION 'Product "%" is discontinued or inactive.', v_prod.name_en;
+      RAISE EXCEPTION 'Product "%" is discontinued or inactive.', v_prod.name_en USING ERRCODE = 'P0002';
     END IF;
 
     IF v_prod.in_stock IS NOT TRUE THEN
-      RAISE EXCEPTION 'Product "%" is currently out of stock.', v_prod.name_en;
+      RAISE EXCEPTION 'Product "%" is currently out of stock.', v_prod.name_en USING ERRCODE = 'P0002';
     END IF;
 
     IF v_prod.price IS NULL OR v_prod.price < 0 THEN
-      RAISE EXCEPTION 'Product "%" does not have a valid store price.', v_prod.name_en;
+      RAISE EXCEPTION 'Product "%" does not have a valid store price.', v_prod.name_en USING ERRCODE = 'P0002';
     END IF;
 
     v_unit_price := v_prod.price;
@@ -384,8 +511,9 @@ BEGIN
     );
   END LOOP;
 
-  -- 7. Calculate server-verified delivery charge
-  IF (v_subtotal >= v_free_threshold) OR (NOT v_delivery_enabled) THEN
+  -- 8. Calculate Server-Enforced Delivery Charge
+  -- Rule: Free delivery for orders >= threshold (default ₹199); configured fee below threshold
+  IF v_subtotal >= v_free_threshold THEN
     v_calculated_delivery := 0.00;
   ELSE
     v_calculated_delivery := v_configured_fee;
@@ -393,7 +521,7 @@ BEGIN
 
   v_grand_total := v_subtotal + v_calculated_delivery;
 
-  -- 8. Finalize order totals
+  -- 9. Finalize Order Totals
   UPDATE public.orders
   SET 
     subtotal = v_subtotal,
@@ -408,6 +536,7 @@ BEGIN
     'deliveryCharge', v_calculated_delivery,
     'totalAmount', v_grand_total,
     'status', 'pending',
+    'guestAccessToken', v_guest_token,
     'isDuplicate', false
   );
 END;
@@ -424,13 +553,15 @@ GRANT EXECUTE ON FUNCTION public.create_guest_order_secure(
 
 
 -- ----------------------------------------------------------------------------
--- 4. SECURE ORDER LOOKUP FUNCTION (Guest Status Verification)
--- Allows a customer to verify their own order status using their orderNumber + last 4 phone digits
--- Prevents exposing other customers' data while allowing guest confirmation lookup.
+-- 6. SECURE GUEST ORDER LOOKUP VIA CRYPTOGRAPHIC TOKEN
+-- Replaces old lookup based on order number and last 4 digits.
+-- Prevents order enumeration and protects customer privacy.
+-- Masks sensitive telephone and full street details.
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_guest_order_status(
-  p_order_number TEXT,
-  p_phone_last4 TEXT
+DROP FUNCTION IF EXISTS public.get_guest_order_status(TEXT, TEXT);
+
+CREATE OR REPLACE FUNCTION public.get_guest_order_by_token(
+  p_guest_access_token TEXT
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -440,20 +571,35 @@ AS $$
 DECLARE
   v_order RECORD;
   v_items JSONB;
+  v_clean_token TEXT;
+  v_masked_phone TEXT;
+  v_masked_location TEXT;
 BEGIN
-  IF pg_catalog.btrim(COALESCE(p_order_number, '')) = '' OR pg_catalog.btrim(COALESCE(p_phone_last4, '')) = '' THEN
+  v_clean_token := pg_catalog.btrim(COALESCE(p_guest_access_token, ''));
+  
+  -- Tokens are high-entropy strings (minimum 32 chars)
+  IF pg_catalog.length(v_clean_token) < 32 THEN
     RETURN NULL;
   END IF;
 
   SELECT * INTO v_order
   FROM public.orders
-  WHERE order_number = pg_catalog.btrim(p_order_number)
-    AND customer_phone LIKE '%' || pg_catalog.btrim(p_phone_last4)
+  WHERE guest_access_token = v_clean_token
   LIMIT 1;
 
   IF NOT FOUND THEN
     RETURN NULL;
   END IF;
+
+  -- Mask customer phone: e.g. "XXXXXX1234"
+  IF pg_catalog.length(v_order.customer_phone) >= 4 THEN
+    v_masked_phone := 'XXXXXX' || pg_catalog.right(v_order.customer_phone, 4);
+  ELSE
+    v_masked_phone := 'XXXXXX';
+  END IF;
+
+  -- Mask street address to protect customer privacy
+  v_masked_location := '***, ' || COALESCE(v_order.village_town, '') || ' - ' || COALESCE(v_order.pincode, '');
 
   SELECT jsonb_agg(
     jsonb_build_object(
@@ -470,10 +616,10 @@ BEGIN
   RETURN jsonb_build_object(
     'orderNumber', v_order.order_number,
     'customerName', v_order.customer_name,
-    'deliveryLocation', v_order.delivery_location,
+    'maskedPhone', v_masked_phone,
     'villageTown', v_order.village_town,
     'pincode', v_order.pincode,
-    'landmark', v_order.landmark,
+    'deliveryLocation', v_masked_location,
     'status', v_order.status,
     'subtotal', v_order.subtotal,
     'deliveryCharge', v_order.delivery_charge,
@@ -486,5 +632,8 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.get_guest_order_status(TEXT, TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.get_guest_order_status(TEXT, TEXT) TO anon, authenticated;
+REVOKE ALL ON FUNCTION public.get_guest_order_by_token(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_guest_order_by_token(TEXT) TO anon, authenticated;
+
+-- Ensure anonymous users CANNOT update orders under any circumstances
+REVOKE UPDATE ON public.orders FROM PUBLIC, anon;

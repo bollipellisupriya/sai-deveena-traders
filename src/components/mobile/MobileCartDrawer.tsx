@@ -907,14 +907,40 @@ export const MobileCartDrawer: React.FC<MobileCartDrawerProps> = ({ currentLang 
               <span style={{ color: '#15803d' }}>₹{grandTotal}</span>
             </div>
 
+            {/* Delivery Disabled Alert */}
+            {!deliverySettings.deliveryEnabled && (
+              <div style={{
+                backgroundColor: '#fff7ed',
+                border: '1px solid #fed7aa',
+                borderRadius: '10px',
+                padding: '0.65rem 0.85rem',
+                color: '#9a3412',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                lineHeight: 1.35
+              }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, color: '#ea580c' }} />
+                <span>
+                  {isTe
+                    ? 'ఆన్‌లైన్ డెలివరీ ప్రస్తుతం అందుబాటులో లేదు. దయచేసి వాట్సాప్ లేదా కాల్ ద్వారా నేరుగా ఆర్డర్ చేయండి.'
+                    : 'Online delivery is currently paused. Please call or WhatsApp us directly to place your order.'}
+                </span>
+              </div>
+            )}
+
             {/* ACTION BUTTON: Switch to Checkout OR Submit Order */}
             {checkoutStep === 'cart' ? (
               <button
                 type="button"
                 onClick={() => setCheckoutStep('checkout')}
+                disabled={!deliverySettings.deliveryEnabled}
                 style={{
                   width: '100%',
-                  backgroundColor: '#15803d',
+                  backgroundColor: !deliverySettings.deliveryEnabled ? '#94a3b8' : '#15803d',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '9999px',
@@ -925,8 +951,8 @@ export const MobileCartDrawer: React.FC<MobileCartDrawerProps> = ({ currentLang 
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.55rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(21, 128, 61, 0.35)',
+                  cursor: !deliverySettings.deliveryEnabled ? 'not-allowed' : 'pointer',
+                  boxShadow: !deliverySettings.deliveryEnabled ? 'none' : '0 4px 14px rgba(21, 128, 61, 0.35)',
                   marginBottom: '0.5rem'
                 }}
               >
@@ -937,10 +963,10 @@ export const MobileCartDrawer: React.FC<MobileCartDrawerProps> = ({ currentLang 
               <button
                 type="submit"
                 form="guest-checkout-form"
-                disabled={isSubmittingOrder}
+                disabled={isSubmittingOrder || !deliverySettings.deliveryEnabled}
                 style={{
                   width: '100%',
-                  backgroundColor: isSubmittingOrder ? '#94a3b8' : '#15803d',
+                  backgroundColor: (isSubmittingOrder || !deliverySettings.deliveryEnabled) ? '#94a3b8' : '#15803d',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '9999px',
@@ -951,8 +977,8 @@ export const MobileCartDrawer: React.FC<MobileCartDrawerProps> = ({ currentLang 
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.55rem',
-                  cursor: isSubmittingOrder ? 'not-allowed' : 'pointer',
-                  boxShadow: isSubmittingOrder ? 'none' : '0 4px 14px rgba(21, 128, 61, 0.35)',
+                  cursor: (isSubmittingOrder || !deliverySettings.deliveryEnabled) ? 'not-allowed' : 'pointer',
+                  boxShadow: (isSubmittingOrder || !deliverySettings.deliveryEnabled) ? 'none' : '0 4px 14px rgba(21, 128, 61, 0.35)',
                   marginBottom: '0.5rem'
                 }}
               >
