@@ -155,7 +155,7 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' AND table_name = 'pincode'
+    WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'pincode'
   ) THEN
     ALTER TABLE public.orders ADD COLUMN pincode TEXT;
   END IF;
