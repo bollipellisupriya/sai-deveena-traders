@@ -46,16 +46,32 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
         if (!mounted) return;
         setCurrentUser(user);
 
+        // Load local guest orders placed in this browser
+        let localGuestOrders: Order[] = [];
+        try {
+          const guestRaw = localStorage.getItem('sdt_guest_orders_v2');
+          if (guestRaw) {
+            const parsed = JSON.parse(guestRaw);
+            if (Array.isArray(parsed)) localGuestOrders = parsed;
+          }
+        } catch (e) {
+          console.warn('Could not load guest orders from localStorage', e);
+        }
+
         if (user) {
           const res = await orderService.fetchCustomerOrders();
           if (!mounted) return;
           if (res.error) {
             setError(res.error);
+            setOrders(localGuestOrders);
           } else {
-            setOrders(res.orders);
+            // Deduplicate by orderNumber or id
+            const knownIds = new Set(res.orders.map(o => o.orderNumber || o.id));
+            const uniqueGuest = localGuestOrders.filter(o => !knownIds.has(o.orderNumber || o.id));
+            setOrders([...res.orders, ...uniqueGuest]);
           }
         } else {
-          setOrders([]);
+          setOrders(localGuestOrders);
         }
       } catch (err: any) {
         if (mounted) setError(err.message || 'Could not load orders');

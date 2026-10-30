@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, ArrowLeft, Languages, Phone } from 'lucide-react';
+import { Menu, ArrowLeft, Languages, Phone, ShoppingBag } from 'lucide-react';
 import type { Language } from '../../types';
 import type { TabType } from './MobileBottomNav';
 
@@ -11,6 +11,8 @@ interface MobileHeaderProps {
   currentLang?: Language;
   onLanguageChange?: (lang: Language) => void;
   onCallStore?: () => void;
+  onOpenCart?: () => void;
+  cartCount?: number;
   activeTab?: TabType;
   onTabChange?: (tab: TabType) => void;
   searchQuery?: string;
@@ -25,6 +27,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   currentLang = 'en',
   onLanguageChange,
   onCallStore,
+  onOpenCart,
+  cartCount = 0,
   activeTab = 'home',
   onTabChange,
   searchQuery: _searchQuery,
@@ -245,6 +249,53 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           <Phone size={14} style={{ color: '#ea580c' }} />
           <span className="desktop-only-call-text">9010454541</span>
         </a>
+
+        {/* Shopping Cart Button with Dynamic Badge */}
+        {onOpenCart && (
+          <button
+            type="button"
+            onClick={onOpenCart}
+            aria-label="View Shopping Cart"
+            style={{
+              position: 'relative',
+              background: '#f0fdf4',
+              border: '1.5px solid #86efac',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#15803d',
+              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.1)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ShoppingBag size={18} />
+            {cartCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                backgroundColor: '#ea580c',
+                color: '#ffffff',
+                fontSize: '0.65rem',
+                fontWeight: 900,
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 5px rgba(234, 88, 12, 0.4)',
+                border: '1.5px solid #ffffff'
+              }}>
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Menu Drawer Toggle Button */}
         <button

@@ -47,10 +47,12 @@ export interface CatalogData {
 
 export type OrderStatus =
   | 'pending'
+  | 'pending_confirmation'
   | 'confirmed'
   | 'processing'
   | 'ready_for_pickup'
   | 'shipped'
+  | 'out_for_delivery'
   | 'delivered'
   | 'cancelled';
 
@@ -94,6 +96,11 @@ export interface Order {
   customerEmail?: string | null;
   customerPhone?: string | null;
   deliveryLocation: string;
+  villageTown?: string | null;
+  pincode?: string | null;
+  landmark?: string | null;
+  deliveryInstructions?: string | null;
+  idempotencyKey?: string | null;
   orderSource: OrderSource;
   status: OrderStatus;
   paymentMethod: PaymentMethod;
@@ -106,6 +113,32 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   items?: OrderItem[];
+}
+
+export interface StoreSettings {
+  id: string;
+  freeDeliveryThreshold: number;
+  deliveryFee: number;
+  deliveryEnabled: boolean;
+  businessWhatsappNumber: string;
+  updatedAt?: string;
+}
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface GuestCheckoutData {
+  fullName: string;
+  phone: string;
+  deliveryAddress: string;
+  villageTown: string;
+  pincode: string;
+  landmark?: string;
+  deliveryInstructions?: string;
+  paymentMethod?: PaymentMethod;
+  email?: string;
 }
 
 export interface CustomerProfile {

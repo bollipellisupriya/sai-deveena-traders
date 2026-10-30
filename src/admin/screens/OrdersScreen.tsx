@@ -12,21 +12,22 @@ import {
   X,
   Trash2,
   User,
-  MessageSquare
+  MessageSquare,
+  ExternalLink,
+  Eye
 } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { customerService } from '../../services/customerService';
 import { catalogService } from '../../services/catalogService';
-import type { Order, OrderStatus, OrderSource, PaymentMethod, Product, CustomerProfile } from '../../types';
+import type { Order, OrderStatus, OrderSource, PaymentMethod, PaymentStatus, Product, CustomerProfile } from '../../types';
 import type { AdminTab } from '../types';
 
 const STATUS_OPTIONS: { id: string; label: string; color: string; bg: string }[] = [
   { id: 'all', label: 'All Orders', color: '#0f172a', bg: '#f1f5f9' },
-  { id: 'pending', label: 'Pending', color: '#d97706', bg: '#fef3c7' },
+  { id: 'pending', label: 'Pending Confirmation', color: '#d97706', bg: '#fef3c7' },
   { id: 'confirmed', label: 'Confirmed', color: '#0284c7', bg: '#e0f2fe' },
   { id: 'processing', label: 'Processing', color: '#4f46e5', bg: '#e0e7ff' },
-  { id: 'ready_for_pickup', label: 'Ready for Pickup', color: '#059669', bg: '#d1fae5' },
-  { id: 'shipped', label: 'Shipped', color: '#7c3aed', bg: '#ede9fe' },
+  { id: 'out_for_delivery', label: 'Out for Delivery', color: '#7c3aed', bg: '#ede9fe' },
   { id: 'delivered', label: 'Delivered', color: '#15803d', bg: '#dcfce7' },
   { id: 'cancelled', label: 'Cancelled', color: '#dc2626', bg: '#fee2e2' }
 ];
@@ -45,6 +46,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
   // Status updating state
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
 
   // Manual Order Modal State
   const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
@@ -215,8 +217,25 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
     if (res.error) {
       setNotification({ message: `Failed to update status: ${res.error}`, type: 'error' });
     } else {
-      setNotification({ message: `Order status updated to ${newStatus}.`, type: 'success' });
+      setNotification({ message: `Order status updated to ${newStatus.replace(/_/g, ' ')}.`, type: 'success' });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      setSelectedOrderForDetails(prev => prev && prev.id === orderId ? { ...prev, status: newStatus } : prev);
+    }
+    setTimeout(() => setNotification(null), 3500);
+  };
+
+  // Change payment status
+  const handlePaymentStatusChange = async (orderId: string, newPaymentStatus: PaymentStatus) => {
+    setUpdatingOrderId(orderId);
+    const res = await orderService.updatePaymentStatus(orderId, newPaymentStatus);
+    setUpdatingOrderId(null);
+
+    if (res.error) {
+      setNotification({ message: `Failed to update payment status: ${res.error}`, type: 'error' });
+    } else {
+      setNotification({ message: `Payment status updated to ${newPaymentStatus.replace(/_/g, ' ')}.`, type: 'success' });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: newPaymentStatus } : o));
+      setSelectedOrderForDetails(prev => prev && prev.id === orderId ? { ...prev, paymentStatus: newPaymentStatus } : prev);
     }
     setTimeout(() => setNotification(null), 3500);
   };
@@ -507,35 +526,82 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                     </span>
                   </div>
 
-                  {/* Status Dropdown */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>Status:</span>
-                    <select
-                      value={ord.status}
-                      disabled={updatingOrderId === ord.id}
-                      onChange={(e) => handleStatusChange(ord.id, e.target.value as OrderStatus)}
+                  {/* Status & Payment Dropdowns */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Status:</span>
+                      <select
+                        value={ord.status}
+                        disabled={updatingOrderId === ord.id}
+                        onChange={(e) => handleStatusChange(ord.id, e.target.value as OrderStatus)}
+                        style={{
+                          backgroundColor:
+                            ord.status === 'delivered' ? '#dcfce7' : ord.status === 'cancelled' ? '#fee2e2' : ord.status === 'pending' || ord.status === 'pending_confirmation' ? '#fef3c7' : '#dbeafe',
+                          color:
+                            ord.status === 'delivered' ? '#15803d' : ord.status === 'cancelled' ? '#dc2626' : ord.status === 'pending' || ord.status === 'pending_confirmation' ? '#b45309' : '#1d4ed8',
+                          border: '1px solid transparent',
+                          borderRadius: '9999px',
+                          padding: '0.25rem 0.65rem',
+                          fontSize: '0.76rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="pending">Pending Confirmation</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="processing">Processing</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Payment:</span>
+                      <select
+                        value={ord.paymentStatus || 'pending'}
+                        disabled={updatingOrderId === ord.id}
+                        onChange={(e) => handlePaymentStatusChange(ord.id, e.target.value as PaymentStatus)}
+                        style={{
+                          backgroundColor: ord.paymentStatus === 'paid' ? '#dcfce7' : ord.paymentStatus === 'refunded' ? '#fee2e2' : '#f8fafc',
+                          color: ord.paymentStatus === 'paid' ? '#15803d' : ord.paymentStatus === 'refunded' ? '#dc2626' : '#475569',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '9999px',
+                          padding: '0.25rem 0.65rem',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="partially_paid">Partially Paid</option>
+                        <option value="refunded">Refunded</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOrderForDetails(ord)}
                       style={{
-                        backgroundColor:
-                          ord.status === 'delivered' ? '#dcfce7' : ord.status === 'cancelled' ? '#fee2e2' : ord.status === 'pending' ? '#fef3c7' : '#dbeafe',
-                        color:
-                          ord.status === 'delivered' ? '#15803d' : ord.status === 'cancelled' ? '#dc2626' : ord.status === 'pending' ? '#b45309' : '#1d4ed8',
-                        border: '1px solid transparent',
+                        backgroundColor: '#f1f5f9',
+                        color: '#0f172a',
+                        border: '1px solid #cbd5e1',
                         borderRadius: '9999px',
-                        padding: '0.3rem 0.75rem',
-                        fontSize: '0.78rem',
+                        padding: '0.25rem 0.65rem',
+                        fontSize: '0.74rem',
                         fontWeight: 800,
-                        cursor: 'pointer',
-                        outline: 'none'
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        cursor: 'pointer'
                       }}
                     >
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="processing">Processing</option>
-                      <option value="ready_for_pickup">Ready for Pickup</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                      <Eye size={13} />
+                      <span>Details</span>
+                    </button>
                   </div>
                 </div>
 
@@ -558,15 +624,33 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                         </span>
                       ) : (
                         <span style={{ fontSize: '0.68rem', backgroundColor: '#f1f5f9', color: '#64748b', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 800 }}>
-                          Guest / Offline
+                          Guest / Web
                         </span>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#64748b' }}>
-                      <MapPin size={15} style={{ color: '#16a34a' }} />
-                      <span>{ord.deliveryLocation}</span>
-                    </div>
+                    {/* Delivery Location with Google Maps link */}
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(ord.deliveryLocation)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open address in Google Maps"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        color: '#0f172a',
+                        textDecoration: 'none',
+                        backgroundColor: '#f8fafc',
+                        padding: '0.2rem 0.55rem',
+                        borderRadius: '6px',
+                        border: '1px solid #e2e8f0'
+                      }}
+                    >
+                      <MapPin size={14} style={{ color: '#16a34a' }} />
+                      <span style={{ fontWeight: 600 }}>{ord.deliveryLocation}</span>
+                      <ExternalLink size={12} style={{ color: '#94a3b8' }} />
+                    </a>
                   </div>
 
                   {/* Contact Buttons */}
@@ -594,7 +678,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                         </a>
 
                         <a
-                          href={`https://wa.me/${ord.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${ord.customerName}, regarding your Sai Deveena Traders & General Store order #${ord.orderNumber}:`)}`}
+                          href={`https://wa.me/${ord.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${ord.customerName}, regarding your Sai Deveena Traders order #${ord.orderNumber}:`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -658,12 +742,16 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    fontSize: '0.86rem'
+                    fontSize: '0.84rem',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
                   }}>
-                    <span style={{ color: '#64748b', fontSize: '0.78rem' }}>
-                      Payment: <strong style={{ textTransform: 'uppercase', color: '#0f172a' }}>{ord.paymentMethod.replace(/_/g, ' ')}</strong>
-                    </span>
-                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#15803d' }}>
+                    <div style={{ display: 'flex', gap: '0.85rem', color: '#64748b', fontSize: '0.78rem' }}>
+                      <span>Subtotal: <strong style={{ color: '#0f172a' }}>₹{ord.subtotal}</strong></span>
+                      <span>Delivery: <strong style={{ color: ord.deliveryCharge === 0 ? '#15803d' : '#0f172a' }}>{ord.deliveryCharge === 0 ? 'FREE' : `₹${ord.deliveryCharge}`}</strong></span>
+                      <span>Payment: <strong style={{ textTransform: 'uppercase', color: '#0f172a' }}>{ord.paymentMethod.replace(/_/g, ' ')}</strong></span>
+                    </div>
+                    <div style={{ fontSize: '0.96rem', fontWeight: 900, color: '#15803d' }}>
                       Grand Total: ₹{ord.totalAmount.toLocaleString('en-IN')}
                     </div>
                   </div>
@@ -1134,6 +1222,394 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* 5. Comprehensive Order Details Modal */}
+      {selectedOrderForDetails && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(5px)',
+          WebkitBackdropFilter: 'blur(5px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 110,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            maxWidth: '680px',
+            width: '100%',
+            maxHeight: '92vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.15rem 1.5rem',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#f8fafc'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <h3 style={{ fontSize: '1.18rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                    Order #{selectedOrderForDetails.orderNumber}
+                  </h3>
+                  <span style={{
+                    backgroundColor: '#dcfce7',
+                    color: '#15803d',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '9999px',
+                    textTransform: 'uppercase'
+                  }}>
+                    {selectedOrderForDetails.orderSource.replace('_', ' ')}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '0.2rem' }}>
+                  Placed on {new Date(selectedOrderForDetails.createdAt).toLocaleString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetails(null)}
+                style={{
+                  background: '#e2e8f0',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#475569'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+              {/* Status and Payment Controls Card */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '0.85rem 1rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem'
+              }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 800, color: '#475569', marginBottom: '0.3rem' }}>
+                    Order Status
+                  </label>
+                  <select
+                    value={selectedOrderForDetails.status}
+                    onChange={(e) => handleStatusChange(selectedOrderForDetails.id, e.target.value as OrderStatus)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '0.84rem',
+                      fontWeight: 800,
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="pending">Pending Confirmation</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="processing">Processing</option>
+                    <option value="out_for_delivery">Out for Delivery</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 800, color: '#475569', marginBottom: '0.3rem' }}>
+                    Payment Status
+                  </label>
+                  <select
+                    value={selectedOrderForDetails.paymentStatus || 'pending'}
+                    onChange={(e) => handlePaymentStatusChange(selectedOrderForDetails.id, e.target.value as PaymentStatus)}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="partially_paid">Partially Paid</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Customer & Delivery Address Card */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.65rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <User size={18} style={{ color: '#15803d' }} />
+                    <span>{selectedOrderForDetails.customerName}</span>
+                    {selectedOrderForDetails.customerId ? (
+                      <span style={{ fontSize: '0.68rem', backgroundColor: '#dcfce7', color: '#15803d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 800 }}>
+                        Registered
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.68rem', backgroundColor: '#f1f5f9', color: '#64748b', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 800 }}>
+                        Guest Checkout
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Call & WhatsApp actions */}
+                  <div style={{ display: 'flex', gap: '0.45rem' }}>
+                    {selectedOrderForDetails.customerPhone && (
+                      <>
+                        <a
+                          href={`tel:${selectedOrderForDetails.customerPhone}`}
+                          style={{
+                            backgroundColor: '#fff7ed',
+                            color: '#ea580c',
+                            border: '1px solid #fed7aa',
+                            borderRadius: '8px',
+                            padding: '0.35rem 0.65rem',
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <Phone size={13} />
+                          <span>Call ({selectedOrderForDetails.customerPhone})</span>
+                        </a>
+
+                        <a
+                          href={`https://wa.me/${selectedOrderForDetails.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                            `Hello ${selectedOrderForDetails.customerName}, regarding your Sai Deveena Traders order #${selectedOrderForDetails.orderNumber} (Status: ${selectedOrderForDetails.status.toUpperCase()}):`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d',
+                            border: '1px solid #bbf7d0',
+                            borderRadius: '8px',
+                            padding: '0.35rem 0.65rem',
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <MessageCircle size={13} />
+                          <span>WhatsApp</span>
+                        </a>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.82rem', color: '#334155', display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
+                  <div>
+                    <strong style={{ color: '#0f172a' }}>Delivery Address:</strong> {selectedOrderForDetails.deliveryLocation}
+                  </div>
+                  {selectedOrderForDetails.villageTown && (
+                    <div>
+                      <strong style={{ color: '#0f172a' }}>Village / Town:</strong> {selectedOrderForDetails.villageTown}
+                    </div>
+                  )}
+                  {selectedOrderForDetails.pincode && (
+                    <div>
+                      <strong style={{ color: '#0f172a' }}>PIN Code:</strong> {selectedOrderForDetails.pincode}
+                    </div>
+                  )}
+                  {selectedOrderForDetails.landmark && (
+                    <div>
+                      <strong style={{ color: '#0f172a' }}>Landmark:</strong> {selectedOrderForDetails.landmark}
+                    </div>
+                  )}
+                  {selectedOrderForDetails.notes && (
+                    <div style={{ fontStyle: 'italic', color: '#64748b' }}>
+                      <strong style={{ color: '#0f172a' }}>Instructions:</strong> {selectedOrderForDetails.notes}
+                    </div>
+                  )}
+                </div>
+
+                {/* Google Maps link */}
+                <div style={{ marginTop: '0.35rem' }}>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(selectedOrderForDetails.deliveryLocation)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#f0fdf4',
+                      color: '#15803d',
+                      border: '1px solid #86efac',
+                      borderRadius: '8px',
+                      padding: '0.4rem 0.85rem',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <MapPin size={14} />
+                    <span>Open Delivery Location in Google Maps</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '0.65rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  color: '#475569'
+                }}>
+                  Ordered Products ({(selectedOrderForDetails.items || []).length})
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {(selectedOrderForDetails.items || []).map((it, idx) => (
+                    <div
+                      key={it.id || idx}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderBottom: idx < (selectedOrderForDetails.items || []).length - 1 ? '1px solid #f1f5f9' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '0.82rem'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{it.productNameEn}</div>
+                        {it.productNameTe && <div style={{ fontSize: '0.74rem', color: '#16a34a' }}>{it.productNameTe}</div>}
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                          Unit Price: ₹{it.unitPrice} {it.packSize ? `• ${it.packSize}` : ''}
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.76rem', color: '#64748b' }}>Qty: <strong>{it.quantity}</strong></div>
+                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.92rem' }}>₹{it.totalPrice}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bill Breakdown */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  borderTop: '1px solid #e2e8f0',
+                  padding: '0.85rem 1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                  fontSize: '0.82rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                    <span>Items Subtotal:</span>
+                    <strong style={{ color: '#0f172a' }}>₹{selectedOrderForDetails.subtotal}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                    <span>Delivery Fee:</span>
+                    <strong style={{ color: selectedOrderForDetails.deliveryCharge === 0 ? '#15803d' : '#0f172a' }}>
+                      {selectedOrderForDetails.deliveryCharge === 0 ? 'FREE' : `₹${selectedOrderForDetails.deliveryCharge}`}
+                    </strong>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '1rem',
+                    fontWeight: 900,
+                    color: '#15803d',
+                    borderTop: '1px dashed #cbd5e1',
+                    paddingTop: '0.45rem',
+                    marginTop: '0.2rem'
+                  }}>
+                    <span>Grand Total:</span>
+                    <span>₹{selectedOrderForDetails.totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '0.85rem 1.5rem',
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '0.65rem'
+            }}>
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetails(null)}
+                style={{
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.55rem 1.25rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

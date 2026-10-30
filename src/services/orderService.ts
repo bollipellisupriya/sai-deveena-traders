@@ -1,5 +1,14 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import type { Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, OrderSource } from '../types';
+import type {
+  Order,
+  OrderItem,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  OrderSource,
+  StoreSettings,
+  GuestCheckoutData
+} from '../types';
 import type { DbOrderItem } from '../lib/database.types';
 
 export interface CreateOrderPayload {
@@ -60,6 +69,11 @@ function mapDbOrder(raw: any): Order {
     customerEmail: raw.customer_email,
     customerPhone: raw.customer_phone,
     deliveryLocation: raw.delivery_location,
+    villageTown: raw.village_town || null,
+    pincode: raw.pincode || null,
+    landmark: raw.landmark || null,
+    deliveryInstructions: raw.delivery_instructions || null,
+    idempotencyKey: raw.idempotency_key || null,
     orderSource: raw.order_source as OrderSource,
     status: raw.status as OrderStatus,
     paymentMethod: raw.payment_method as PaymentMethod,
@@ -326,6 +340,151 @@ export const orderService = {
     } catch (err) {
       console.warn('Could not fetch order statistics:', err);
       return defaultStats;
+    }
+  },
+
+  /**
+   * Fetch current store delivery settings from Supabase.
+   * Business rule default fallback: free delivery >= ₹199, ₹50 fee below ₹199.
+   */
+  async fetchDeliverySettings(): Promise<StoreSettings> {
+    const defaultSettings: StoreSettings = {
+      id: 'default',
+      freeDeliveryThreshold: 199,
+      deliveryFee: 50,
+      deliveryEnabled: true,
+      businessWhatsappNumber: '919010454541'
+    };
+
+    if (!isSupabaseConfigured()) return defaultSettings;
+
+    try {
+      const { data, error } = await supabase
+        .from('store_settings')
+        .select('*')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (error || !data) {
+        return defaultSettings;
+      }
+
+      return {
+        id: data.id,
+        freeDeliveryThreshold: Number(data.free_delivery_threshold) >= 0 ? Number(data.free_delivery_threshold) : 199,
+        deliveryFee: Number(data.delivery_fee) >= 0 ? Number(data.delivery_fee) : 50,
+        deliveryEnabled: data.delivery_enabled ?? true,
+        businessWhatsappNumber: data.business_whatsapp_number || '919010454541',
+        updatedAt: data.updated_at
+      };
+    } catch (e) {
+      console.warn('Using default delivery settings fallback:', e);
+      return defaultSettings;
+    }
+  },
+
+  /**
+   * Update store delivery rules (Admin only)
+   */
+  async updateDeliverySettings(
+    settings: Partial<StoreSettings>
+  ): Promise<{ success: boolean; error: string | null }> {
+    if (!isSupabaseConfigured()) {
+      return { success: false, error: 'Database service is not configured.' };
+    }
+
+    try {
+      const payload: Record<string, any> = {
+        id: 'default',
+        updated_at: new Date().toISOString()
+      };
+
+      if (settings.freeDeliveryThreshold !== undefined) {
+        payload.free_delivery_threshold = Number(settings.freeDeliveryThreshold);
+      }
+      if (settings.deliveryFee !== undefined) {
+        payload.delivery_fee = Number(settings.deliveryFee);
+      }
+      if (settings.deliveryEnabled !== undefined) {
+        payload.delivery_enabled = Boolean(settings.deliveryEnabled);
+      }
+      if (settings.businessWhatsappNumber !== undefined) {
+        payload.business_whatsapp_number = settings.businessWhatsappNumber.trim();
+      }
+
+      const { error } = await supabase
+        .from('store_settings')
+        .upsert(payload, { onConflict: 'id' });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, error: null };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to update delivery settings.' };
+    }
+  },
+
+  /**
+   * Secure Guest & Customer Order Creation via PostgreSQL SECURITY DEFINER RPC.
+   * Does NOT require user login or OTP. Validates product IDs, prices, stock,
+   * calculates subtotal and delivery charge server-side, and generates an order number atomically.
+   */
+  async createGuestOrderSecure(
+    guestData: GuestCheckoutData,
+    items: Array<{ productId: string; quantity: number }>,
+    idempotencyKey?: string
+  ): Promise<{
+    data: {
+      orderId: string;
+      orderNumber: string;
+      subtotal: number;
+      deliveryCharge: number;
+      totalAmount: number;
+      status: string;
+      isDuplicate?: boolean;
+    } | null;
+    error: string | null;
+  }> {
+    if (!isSupabaseConfigured()) {
+      return { data: null, error: 'Database service is not configured.' };
+    }
+
+    try {
+      if (!items || items.length === 0) {
+        return { data: null, error: 'Your cart is empty. Please add items before checking out.' };
+      }
+
+      const rpcArgs = {
+        p_customer_name: guestData.fullName.trim(),
+        p_customer_phone: guestData.phone.trim(),
+        p_delivery_address: guestData.deliveryAddress.trim(),
+        p_village_town: guestData.villageTown.trim(),
+        p_pincode: guestData.pincode.trim(),
+        p_items: items.map(it => ({
+          productId: it.productId,
+          quantity: it.quantity
+        })),
+        p_landmark: guestData.landmark?.trim() || null,
+        p_delivery_instructions: guestData.deliveryInstructions?.trim() || null,
+        p_customer_email: guestData.email?.trim() || null,
+        p_payment_method: guestData.paymentMethod || 'cash_on_delivery',
+        p_order_source: 'web',
+        p_idempotency_key: idempotencyKey || null
+      };
+
+      const { data, error } = await supabase.rpc('create_guest_order_secure', rpcArgs);
+
+      if (error) {
+        console.error('Error in create_guest_order_secure RPC:', error);
+        return { data: null, error: error.message };
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      console.error('Unexpected error in createGuestOrderSecure:', err);
+      return { data: null, error: err.message || 'Failed to place order.' };
     }
   }
 };

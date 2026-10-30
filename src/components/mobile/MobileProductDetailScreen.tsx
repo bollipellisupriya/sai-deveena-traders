@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Heart, Check, Plus, Minus, Truck, ShieldCheck, MessageCircle, Phone, Sparkles, Tag, ChevronRight } from 'lucide-react';
+import { Heart, Check, Plus, Minus, Truck, ShieldCheck, MessageCircle, Phone, Sparkles, Tag, ChevronRight, ShoppingBag } from 'lucide-react';
 import type { Product, Language } from '../../types';
 import { getProductWhatsappUrl } from '../../utils/whatsapp';
+import { useCart } from '../../context/CartContext';
 
 interface MobileProductDetailScreenProps {
   product: Product;
@@ -22,10 +23,24 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
   onToggleWishlist,
   onCustomerAction
 }) => {
+  const { addToCart, openCart, setCheckoutStep } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedThumb, setSelectedThumb] = useState(0);
+  const [addedToast, setAddedToast] = useState(false);
   const isTe = currentLang === 'te';
   const isWishlisted = wishlist.has(product.id);
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+    setAddedToast(true);
+    setTimeout(() => setAddedToast(false), 2500);
+  };
+
+  const handleFastCheckout = () => {
+    addToCart(product, quantity);
+    openCart();
+    setCheckoutStep('checkout');
+  };
 
   const name = product.name[currentLang] || product.name.en;
   const rawDescription = product.description[currentLang] || product.description.en || '';
@@ -480,6 +495,45 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
               </div>
             </div>
 
+            {/* Cart Added Toast */}
+            {addedToast && (
+              <div style={{
+                backgroundColor: '#dcfce7',
+                border: '1.5px solid #86efac',
+                color: '#15803d',
+                borderRadius: '12px',
+                padding: '0.65rem 1rem',
+                fontSize: '0.84rem',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '1rem',
+                animation: 'fadeIn 0.2s ease-out'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Check size={18} />
+                  <span>{isTe ? 'కార్ట్‌కి విజయవంతంగా జోడించబడింది!' : 'Item added to your cart!'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={openCart}
+                  style={{
+                    background: '#15803d',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '0.25rem 0.75rem',
+                    fontSize: '0.76rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isTe ? 'కార్ట్ చూడండి' : 'View Cart'}
+                </button>
+              </div>
+            )}
+
             {/* PRIMARY CONVERSION ACTION BUTTONS */}
             <div style={{
               display: 'grid',
@@ -487,6 +541,55 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
               gap: '0.85rem',
               marginBottom: '1.75rem'
             }}>
+              {/* Add to Cart */}
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                style={{
+                  backgroundColor: '#ffffff',
+                  color: '#15803d',
+                  border: '2px solid #15803d',
+                  borderRadius: '16px',
+                  padding: '0.95rem 1.25rem',
+                  fontSize: '0.96rem',
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.55rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(21, 128, 61, 0.08)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <ShoppingBag size={20} />
+                <span>{isTe ? 'కార్ట్‌కి జోడించండి' : 'Add to Cart'}</span>
+              </button>
+
+              {/* Fast Guest Checkout */}
+              <button
+                type="button"
+                onClick={handleFastCheckout}
+                style={{
+                  backgroundColor: '#15803d',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '16px',
+                  padding: '0.95rem 1.25rem',
+                  fontSize: '0.96rem',
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.55rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 20px rgba(21, 128, 61, 0.3)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span>{isTe ? 'ఇప్పుడే కొనండి (చెక్అవుట్)' : 'Buy Now (Guest Checkout)'}</span>
+              </button>
+
               {/* WhatsApp Fast Order */}
               <button
                 type="button"
@@ -497,20 +600,18 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
                   border: 'none',
                   borderRadius: '16px',
                   padding: '0.95rem 1.25rem',
-                  fontSize: '0.98rem',
+                  fontSize: '0.96rem',
                   fontWeight: 900,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.6rem',
+                  gap: '0.55rem',
                   cursor: 'pointer',
-                  boxShadow: '0 6px 20px rgba(37, 211, 102, 0.35)',
+                  boxShadow: '0 6px 20px rgba(37, 211, 102, 0.25)',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1ebc59')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#25D366')}
               >
-                <MessageCircle size={22} />
+                <MessageCircle size={20} />
                 <span>{isTe ? 'వాట్సాప్‌లో ఆర్డర్ చేయండి' : 'Order via WhatsApp'}</span>
               </button>
 
@@ -519,29 +620,22 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
                 type="button"
                 onClick={handleCallOrder}
                 style={{
-                  backgroundColor: '#ffffff',
-                  color: '#15803d',
-                  border: '2px solid #15803d',
+                  backgroundColor: '#f8fafc',
+                  color: '#334155',
+                  border: '1.5px solid #cbd5e1',
                   borderRadius: '16px',
                   padding: '0.95rem 1.25rem',
-                  fontSize: '0.98rem',
-                  fontWeight: 900,
+                  fontSize: '0.92rem',
+                  fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.6rem',
+                  gap: '0.55rem',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(21, 128, 61, 0.1)',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f0fdf4';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                }}
               >
-                <Phone size={20} style={{ color: '#ea580c' }} />
+                <Phone size={18} style={{ color: '#ea580c' }} />
                 <span>{isTe ? 'కాల్ చేయండి: 9010454541' : 'Call: 9010454541'}</span>
               </button>
             </div>
@@ -849,48 +943,90 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flex: 1, justifyContent: 'flex-end' }}>
           <button
             type="button"
-            onClick={handleBuyNow}
+            onClick={handleAddToCart}
+            aria-label="Add to cart"
             style={{
-              backgroundColor: '#25D366',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '9999px',
-              padding: '0.75rem 1.15rem',
-              fontSize: '0.9rem',
-              fontWeight: 900,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(37, 211, 102, 0.35)'
-            }}
-          >
-            <MessageCircle size={18} />
-            <span>{isTe ? 'వాట్సాప్' : 'WhatsApp'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCallOrder}
-            style={{
-              backgroundColor: '#ffffff',
+              backgroundColor: '#f0fdf4',
               color: '#15803d',
-              border: '1.5px solid #15803d',
+              border: '1.5px solid #86efac',
               borderRadius: '9999px',
-              padding: '0.75rem 0.95rem',
-              fontSize: '0.88rem',
-              fontWeight: 900,
+              padding: '0.65rem 0.85rem',
+              fontSize: '0.82rem',
+              fontWeight: 800,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.35rem',
               cursor: 'pointer'
             }}
           >
-            <Phone size={16} style={{ color: '#ea580c' }} />
-            <span>{isTe ? 'కాల్' : 'Call'}</span>
+            <ShoppingBag size={16} />
+            <span className="hide-on-very-small">{isTe ? 'కార్ట్' : 'Cart'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFastCheckout}
+            style={{
+              backgroundColor: '#15803d',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '0.65rem 1rem',
+              fontSize: '0.86rem',
+              fontWeight: 900,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(21, 128, 61, 0.3)'
+            }}
+          >
+            <span>{isTe ? 'కొనండి' : 'Buy Now'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            aria-label="WhatsApp order"
+            style={{
+              backgroundColor: '#25D366',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '0.65rem 0.85rem',
+              fontSize: '0.84rem',
+              fontWeight: 900,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(37, 211, 102, 0.25)'
+            }}
+          >
+            <MessageCircle size={17} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCallOrder}
+            aria-label="Call store"
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#334155',
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '9999px',
+              padding: '0.65rem 0.75rem',
+              fontSize: '0.84rem',
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <Phone size={15} style={{ color: '#ea580c' }} />
           </button>
         </div>
       </div>
