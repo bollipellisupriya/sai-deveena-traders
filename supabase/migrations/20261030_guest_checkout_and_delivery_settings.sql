@@ -7,7 +7,9 @@
 --  1. pgcrypto failure halts migration with clear exception (no silent ignore).
 --  2. Dynamic resolution of pgcrypto schema: search_path locked to strictly
 --     the extension's namespace + pg_catalog, preventing object substitution.
---  3. Internal crypto helpers: REVOKED from PUBLIC, anon, and authenticated.
+--  3. Internal crypto helpers: created via separate dynamic format statements;
+--     REVOKED from PUBLIC, anon, and authenticated. Callable internally by
+--     SECURITY DEFINER order creation function under function owner.
 --  4. Idempotency hash: Deterministic Normalized JSONB payload with SHA-256,
 --     including normalized order_source and all customer and line item fields.
 --  5. Two-phase verification: Validates all products, active status, in_stock,
@@ -46,7 +48,7 @@ BEGIN
     END;
   END IF;
 
-  -- 0B. Dynamically define crypto wrappers with search_path restricted
+  -- 0B. Dynamically define crypto_gen_random_bytes with search_path restricted
   -- EXCLUSIVELY to the extension namespace and pg_catalog (prevents object substitution)
   EXECUTE pg_catalog.format($func$
     CREATE OR REPLACE FUNCTION public.crypto_gen_random_bytes(p_len INTEGER)
@@ -59,7 +61,11 @@ BEGIN
       RETURN gen_random_bytes(p_len);
     END;
     $f$;
+  $func$, v_ext_schema);
 
+  -- 0C. Dynamically define crypto_sha256_hex with search_path restricted
+  -- EXCLUSIVELY to the extension namespace and pg_catalog (prevents object substitution)
+  EXECUTE pg_catalog.format($func$
     CREATE OR REPLACE FUNCTION public.crypto_sha256_hex(p_input TEXT)
     RETURNS TEXT
     LANGUAGE plpgsql
@@ -70,7 +76,7 @@ BEGIN
       RETURN encode(digest(p_input, 'sha256'), 'hex');
     END;
     $f$;
-  $func$, v_ext_schema, v_ext_schema);
+  $func$, v_ext_schema);
 END $$;
 
 -- Revoke execute from external API roles so they cannot be invoked via PostgREST RPC.
@@ -349,7 +355,7 @@ BEGIN
   END IF;
 
   -- 3. Validate and Aggregate Cart Items
-  IF p_items IS NULL OR jsonb_typeof(p_items) <> 'array' OR jsonb_array_length(p_items) = 0 THEN
+  IF p_items IS NULL OR pg_catalog.jsonb_typeof(p_items) <> 'array' OR pg_catalog.jsonb_array_length(p_items) = 0 THEN
     RAISE EXCEPTION 'Order must contain at least one valid product item.' USING ERRCODE = 'P0002';
   END IF;
 
@@ -371,7 +377,7 @@ BEGIN
           ELSE -1 
         END
       ) AS total_qty
-    FROM jsonb_array_elements(p_items) AS elem
+    FROM pg_catalog.jsonb_array_elements(p_items) AS elem
     GROUP BY pg_catalog.btrim(COALESCE(elem->>'productId', elem->>'id', ''))
   ) agg;
 
@@ -406,7 +412,7 @@ BEGIN
         USING ERRCODE = '23505';
     END IF;
 
-    RETURN jsonb_build_object(
+    RETURN pg_catalog.jsonb_build_object(
       'orderId', v_existing_order.id,
       'orderNumber', v_existing_order.order_number,
       'subtotal', v_existing_order.subtotal,
@@ -445,7 +451,7 @@ BEGIN
     SELECT 
       (elem->>'productId')::TEXT AS prod_id,
       (elem->>'quantity')::INTEGER AS qty
-    FROM jsonb_array_elements(v_normalized_items) AS elem
+    FROM pg_catalog.jsonb_array_elements(v_normalized_items) AS elem
     ORDER BY (elem->>'productId')::TEXT ASC
   LOOP
     IF v_item.prod_id = '' THEN
@@ -580,7 +586,7 @@ BEGIN
           USING ERRCODE = '23505';
       END IF;
 
-      RETURN jsonb_build_object(
+      RETURN pg_catalog.jsonb_build_object(
         'orderId', v_existing_order.id,
         'orderNumber', v_existing_order.order_number,
         'subtotal', v_existing_order.subtotal,
@@ -595,7 +601,7 @@ BEGIN
   END;
 
   -- 11. Insert Verified Line Items Atomically
-  FOR v_item IN SELECT * FROM jsonb_to_recordset(v_validated_items) AS x(
+  FOR v_item IN SELECT * FROM pg_catalog.jsonb_to_recordset(v_validated_items) AS x(
     product_id TEXT,
     product_name_en TEXT,
     product_name_te TEXT,
@@ -629,7 +635,7 @@ BEGIN
     );
   END LOOP;
 
-  RETURN jsonb_build_object(
+  RETURN pg_catalog.jsonb_build_object(
     'orderId', v_order_id,
     'orderNumber', v_order_num,
     'subtotal', v_subtotal,
@@ -694,8 +700,8 @@ BEGIN
 
   v_masked_location := '***, ' || COALESCE(v_order.village_town, '') || ' - ' || COALESCE(v_order.pincode, '');
 
-  SELECT jsonb_agg(
-    jsonb_build_object(
+  SELECT pg_catalog.jsonb_agg(
+    pg_catalog.jsonb_build_object(
       'productNameEn', product_name_en,
       'productNameTe', product_name_te,
       'quantity', quantity,
@@ -706,7 +712,7 @@ BEGIN
   FROM public.order_items
   WHERE order_id = v_order.id;
 
-  RETURN jsonb_build_object(
+  RETURN pg_catalog.jsonb_build_object(
     'orderNumber', v_order.order_number,
     'customerName', v_order.customer_name,
     'maskedPhone', v_masked_phone,
