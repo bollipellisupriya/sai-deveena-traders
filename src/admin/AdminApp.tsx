@@ -82,7 +82,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ catalog, onExitToStore, onRe
             Verifying Admin Session...
           </div>
           <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-            Sai Deveena Traders Portal
+            Sai Deveena Traders &amp; General Store Portal
           </div>
         </div>
       </div>

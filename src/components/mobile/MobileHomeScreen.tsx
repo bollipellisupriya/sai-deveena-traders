@@ -43,17 +43,44 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
     return rawName.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
+  // Fallback image resolver when uploaded image URL is missing or fails
+  const getCategoryFallbackImage = (catId: string): string => {
+    switch (catId) {
+      case 'seeds': return '/images/categories/seeds.jpg';
+      case 'fertilizers': return '/images/categories/fertilizers.jpg';
+      case 'crop-protection':
+      case 'cropcare': return '/images/categories/crop-protection.jpg';
+      case 'tools':
+      case 'household': return '/images/categories/tools.jpg';
+      case 'irrigation': return '/images/categories/irrigation.jpg';
+      case 'groceries':
+      case 'cleaning':
+      case 'personal-care':
+      case 'other': return '/images/categories/other.jpg';
+      case 'more': return '/images/categories/quick-more.svg';
+      default: return '/images/categories/seeds.jpg';
+    }
+  };
+
   // Dynamic categories directly from active Supabase categories
-  const dynamicCategories = categories.map(c => ({
-    id: c.id,
-    label: formatCategoryTitle(c.name[currentLang] || c.name.en),
-    iconImg: c.image || '/images/categories/quick-seeds.svg'
-  }));
+  const dynamicCategories = categories.map(c => {
+    const fallback = getCategoryFallbackImage(c.id);
+    const validImage = c.image && typeof c.image === 'string' && c.image.trim().length > 0
+      ? c.image.trim()
+      : fallback;
+
+    return {
+      id: c.id,
+      label: formatCategoryTitle(c.name[currentLang] || c.name.en),
+      iconImg: validImage,
+      fallbackImg: fallback
+    };
+  });
 
   // Dynamic quick categories grid (first 7 + "More" if many categories, or all categories)
   const quickCategories = dynamicCategories.length > 0
     ? (dynamicCategories.length > 8
-        ? [...dynamicCategories.slice(0, 7), { id: 'more', label: isTe ? 'మరిన్ని' : 'More', iconImg: '/images/categories/quick-more.svg' }]
+        ? [...dynamicCategories.slice(0, 7), { id: 'more', label: isTe ? 'మరిన్ని' : 'More', iconImg: '/images/categories/quick-more.svg', fallbackImg: '/images/categories/quick-more.svg' }]
         : dynamicCategories)
     : [];
 
@@ -81,7 +108,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
       onCustomerAction('whatsapp', prod);
     } else {
       const text = encodeURIComponent(
-        `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery to Bhainsa.`
+        `Hello Sai Deveena Traders & General Store, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery to Bhainsa.`
       );
       window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
     }
@@ -589,28 +616,40 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                     transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                   }}
                 >
-                  {/* Circular Avatar with Glowing Ring */}
+                  {/* Circular Category Image Container (Full-bleed, circular crop) */}
                   <div
-                    className="quick-cat-avatar"
+                    className="quick-cat-avatar category-image-container"
                     style={{
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
                       border: '2px solid #86efac',
-                      boxShadow: '0 4px 12px rgba(22, 163, 74, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                      boxShadow: '0 4px 12px rgba(22, 163, 74, 0.16)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: '0.45rem',
-                      padding: '9px',
+                      overflow: 'hidden',
+                      padding: 0,
+                      margin: '0 auto 0.45rem auto',
+                      backgroundColor: '#f8fafc',
                       transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                   >
                     <img
                       src={cat.iconImg}
                       alt={cat.label}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'block',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        borderRadius: '50%'
+                      }}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/categories/quick-seeds.svg';
+                        const target = e.target as HTMLImageElement;
+                        const fallback = (cat as any).fallbackImg || getCategoryFallbackImage(cat.id);
+                        if (target.src !== fallback && !target.src.endsWith(fallback)) {
+                          target.src = fallback;
+                        }
                       }}
                     />
                   </div>
@@ -1485,7 +1524,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
               margin: '0 0 0.25rem 0',
               letterSpacing: '-0.02em'
             }}>
-              {isTe ? 'రైతుల మొదటి ఎంపిక - సాయి దీవెన ట్రేడర్స్' : 'Why Farmers Trust Sai Deveena Traders'}
+              {isTe ? 'రైతుల మొదటి ఎంపిక - సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్' : 'Why Farmers Trust Sai Deveena Traders & General Store'}
             </h4>
             <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
               {isTe ? 'భైంసా & నిర్మల్ జిల్లా రైతులకు అధికారిక సేవా కేంద్రం' : 'Govt Licensed Inputs Distributor • Bhainsa, Telangana'}
@@ -1649,8 +1688,8 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
                 </div>
                 <p style={{ fontSize: '0.8rem', color: '#334155', fontStyle: 'italic', lineHeight: 1.4, margin: '0 0 0.75rem 0' }}>
                   {isTe
-                    ? '"సాయి దీవెన ట్రేడర్స్ ఇచ్చిన హైబ్రిడ్ పత్తి విత్తనాలతో ఎకరాకు 14 క్వింటాళ్ల దిగుబడి వచ్చింది. నకిలీలు లేని నిజమైన విత్తనాలు!"'
-                    : '"Got hybrid cotton seeds from Sai Deveena Traders. Harvested 14 quintals per acre! 100% genuine products with accurate billing."'}
+                    ? '"సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ ఇచ్చిన హైబ్రిడ్ పత్తి విత్తనాలతో ఎకరాకు 14 క్వింటాళ్ల దిగుబడి వచ్చింది. నకిలీలు లేని నిజమైన విత్తనాలు!"'
+                    : '"Got hybrid cotton seeds from Sai Deveena Traders & General Store. Harvested 14 quintals per acre! 100% genuine products with accurate billing."'}
                 </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '0.55rem' }}>
@@ -1751,7 +1790,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
           </div>
 
           <h4 style={{ fontSize: '1.15rem', fontWeight: 900, margin: '0 0 0.45rem 0', color: '#ffffff' }}>
-            సాయి దీవెన ట్రేడర్స్ • Sai Deveena Traders
+            సాయి దీవెన ట్రేడర్స్ &amp; జనరల్ స్టోర్ • Sai Deveena Traders &amp; General Store
           </h4>
 
           <p style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.45, margin: '0 0 1rem 0' }}>

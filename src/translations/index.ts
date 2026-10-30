@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    siteTitle: "Sai Deveena Traders | Agricultural Store in Bhainsa",
+    siteTitle: "Sai Deveena Traders & General Store | Agricultural Store in Bhainsa",
     siteDescription: "Quality seeds, fertilizers, crop protection, and farming tools for farmers in Bhainsa and nearby villages.",
     nav: {
       home: "Home",
@@ -83,9 +83,9 @@ export const translations = {
       disclaimerBody: "Prices and stock change based on seasonal availability. A WhatsApp enquiry is not a confirmed order. The shop owner will assist you directly.",
     },
     about: {
-      heading: "About Sai Deveena Traders",
+      heading: "About Sai Deveena Traders & General Store",
       subheading: "A dedicated agricultural partner for farmers in Bhainsa",
-      paragraph1: "Sai Deveena Traders is a local agricultural products retail shop located in Bhainsa, Nirmal District, Telangana. We are committed to supplying genuine farming inputs, including high-yield seeds, balanced fertilizers, crop protection solutions, and irrigation accessories to hardworking farmers in Bhainsa and surrounding villages.",
+      paragraph1: "Sai Deveena Traders & General Store is a local agricultural products retail shop located in Bhainsa, Nirmal District, Telangana. We are committed to supplying genuine farming inputs, including high-yield seeds, balanced fertilizers, crop protection solutions, general daily essentials, and irrigation accessories to hardworking farmers in Bhainsa and surrounding villages.",
       paragraph2: "As a local family-managed retail shop, we believe in honest communication, fair pricing, and personal customer service. Farmers and customers can easily browse our catalogue, note down needed items, and contact the shop owner directly by phone or WhatsApp to check stock, confirm current prices, and arrange shop pickup or local delivery.",
       highlights: [
         {
@@ -136,7 +136,7 @@ export const translations = {
       body: "This website serves as an informational digital catalogue. It does not support online payments or automated ordering. Displayed prices in Indian Rupees (₹) are indicative and may vary due to market fluctuations and seasonal supplies. Final pricing, stock availability, and delivery or pickup arrangements must be confirmed directly with the shop owner via phone or WhatsApp.",
     },
     footer: {
-      aboutText: "Sai Deveena Traders is an agricultural retail shop in Bhainsa, Telangana, offering certified seeds, quality fertilizers, crop care solutions, and farm equipment.",
+      aboutText: "Sai Deveena Traders & General Store is an agricultural retail and general shop in Bhainsa, Telangana, offering certified seeds, quality fertilizers, crop care solutions, and farm equipment.",
       quickLinks: "Quick Navigation",
       categoriesTitle: "Product Categories",
       contactInfo: "Contact Details",
@@ -153,7 +153,7 @@ export const translations = {
     }
   },
   te: {
-    siteTitle: "సాయి దీవెన ట్రేడర్స్ | భైంసా వ్యవసాయ ఉత్పత్తుల దుకాణం",
+    siteTitle: "సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ | భైంసా వ్యవసాయ ఉత్పత్తుల దుకాణం",
     siteDescription: "భైంసా మరియు చుట్టుపక్కల గ్రామాల రైతు సోదరుల కోసం నాణ్యమైన విత్తనాలు, ఎరువులు, పంట సంరక్షణ మరియు వ్యవసాయ పనిముట్లు.",
     nav: {
       home: "హోమ్",
@@ -236,9 +236,9 @@ export const translations = {
       disclaimerBody: "ధరలు మరియు నిల్వలు మారవచ్చు. వాట్సాప్ సందేశం పంపడం వల్ల ఆర్డర్ ఖరారు కాదు. దుకాణ యజమాని స్వయంగా మీకు సహాయం చేస్తారు.",
     },
     about: {
-      heading: "సాయి దీవెన ట్రేడర్స్ గురించి",
+      heading: "సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ గురించి",
       subheading: "భైంసా పరిసర ప్రాంత రైతుల నమ్మకమైన వ్యవసాయ నేస్తం",
-      paragraph1: "సాయి దీవెన ట్రేడర్స్ తెలంగాణ రాష్ట్రం, నిర్మల్ జిల్లాలోని భైంసా పట్టణంలో ఉన్న వ్యవసాయ ఉత్పత్తుల రిటైల్ దుకాణం. మేము స్థానిక రైతులకు నాణ్యమైన విత్తనాలు, సమతుల్య ఎరువులు, సమగ్ర పంట రక్షణ మందులు మరియు వ్యవసాయ సామగ్రిని అందజేస్తున్నాము.",
+      paragraph1: "సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ తెలంగాణ రాష్ట్రం, నిర్మల్ జిల్లాలోని భైంసా పట్టణంలో ఉన్న వ్యవసాయ ఉత్పత్తులు & జనరల్ స్టోర్ రిటైల్ దుకాణం. మేము స్థానిక రైతులకు నాణ్యమైన విత్తనాలు, సమతుల్య ఎరువులు, సమగ్ర పంట రక్షణ మందులు మరియు వ్యవసాయ సామగ్రిని అందజేస్తున్నాము.",
       paragraph2: "రైతులకు వ్యక్తిగత సేవలందించడం, సరసమైన ధరలు మరియు నిజాయితీతో కూడిన సలహాలు ఇవ్వడం మా లక్ష్యం. రైతులు మా వెబ్‌సైట్ ద్వారా ఉత్పత్తులను చూసి, అవసరమైన వాటి కోసం నేరుగా ఫోన్ లేదా వాట్సాప్ ద్వారా సంప్రదించి సమాచారం తెలుసుకోవచ్చు.",
       highlights: [
         {
@@ -289,7 +289,7 @@ export const translations = {
       body: "ఈ వెబ్‌సైట్ ఉత్పత్తులను తెలుసుకోవడానికి డిజిటల్ జాబితా (క్యాటలాగ్) మాత్రమే. ఇక్కడ ఆన్‌లైన్ పేమెంట్లు లేదా ఆర్డర్లు తీసుకోబడవు. చూపించిన ధరలు (₹) అంచనా మాత్రమే, మార్కెట్ పరిస్థితులను బట్టి మారవచ్చు. చివరి ధర, స్టాక్ లభ్యత మరియు సేకరణ వివరాలను దుకాణ యజమానితో ఫోన్ లేదా వాట్సాప్ ద్వారా మాత్రమే నిర్ధారించుకోవాలి.",
     },
     footer: {
-      aboutText: "సాయి దీవెన ట్రేడర్స్ భైంసాలోని వ్యవసాయ ఉత్పత్తుల దుకాణం. విత్తనాలు, ఎరువులు, పంట సంరక్షణ మరియు వ్యవసాయ పరికరాలు లభిస్తాయి.",
+      aboutText: "సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ భైంసాలోని వ్యవసాయ ఉత్పత్తుల మరియు నిత్యావసరాల దుకాణం. విత్తనాలు, ఎరువులు, పంట సంరక్షణ మరియు వ్యవసాయ పరికరాలు లభిస్తాయి.",
       quickLinks: "ముఖ్యమైన లింకులు",
       categoriesTitle: "ఉత్పత్తి వర్గాలు",
       contactInfo: "సంప్రదింపు వివరాలు",

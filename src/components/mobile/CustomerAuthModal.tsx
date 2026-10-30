@@ -279,7 +279,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                   : (isTe ? 'కస్టమర్ లాగిన్ / రిజిస్ట్రేషన్' : 'Customer Sign In / Register')}
               </h2>
               <div style={{ fontSize: '0.72rem', color: '#bbf7d0', fontWeight: 600 }}>
-                {isTe ? 'సాయి దీవెన ట్రేడర్స్ భైంసా' : 'Sai Deveena Traders • Bhainsa'}
+                {isTe ? 'సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ భైంసా' : 'Sai Deveena Traders & General Store • Bhainsa'}
               </div>
             </div>
           </div>
@@ -321,7 +321,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
             {step === 'phone'
               ? (isTe
                   ? 'ఆర్డర్ లేదా విచారణ కోసం మీ మొబైల్ నంబరును SMS OTP ద్వారా సురక్షితంగా ధృవీకరించండి. పాస్‌వర్డ్ అవసరం లేదు.'
-                  : 'Fast 1-step verification via SMS OTP to connect directly with Sai Deveena Traders. No passwords required.')
+                  : 'Fast 1-step verification via SMS OTP to connect directly with Sai Deveena Traders & General Store. No passwords required.')
               : (isTe
                   ? 'మీ మొబైల్ నంబరుకు పంపిన 6 అంకెల OTP కోడ్‌ను నమోదు చేయండి.'
                   : 'Enter the 6-digit verification code sent to your phone number.')}

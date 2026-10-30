@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
             }}>
               <img
                 src="/logo-icon.png?v=5"
-                alt="Sai Deveena Traders Emblem"
+                alt="Sai Deveena Traders & General Store Emblem"
                 style={{
                   width: '95%',
                   height: '95%',
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
                 lineHeight: 1.15
               }}>
                 <span style={{ color: '#14532d' }}>SAI</span>
-                <span style={{ color: '#ea580c' }}>DEEVENA</span>
+                <span style={{ color: '#ea580c' }}>DEVEENA</span>
               </div>
               <div style={{
                 fontSize: '0.62rem',

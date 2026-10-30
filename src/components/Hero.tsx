@@ -220,7 +220,7 @@ export const Hero: React.FC<HeroProps> = ({
             >
               <img
                 src={item.bgImage}
-                alt="Sai Deveena Traders Agricultural Banner"
+                alt="Sai Deveena Traders & General Store Banner"
                 style={{
                   width: '100%',
                   height: '100%',

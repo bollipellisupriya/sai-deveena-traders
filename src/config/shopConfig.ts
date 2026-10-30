@@ -43,8 +43,8 @@ export interface ShopConfig {
 
 export const shopConfig: ShopConfig = {
   shopName: {
-    en: "Sai Deveena Traders",
-    te: "సాయి దీవెన ట్రేడర్స్"
+    en: "Sai Deveena Traders & General Store",
+    te: "సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్"
   },
   tagline: {
     en: "Quality Agricultural Products & Inputs for Farmers",

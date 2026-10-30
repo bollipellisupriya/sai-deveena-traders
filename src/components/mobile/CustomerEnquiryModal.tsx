@@ -212,7 +212,7 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                 {isTe ? 'ఉత్పత్తి విచారణ' : 'Customer Enquiry'}
               </h2>
               <div style={{ fontSize: '0.75rem', color: '#bbf7d0', fontWeight: 700, marginTop: '2px' }}>
-                🌾 Sai Deveena Traders • Bhainsa
+                🌾 Sai Deveena Traders &amp; General Store • Bhainsa
               </div>
             </div>
           </div>
@@ -743,8 +743,8 @@ export const CustomerEnquiryModal: React.FC<CustomerEnquiryModalProps> = ({
                 <ShieldCheck size={18} style={{ color: '#16a34a', flexShrink: 0, marginTop: '1px' }} />
                 <span>
                   {isTe
-                    ? 'మీ వివరాలు గోప్యంగా ఉంచబడతాయి. కేవలం సాయి దీవెన ట్రేడర్స్ మీ విచారణకు ప్రతిస్పందించడానికి మాత్రమే వీటిని ఉపయోగిస్తుంది.'
-                    : 'Your details are secure. Used only by Sai Deveena Traders to assist your product enquiry.'}
+                    ? 'మీ వివరాలు గోప్యంగా ఉంచబడతాయి. కేవలం సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ మీ విచారణకు ప్రతిస్పందించడానికి మాత్రమే వీటిని ఉపయోగిస్తుంది.'
+                    : 'Your details are secure. Used only by Sai Deveena Traders & General Store to assist your product enquiry.'}
                 </span>
               </div>
 

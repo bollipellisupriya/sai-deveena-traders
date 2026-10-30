@@ -75,7 +75,7 @@ export const MobileProfileScreen: React.FC<MobileProfileScreenProps> = ({
               }}>
                 <img
                   src="/logo-icon.png?v=7"
-                  alt="Sai Deveena Traders Emblem"
+                  alt="Sai Deveena Traders & General Store Emblem"
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </div>

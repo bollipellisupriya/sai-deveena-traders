@@ -30,8 +30,8 @@ const BANNER_SLIDES: BannerSlide[] = [
       te: '🌾 భైంసా, నిర్మల్ జిల్లా'
     },
     title: {
-      en: 'Sai Deveena Traders',
-      te: 'సాయి దీవెన ట్రేడర్స్'
+      en: 'Sai Deveena Traders & General Store',
+      te: 'సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్'
     },
     subtitle: {
       en: 'Quality Seeds & Fertilizers',

@@ -94,7 +94,7 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
 
   const handleBuyNow = () => {
     const customText = quantity > 1
-      ? `Hello Sai Deveena Traders, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Total Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and delivery details.`
+      ? `Hello Sai Deveena Traders & General Store, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Total Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and delivery details.`
       : undefined;
 
     if (onCustomerAction) {
@@ -105,7 +105,7 @@ export const MobileProductDetailScreen: React.FC<MobileProductDetailScreenProps>
         return;
       }
       const text = encodeURIComponent(
-        customText || `Hello Sai Deveena Traders, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Total Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and delivery details.`
+        customText || `Hello Sai Deveena Traders & General Store, I want to buy:\n- Product: ${product.name.en} (${product.name.te})\n- Quantity: ${quantity}\n- Total Price: ₹${(product.price || 0) * quantity}\nPlease confirm availability and delivery details.`
       );
       window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
     }

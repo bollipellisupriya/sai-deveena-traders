@@ -80,7 +80,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               SDT Admin Portal
             </div>
             <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
-              Sai Deveena Traders
+              Sai Deveena Traders &amp; General Store
             </div>
           </div>
         </div>

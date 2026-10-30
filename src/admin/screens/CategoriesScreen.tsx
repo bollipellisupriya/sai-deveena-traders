@@ -552,7 +552,7 @@ export const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onRefreshCat
                   </div>
 
                   <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4, margin: '0 0 1rem' }}>
-                    {cat.description?.en || 'Agricultural category for Sai Deveena Traders'}
+                    {cat.description?.en || 'Category for Sai Deveena Traders & General Store'}
                   </p>
                 </div>
 

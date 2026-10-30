@@ -37,7 +37,7 @@ export const MobileCartDrawer: React.FC<MobileCartDrawerProps> = ({
   const handleWhatsAppOrder = () => {
     let orderList = items.map((item, i) => `${i + 1}. ${item.product.name.en} x ${item.quantity} = ₹${(item.product.price || 0) * item.quantity}`).join('\n');
     const message = encodeURIComponent(
-      `Hello Sai Deveena Traders,\nI want to place an order from your website:\n\n${orderList}\n\n*Item Total: ₹${subtotal}*\n*Delivery: ${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}*\n*Grand Total: ₹${grandTotal}*\n\nPlease confirm availability and payment/delivery details to Bhainsa.`
+      `Hello Sai Deveena Traders & General Store,\nI want to place an order from your website:\n\n${orderList}\n\n*Item Total: ₹${subtotal}*\n*Delivery: ${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}*\n*Grand Total: ₹${grandTotal}*\n\nPlease confirm availability and payment/delivery details to Bhainsa.`
     );
     window.open(`https://wa.me/919010454541?text=${message}`, '_blank');
   };

@@ -34,7 +34,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ currentLang }) => {
               marginBottom: '0.5rem'
             }}>
               <Sparkles size={16} />
-              <span>{currentLang === 'te' ? 'మా పరిచయం & సేవలు' : 'About Sai Deveena Traders'}</span>
+              <span>{currentLang === 'te' ? 'మా పరిచయం & సేవలు' : 'About Sai Deveena Traders & General Store'}</span>
             </div>
 
             <h2 className="section-title" style={{ marginBottom: '1.25rem' }}>
@@ -115,7 +115,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ currentLang }) => {
               }}>
                 <img
                   src="/logo-icon.png"
-                  alt="Sai Deveena Traders"
+                  alt="Sai Deveena Traders & General Store"
                   style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }}
                 />
               </div>

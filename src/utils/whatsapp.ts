@@ -37,9 +37,9 @@ export const getProductWhatsappUrl = (product: Product, lang: Language): { url: 
 
   let message = '';
   if (lang === 'te') {
-    message = `నమస్కారం సాయి దీవెన ట్రేడర్స్ (భైంసా).\nనేను మీ వెబ్‌సైట్‌లో ఈ ఉత్పత్తిని చూశాను:\n\n• ఉత్పత్తి: ${productName}${brandPart}\n• ప్యాక్ సైజు: ${packPart || 'అందుబాటులో ఉన్నది'}\n• చూపిన ధర: ${priceDisplay}\n\nదయచేసి ప్రస్తుత ధర మరియు స్టాక్ లభ్యత వివరాలను తెలియజేయగలరు.`;
+    message = `నమస్కారం సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ (భైంసా).\nనేను మీ వెబ్‌సైట్‌లో ఈ ఉత్పత్తిని చూశాను:\n\n• ఉత్పత్తి: ${productName}${brandPart}\n• ప్యాక్ సైజు: ${packPart || 'అందుబాటులో ఉన్నది'}\n• చూపిన ధర: ${priceDisplay}\n\nదయచేసి ప్రస్తుత ధర మరియు స్టాక్ లభ్యత వివరాలను తెలియజేయగలరు.`;
   } else {
-    message = `Hello Sai Deveena Traders (Bhainsa),\nI saw this product on your catalogue website:\n\n• Product: ${productName}${brandPart}\n• Pack Size: ${packPart || 'Standard'}\n• Displayed Price: ${priceDisplay}\n\nPlease confirm if this item is currently in stock and its latest price. Thank you!`;
+    message = `Hello Sai Deveena Traders & General Store (Bhainsa),\nI saw this product on your catalogue website:\n\n• Product: ${productName}${brandPart}\n• Pack Size: ${packPart || 'Standard'}\n• Displayed Price: ${priceDisplay}\n\nPlease confirm if this item is currently in stock and its latest price. Thank you!`;
   }
 
   const encodedMessage = encodeURIComponent(message);
@@ -66,8 +66,8 @@ export const getGeneralWhatsappUrl = (lang: Language): { url: string; isConfigur
   const cleanNumber = sanitizePhoneNumber(shopConfig.whatsappNumber);
 
   const message = lang === 'te'
-    ? 'నమస్కారం సాయి దీవెన ట్రేడర్స్ (భైంసా). నాకు వ్యవసాయ ఉత్పత్తులు, విత్తనాలు మరియు ఎరువుల గురించి సమాచారం కావాలి.'
-    : 'Hello Sai Deveena Traders (Bhainsa). I would like to enquire about your available agricultural products, seeds, and fertilizers.';
+    ? 'నమస్కారం సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ (భైంసా). నాకు వ్యవసాయ ఉత్పత్తులు, విత్తనాలు మరియు ఎరువుల గురించి సమాచారం కావాలి.'
+    : 'Hello Sai Deveena Traders & General Store (Bhainsa). I would like to enquire about your available agricultural products, seeds, and fertilizers.';
 
   const encodedMessage = encodeURIComponent(message);
 
@@ -114,8 +114,8 @@ export const getSupportWhatsappUrl = (lang: Language): { url: string; isConfigur
   const cleanNumber = sanitizePhoneNumber(shopConfig.supportWhatsappNumber);
 
   const message = lang === 'te'
-    ? 'నమస్కారం సాయి దీవెన ట్రేడర్స్ కస్టమర్ సపోర్ట్. నాకు సహాయం కావాలి.'
-    : 'Hello Sai Deveena Traders Support. I need assistance with agricultural products and order guidance.';
+    ? 'నమస్కారం సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ కస్టమర్ సపోర్ట్. నాకు సహాయం కావాలి.'
+    : 'Hello Sai Deveena Traders & General Store Support. I need assistance with agricultural products and order guidance.';
 
   const encodedMessage = encodeURIComponent(message);
 

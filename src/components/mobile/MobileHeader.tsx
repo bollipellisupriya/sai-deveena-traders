@@ -87,7 +87,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             textOverflow: 'ellipsis',
             maxWidth: '380px'
           }}>
-            {title || 'Sai Deveena'}
+            {title || 'Sai Deveena Traders & General Store'}
           </h1>
         </div>
       ) : (
@@ -107,7 +107,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           }}>
             <img
               src="/logo-icon.png?v=7"
-              alt="Sai Deveena Traders Emblem"
+              alt="Sai Deveena Traders & General Store Emblem"
               style={{ width: '92%', height: '92%', objectFit: 'contain' }}
             />
           </div>
@@ -135,16 +135,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               fontSize: '0.58rem',
               fontWeight: 800,
               color: '#166534',
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
               lineHeight: 1.1,
               marginTop: '1px',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem'
+              whiteSpace: 'nowrap'
             }}>
-              <span>TRADERS</span>
-              <span style={{ color: '#ea580c' }}>•</span>
-              <span style={{ color: '#64748b' }}>BHAINSA</span>
+              <span>TRADERS & GENERAL STORE</span>
             </div>
           </div>
         </div>
@@ -226,7 +224,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               onCallStore();
             }
           }}
-          aria-label="Call Sai Deveena Traders"
+          aria-label="Call Sai Deveena Traders & General Store"
           style={{
             height: '34px',
             borderRadius: '9999px',

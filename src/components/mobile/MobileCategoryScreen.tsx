@@ -78,7 +78,7 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
       onCustomerAction('whatsapp', prod);
     } else {
       const text = encodeURIComponent(
-        `Hello Sai Deveena Traders, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery.`
+        `Hello Sai Deveena Traders & General Store, I want to order:\n- Product: ${prod.name.en} (${prod.name.te})\n- Price: ₹${prod.price}\nPlease confirm availability and delivery.`
       );
       window.open(`https://wa.me/919010454541?text=${text}`, '_blank');
     }
@@ -327,9 +327,10 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                         width: '58px',
                         height: '58px',
                         borderRadius: '14px',
-                        background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+                        backgroundColor: '#f8fafc',
                         border: '2px solid #86efac',
-                        padding: '5px',
+                        padding: 0,
+                        overflow: 'hidden',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -341,7 +342,7 @@ export const MobileCategoryScreen: React.FC<MobileCategoryScreenProps> = ({
                       <img
                         src={cat.image || '/images/categories/quick-seeds.svg'}
                         alt={catName}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', borderRadius: '14px' }}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/images/categories/quick-seeds.svg';
                         }}

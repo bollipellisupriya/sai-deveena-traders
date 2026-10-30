@@ -110,7 +110,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onExitTo
             margin: '0 0 0.35rem',
             letterSpacing: '-0.02em'
           }}>
-            Sai Deveena Traders
+            Sai Deveena Traders &amp; General Store
           </h1>
           <div style={{
             display: 'inline-flex',

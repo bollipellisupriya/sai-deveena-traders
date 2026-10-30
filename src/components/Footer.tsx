@@ -201,7 +201,7 @@ export const Footer: React.FC<FooterProps> = ({
           color: '#94a3b8'
         }}>
           <div>
-            © {currentYear} <span style={{ color: 'white', fontWeight: 700 }}>Sai Deveena Traders</span>. {t.footer.allRights}
+            © {currentYear} <span style={{ color: 'white', fontWeight: 700 }}>Sai Deveena Traders &amp; General Store</span>. {t.footer.allRights}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#86efac' }}>
             <Sparkles size={14} style={{ color: '#fb923c' }} />

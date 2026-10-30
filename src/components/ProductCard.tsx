@@ -114,7 +114,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <img src="/logo.png" alt="Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
             </div>
             <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 800 }}>
-              Sai Deveena Traders
+              Sai Deveena Traders &amp; General Store
             </span>
           </div>
         )}

@@ -83,7 +83,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
   const handleFollowUpEnquiry = (enq: CustomerEnquiry) => {
     const ref = enq.id && enq.id !== 'recent_prev' ? `#ENQ-${enq.id.slice(0, 8).toUpperCase()}` : 'Enquiry';
     const message = encodeURIComponent(
-      `Hello Sai Deveena Traders,\nI want to follow up on my enquiry (${ref}):\n- Product: ${enq.productName || 'Agricultural items'}\n- Name: ${enq.name}\n- Phone: ${enq.phone}\n- Village: ${enq.villageCity}\n\nPlease confirm availability and latest rates.`
+      `Hello Sai Deveena Traders & General Store,\nI want to follow up on my enquiry (${ref}):\n- Product: ${enq.productName || 'Agricultural items'}\n- Name: ${enq.name}\n- Phone: ${enq.phone}\n- Village: ${enq.villageCity}\n\nPlease confirm availability and latest rates.`
     );
     window.open(`https://wa.me/919010454541?text=${message}`, '_blank');
   };
@@ -95,7 +95,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
       .join('\n');
 
     const message = encodeURIComponent(
-      `Hello Sai Deveena Traders,\nI want to check status for my order #${order.orderNumber}:\n\n${itemsList}\n\n*Total: ₹${order.totalAmount}*\n*Delivery Location: ${order.deliveryLocation}*\n*Current Status: ${order.status.replace(/_/g, ' ').toUpperCase()}*\n\nPlease confirm dispatch status.`
+      `Hello Sai Deveena Traders & General Store,\nI want to check status for my order #${order.orderNumber}:\n\n${itemsList}\n\n*Total: ₹${order.totalAmount}*\n*Delivery Location: ${order.deliveryLocation}*\n*Current Status: ${order.status.replace(/_/g, ' ').toUpperCase()}*\n\nPlease confirm dispatch status.`
     );
     window.open(`https://wa.me/919010454541?text=${message}`, '_blank');
   };
@@ -103,7 +103,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
   // General custom WhatsApp order
   const handleCustomWhatsAppOrder = () => {
     const message = encodeURIComponent(
-      `Hello Sai Deveena Traders,\nI want to place an order for seeds and fertilizers.\nPlease send me current stock details.`
+      `Hello Sai Deveena Traders & General Store,\nI want to place an order for seeds and fertilizers.\nPlease send me current stock details.`
     );
     window.open(`https://wa.me/919010454541?text=${message}`, '_blank');
   };
@@ -141,7 +141,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
               {isTe ? 'నా ఆర్డర్లు & విచారణలు' : 'My Orders & Enquiries'}
             </h2>
             <div style={{ fontSize: '0.74rem', color: '#15803d', fontWeight: 800 }}>
-              {isTe ? 'సాయి దీవెన ట్రేడర్స్ భైంసా' : 'Sai Deveena Traders • Bhainsa'}
+              {isTe ? 'సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ భైంసా' : 'Sai Deveena Traders & General Store • Bhainsa'}
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
         <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.45, marginBottom: '0.85rem' }}>
           {isTe
             ? 'మీరు చేసిన ఆర్డర్ల వివరాలు ఇక్కడ కనిపిస్తాయి. వాట్సాప్ లేదా కాల్ ద్వారా ఆర్డర్ లిస్ట్‌ను సులభంగా పంపవచ్చు.'
-            : 'Track the live status of your orders placed via Website, WhatsApp, or Phone with Sai Deveena Traders.'}
+            : 'Track the live status of your orders placed via Website, WhatsApp, or Phone with Sai Deveena Traders & General Store.'}
         </p>
 
         {/* 2 Action Buttons: Send WhatsApp Order / Call Order */}

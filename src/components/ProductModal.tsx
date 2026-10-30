@@ -157,7 +157,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               }}>
                 <img
                   src="/logo.png"
-                  alt="Sai Deveena Traders"
+                  alt="Sai Deveena Traders & General Store"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                 />
               </div>

@@ -98,7 +98,7 @@ export function App() {
 
       // Include customer name, phone, and village in the WhatsApp enquiry message
       const text = encodeURIComponent(
-        `Hello Sai Deveena Traders,\nI submitted an enquiry (${refId}):${productSnippet}${customPart}\n- Name: ${enquiry.name}\n- Phone: ${enquiry.phone}\n- Village: ${enquiry.villageCity}\n\nPlease confirm product availability and delivery.`
+        `Hello Sai Deveena Traders & General Store,\nI submitted an enquiry (${refId}):${productSnippet}${customPart}\n- Name: ${enquiry.name}\n- Phone: ${enquiry.phone}\n- Village: ${enquiry.villageCity}\n\nPlease confirm product availability and delivery.`
       );
       const cleanWaNum = shopConfig.whatsappNumber.replace(/\D/g, '');
       window.open(`https://wa.me/${cleanWaNum}?text=${text}`, '_blank');
@@ -227,7 +227,7 @@ export function App() {
           <div style={{ padding: '6rem 1rem', textAlign: 'center' }}>
             <RefreshCw size={28} style={{ animation: 'spin 1s linear infinite', color: '#15803d', margin: '0 auto 0.75rem' }} />
             <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#14532d' }}>
-              {currentLang === 'te' ? 'సాయి దీవెన ట్రేడర్స్ లోడ్ అవుతోంది...' : 'Loading Sai Deveena Traders...'}
+              {currentLang === 'te' ? 'సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్ లోడ్ అవుతోంది...' : 'Loading Sai Deveena Traders & General Store...'}
             </div>
             <style>{`
               @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

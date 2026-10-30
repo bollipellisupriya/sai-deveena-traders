@@ -594,7 +594,7 @@ export const OrdersScreen: React.FC<OrdersScreenProps> = ({ onNavigateTab }) => 
                         </a>
 
                         <a
-                          href={`https://wa.me/${ord.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${ord.customerName}, regarding your Sai Deveena Traders order #${ord.orderNumber}:`)}`}
+                          href={`https://wa.me/${ord.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${ord.customerName}, regarding your Sai Deveena Traders & General Store order #${ord.orderNumber}:`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{

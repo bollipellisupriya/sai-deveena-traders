@@ -17,7 +17,7 @@ export const catalogService = {
     const emptyCatalog: CatalogData = {
       schemaVersion: 1,
       shop: {
-        name: "Sai Deveena Traders",
+        name: "Sai Deveena Traders & General Store",
         city: "Bhainsa",
         state: "Telangana",
         currency: "INR"
