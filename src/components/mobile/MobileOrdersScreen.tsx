@@ -46,7 +46,6 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
         if (!mounted) return;
         setCurrentUser(user);
 
-        // Load local guest orders placed in this browser
         let localGuestOrders: Order[] = [];
         try {
           const guestRaw = localStorage.getItem('sdt_guest_orders_v2');
@@ -56,6 +55,37 @@ export const MobileOrdersScreen: React.FC<MobileOrdersScreenProps> = ({
           }
         } catch (e) {
           console.warn('Could not load guest orders from localStorage', e);
+        }
+
+        // Sync live status for guest orders that have a secure tracking token
+        if (localGuestOrders.length > 0) {
+          const synced = await Promise.all(
+            localGuestOrders.map(async (ord) => {
+              if (ord.guestAccessToken) {
+                try {
+                  const syncRes = await orderService.getGuestOrderByToken(ord.guestAccessToken);
+                  if (syncRes.data && syncRes.data.status) {
+                    return {
+                      ...ord,
+                      status: syncRes.data.status,
+                      deliveryCharge: syncRes.data.deliveryCharge ?? ord.deliveryCharge,
+                      totalAmount: syncRes.data.totalAmount ?? ord.totalAmount,
+                      paymentStatus: syncRes.data.paymentStatus ?? ord.paymentStatus
+                    };
+                  }
+                } catch {
+                  // Fallback to locally stored state
+                }
+              }
+              return ord;
+            })
+          );
+          localGuestOrders = synced;
+          try {
+            localStorage.setItem('sdt_guest_orders_v2', JSON.stringify(localGuestOrders));
+          } catch {
+            // Ignore storage write issues
+          }
         }
 
         if (user) {
