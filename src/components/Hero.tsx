@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowRight,
   ChevronLeft,
@@ -9,20 +9,20 @@ import {
   Wrench,
   ShoppingBag
 } from 'lucide-react';
-import type { Language, Category } from '../types';
+import type { Language, Category, Banner } from '../types';
 
 export interface HeroProps {
   currentLang?: Language;
+  banners?: Banner[];
   categories?: Category[];
   onExploreClick?: () => void;
-  onContactClick?: () => void;
   onSelectCategory?: (categoryId: string) => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export interface CategoryBannerSlide {
-  id: number;
+  id: string | number;
   categoryId: string;
   categoryName: {
     en: string;
@@ -47,14 +47,10 @@ export interface CategoryBannerSlide {
     en: string;
     te: string;
   };
-  badgeText: {
-    en: string;
-    te: string;
-  };
   objectPosition?: string;
 }
 
-const CATEGORY_SLIDES: CategoryBannerSlide[] = [
+const FALLBACK_CATEGORY_SLIDES: CategoryBannerSlide[] = [
   {
     id: 1,
     categoryId: 'seeds',
@@ -76,10 +72,6 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
     headlineLine2: {
       en: 'Cotton, Chilli, Paddy & Veg',
       te: 'పత్తి, మిరప, వరి & కూరగాయలు'
-    },
-    badgeText: {
-      en: '100% Germination Tested',
-      te: '100% మొలక శాతం పరీక్షితం'
     },
     buttonText: {
       en: 'Explore Seeds',
@@ -109,10 +101,6 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
       en: 'DAP, Urea, NPK & Zinc',
       te: 'యూరియా, డీఏపీ, ఎన్‌పికె & జింక్'
     },
-    badgeText: {
-      en: 'Govt Certified Brands',
-      te: 'ధృవీకృత నాణ్యత'
-    },
     buttonText: {
       en: 'Explore Fertilizers',
       te: 'ఎరువులు చూడండి'
@@ -140,10 +128,6 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
     headlineLine2: {
       en: 'Insecticides & Fungicides',
       te: 'శిలీంధ్రనాశకాలు & కలుపు నివారిణులు'
-    },
-    badgeText: {
-      en: 'Effective Pest Control',
-      te: 'సంపూర్ణ పంట సంరక్షణ'
     },
     buttonText: {
       en: 'Shop Crop Care',
@@ -173,10 +157,6 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
       en: 'Sprayers, Pipes & Tarpaulins',
       te: 'స్ప్రేయర్లు, టార్పాలిన్లు & పైపులు'
     },
-    badgeText: {
-      en: 'Durable & Farm Tested',
-      te: 'మన్నికైన పరికరాలు'
-    },
     buttonText: {
       en: 'Shop Farm Tools',
       te: 'పరికరాలు చూడండి'
@@ -205,10 +185,6 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
       en: 'Dal, Cooking Oils & Grains',
       te: 'నాణ్యమైన పప్పులు, నూనెలు & సరుకులు'
     },
-    badgeText: {
-      en: 'Wholesale Rates',
-      te: 'హోల్‌సేల్ ధరలు'
-    },
     buttonText: {
       en: 'Shop Groceries',
       te: 'కిరాణా చూడండి'
@@ -219,6 +195,7 @@ const CATEGORY_SLIDES: CategoryBannerSlide[] = [
 
 export const Hero: React.FC<HeroProps> = ({
   currentLang = 'en',
+  banners = [],
   categories = [],
   onExploreClick,
   onSelectCategory,
@@ -248,95 +225,158 @@ export const Hero: React.FC<HeroProps> = ({
   };
 
   // Smart resolution to find matching database category ID
-  const resolveTargetCategoryId = useCallback((targetKey: string): string => {
-    if (!categories || categories.length === 0) return targetKey;
+  const resolveTargetCategoryId = useCallback(
+    (targetKey: string): string => {
+      if (!categories || categories.length === 0) return targetKey;
 
-    // 1. Direct ID match
-    const direct = categories.find(c => c.id.toLowerCase() === targetKey.toLowerCase());
-    if (direct) return direct.id;
+      const direct = categories.find(c => c.id.toLowerCase() === targetKey.toLowerCase());
+      if (direct) return direct.id;
 
-    // 2. Fuzzy match by name or subcategory
-    const fuzzy = categories.find(c => {
-      const id = (c.id || '').toLowerCase();
-      const en = (c.name?.en || '').toLowerCase();
-      const te = (c.name?.te || '').toLowerCase();
+      const fuzzy = categories.find(c => {
+        const id = (c.id || '').toLowerCase();
+        const en = (c.name?.en || '').toLowerCase();
+        const te = (c.name?.te || '').toLowerCase();
 
-      if (targetKey === 'seeds') {
-        return id.includes('seed') || en.includes('seed') || te.includes('విత్తన');
-      }
-      if (targetKey === 'fertilizers') {
-        return id.includes('fert') || en.includes('fert') || te.includes('ఎరువు');
-      }
-      if (targetKey === 'crop-protection') {
-        return (
-          id.includes('crop') ||
-          id.includes('pest') ||
-          id.includes('protect') ||
-          en.includes('protect') ||
-          en.includes('pest') ||
-          te.includes('రక్షణ') ||
-          te.includes('మందు')
-        );
-      }
-      if (targetKey === 'tools') {
-        return (
-          id.includes('tool') ||
-          id.includes('irrig') ||
-          id.includes('equip') ||
-          en.includes('tool') ||
-          en.includes('irrig') ||
-          te.includes('పరికర')
-        );
-      }
-      if (targetKey === 'groceries') {
-        return (
-          id.includes('groc') ||
-          id.includes('store') ||
-          id.includes('prov') ||
-          id.includes('house') ||
-          en.includes('groc') ||
-          te.includes('కిరాణా')
-        );
-      }
-      return false;
-    });
+        if (targetKey === 'seeds') return id.includes('seed') || en.includes('seed') || te.includes('విత్తన');
+        if (targetKey === 'fertilizers') return id.includes('fert') || en.includes('fert') || te.includes('ఎరువు');
+        if (targetKey === 'crop-protection' || targetKey === 'cropcare') {
+          return (
+            id.includes('crop') ||
+            id.includes('pest') ||
+            id.includes('protect') ||
+            en.includes('protect') ||
+            en.includes('pest') ||
+            te.includes('రక్షణ') ||
+            te.includes('మందు')
+          );
+        }
+        if (targetKey === 'tools' || targetKey === 'irrigation') {
+          return (
+            id.includes('tool') ||
+            id.includes('irrig') ||
+            id.includes('equip') ||
+            en.includes('tool') ||
+            en.includes('irrig') ||
+            te.includes('పరికర')
+          );
+        }
+        if (targetKey === 'groceries') {
+          return (
+            id.includes('groc') ||
+            id.includes('store') ||
+            id.includes('prov') ||
+            id.includes('house') ||
+            en.includes('groc') ||
+            te.includes('కిరాణా')
+          );
+        }
+        return false;
+      });
 
-    return fuzzy ? fuzzy.id : targetKey;
-  }, [categories]);
+      return fuzzy ? fuzzy.id : targetKey;
+    },
+    [categories]
+  );
 
-  // Navigate to category or callback
-  const handleCategoryClick = useCallback((targetCatKey: string) => {
-    const finalId = resolveTargetCategoryId(targetCatKey);
-    if (onSelectCategory) {
-      onSelectCategory(finalId);
-    } else if (onExploreClick) {
-      onExploreClick();
-    } else {
-      const catalogueEl = document.getElementById('catalogue') || document.getElementById('categories');
-      if (catalogueEl) {
-        catalogueEl.scrollIntoView({ behavior: 'smooth' });
+  // Navigate to target category
+  const handleCategoryClick = useCallback(
+    (targetCatKey: string) => {
+      const finalId = resolveTargetCategoryId(targetCatKey);
+      if (onSelectCategory) {
+        onSelectCategory(finalId);
+      } else if (onExploreClick) {
+        onExploreClick();
       } else {
-        window.location.hash = '#categories';
+        const catalogueEl = document.getElementById('catalogue') || document.getElementById('categories');
+        if (catalogueEl) {
+          catalogueEl.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.location.hash = '#categories';
+        }
       }
+    },
+    [onSelectCategory, onExploreClick, resolveTargetCategoryId]
+  );
+
+  // Prepare slides: Live Supabase banners if available; otherwise fallback category slides
+  const hasLiveBanners = banners && banners.length > 0;
+
+  const slides = useMemo(() => {
+    if (hasLiveBanners) {
+      return banners.map((b) => ({
+        id: b.id,
+        isCustom: true,
+        categoryId: b.buttonLink ? b.buttonLink.replace(/^#/, '') : 'categories',
+        bgImage: b.imageDesktop,
+        mobileImage: b.imageMobile,
+        fallbackImage: '/images/bighaat-seeds-banner.jpg',
+        subLabel: b.subtitle.en || b.subtitle.te ? b.subtitle : { en: 'Special Promotion', te: 'ప్రత్యేక ఆఫర్' },
+        headlineLine1: b.title,
+        headlineLine2: { en: '', te: '' },
+        buttonText: b.buttonText.en ? b.buttonText : { en: 'Shop Now', te: 'ఇప్పుడు చూడండి' },
+        buttonLink: b.buttonLink || '#categories',
+        iconType: 'seeds' as const,
+        objectPosition: 'center center'
+      }));
     }
-  }, [onSelectCategory, onExploreClick, resolveTargetCategoryId]);
+
+    return FALLBACK_CATEGORY_SLIDES.map(s => ({
+      ...s,
+      isCustom: false,
+      mobileImage: null,
+      buttonLink: s.categoryId
+    }));
+  }, [hasLiveBanners, banners]);
+
+  // Handle slide action button or card click
+  const handleSlideAction = useCallback(
+    (targetSlide: typeof slides[0]) => {
+      if (targetSlide.isCustom && targetSlide.buttonLink) {
+        const link = targetSlide.buttonLink.trim();
+        if (link.startsWith('http://') || link.startsWith('https://')) {
+          window.open(link, '_blank');
+          return;
+        }
+        if (link.startsWith('tel:') || link.startsWith('mailto:')) {
+          window.location.href = link;
+          return;
+        }
+        const cleanTarget = link.replace(/^#/, '');
+        if (cleanTarget === 'categories' || cleanTarget === 'products' || cleanTarget === '') {
+          if (onExploreClick) onExploreClick();
+          else {
+            const el = document.getElementById('categories') || document.getElementById('catalogue');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }
+          return;
+        }
+        handleCategoryClick(cleanTarget);
+        return;
+      }
+
+      handleCategoryClick((targetSlide as any).categoryId || 'categories');
+    },
+    [onExploreClick, handleCategoryClick]
+  );
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide(prev => (prev + 1) % CATEGORY_SLIDES.length);
-  }, []);
+    if (slides.length <= 1) return;
+    setCurrentSlide(prev => (prev + 1) % slides.length);
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide(prev => (prev - 1 + CATEGORY_SLIDES.length) % CATEGORY_SLIDES.length);
-  }, []);
+    if (slides.length <= 1) return;
+    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
 
   // Automatic scrolling every 5 seconds
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || slides.length <= 1) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide]);
+  }, [isPaused, nextSlide, slides.length]);
 
-  const slide = CATEGORY_SLIDES[currentSlide];
+  const slide = slides[currentSlide % slides.length] || slides[0];
 
   return (
     <section
@@ -360,7 +400,7 @@ export const Hero: React.FC<HeroProps> = ({
       {/* 1. Main Banner Body Area */}
       <div
         className="bighaat-banner-body"
-        onClick={() => handleCategoryClick(slide.categoryId)}
+        onClick={() => handleSlideAction(slide)}
         style={{
           position: 'relative',
           minHeight: '420px',
@@ -369,11 +409,11 @@ export const Hero: React.FC<HeroProps> = ({
           backgroundColor: '#f8fafc',
           cursor: 'pointer'
         }}
-        title={`View ${isTe ? slide.categoryName.te : slide.categoryName.en} Category`}
+        title={`View banner: ${isTe ? slide.headlineLine1.te : slide.headlineLine1.en}`}
       >
         {/* Active Banner Background Photography with Smooth Crossfade */}
-        {CATEGORY_SLIDES.map((item, index) => {
-          const isActive = index === currentSlide;
+        {slides.map((item, index) => {
+          const isActive = index === (currentSlide % slides.length);
           return (
             <div
               key={item.id}
@@ -388,19 +428,24 @@ export const Hero: React.FC<HeroProps> = ({
                 pointerEvents: 'none'
               }}
             >
-              <img
-                src={item.bgImage}
-                alt={`${item.categoryName.en} Banner - Sai Deveena Traders`}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = item.fallbackImage;
-                }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: item.objectPosition || 'center center'
-                }}
-              />
+              <picture style={{ width: '100%', height: '100%' }}>
+                {item.mobileImage && (
+                  <source media="(max-width: 767px)" srcSet={item.mobileImage} />
+                )}
+                <img
+                  src={item.bgImage}
+                  alt={`${item.headlineLine1.en || 'Banner'} - Sai Deveena Traders`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = item.fallbackImage;
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: item.objectPosition || 'center center'
+                  }}
+                />
+              </picture>
             </div>
           );
         })}
@@ -445,26 +490,28 @@ export const Hero: React.FC<HeroProps> = ({
             }}
           >
             {/* Category Tag Pill */}
-            <div
-              className="bighaat-sub-pill"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                backgroundColor: '#dcfce7',
-                color: '#15803d',
-                fontSize: '0.74rem',
-                fontWeight: 800,
-                padding: '0.3rem 0.8rem',
-                borderRadius: '9999px',
-                marginBottom: '0.55rem',
-                border: '1.5px solid #86efac',
-                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.12)'
-              }}
-            >
-              {renderCategoryIcon(slide.iconType, 13)}
-              <span>{isTe ? slide.subLabel.te : slide.subLabel.en}</span>
-            </div>
+            {(slide.subLabel.en || slide.subLabel.te) && (
+              <div
+                className="bighaat-sub-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  backgroundColor: '#dcfce7',
+                  color: '#15803d',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  padding: '0.3rem 0.8rem',
+                  borderRadius: '9999px',
+                  marginBottom: '0.55rem',
+                  border: '1.5px solid #86efac',
+                  boxShadow: '0 2px 6px rgba(22, 163, 74, 0.12)'
+                }}
+              >
+                {renderCategoryIcon(slide.iconType, 13)}
+                <span>{isTe ? slide.subLabel.te : slide.subLabel.en}</span>
+              </div>
+            )}
 
             {/* Headline Line 1 */}
             <h2
@@ -482,28 +529,30 @@ export const Hero: React.FC<HeroProps> = ({
               {isTe ? slide.headlineLine1.te : slide.headlineLine1.en}
             </h2>
 
-            {/* Headline Line 2 */}
-            <h2
-              className="bighaat-title-2"
-              style={{
-                fontSize: 'clamp(1.35rem, 3.2vw, 2.45rem)',
-                fontWeight: 900,
-                color: '#14532d',
-                margin: '0.15rem 0 0.85rem 0',
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-                textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              {isTe ? slide.headlineLine2.te : slide.headlineLine2.en}
-            </h2>
+            {/* Headline Line 2 (if present) */}
+            {(slide.headlineLine2.en || slide.headlineLine2.te) && (
+              <h2
+                className="bighaat-title-2"
+                style={{
+                  fontSize: 'clamp(1.35rem, 3.2vw, 2.45rem)',
+                  fontWeight: 900,
+                  color: '#14532d',
+                  margin: '0.15rem 0 0.85rem 0',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.02em',
+                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
+                }}
+              >
+                {isTe ? slide.headlineLine2.te : slide.headlineLine2.en}
+              </h2>
+            )}
 
-            {/* Clean Primary Action Button */}
+            {/* Primary Action Button */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handleCategoryClick(slide.categoryId);
+                handleSlideAction(slide);
               }}
               className="bighaat-btn-primary"
               style={{
@@ -519,7 +568,8 @@ export const Hero: React.FC<HeroProps> = ({
                 gap: '0.45rem',
                 cursor: 'pointer',
                 boxShadow: '0 4px 16px rgba(21, 128, 61, 0.35)',
-                transition: 'all 0.25s ease'
+                transition: 'all 0.25s ease',
+                marginTop: !(slide.headlineLine2.en || slide.headlineLine2.te) ? '0.75rem' : '0'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
@@ -532,115 +582,121 @@ export const Hero: React.FC<HeroProps> = ({
         </div>
 
         {/* Previous Chevron Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            prevSlide();
-          }}
-          aria-label="Previous Category Banner"
-          className="bighaat-chevron-btn"
-          style={{
-            position: 'absolute',
-            left: '0.85rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.94)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(203, 213, 225, 0.8)',
-            color: '#15803d',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 5,
-            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <ChevronLeft size={20} />
-        </button>
+        {slides.length > 1 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
+            aria-label="Previous Banner"
+            className="bighaat-chevron-btn"
+            style={{
+              position: 'absolute',
+              left: '0.85rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 5,
+              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+        )}
 
         {/* Next Chevron Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            nextSlide();
-          }}
-          aria-label="Next Category Banner"
-          className="bighaat-chevron-btn"
-          style={{
-            position: 'absolute',
-            right: '0.85rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.94)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(203, 213, 225, 0.8)',
-            color: '#15803d',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 5,
-            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <ChevronRight size={20} />
-        </button>
+        {slides.length > 1 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
+            aria-label="Next Banner"
+            className="bighaat-chevron-btn"
+            style={{
+              position: 'absolute',
+              right: '0.85rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 5,
+              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
 
         {/* Capsule Pagination Indicators */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '0.75rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 5,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            backgroundColor: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            padding: '4px 10px',
-            borderRadius: '9999px',
-            border: '1px solid rgba(255, 255, 255, 0.18)'
-          }}
-        >
-          {CATEGORY_SLIDES.map((b, idx) => {
-            const isActive = idx === currentSlide;
-            return (
-              <button
-                key={b.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentSlide(idx);
-                }}
-                aria-label={`Go to ${b.categoryName.en} banner`}
-                style={{
-                  width: isActive ? '22px' : '6px',
-                  height: '6px',
-                  borderRadius: '9999px',
-                  backgroundColor: isActive ? '#22c55e' : 'rgba(255, 255, 255, 0.65)',
-                  boxShadow: isActive ? '0 0 8px rgba(34, 197, 94, 0.9)' : 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  transition: 'all 0.25s ease'
-                }}
-              />
-            );
-          })}
-        </div>
+        {slides.length > 1 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '0.75rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              padding: '4px 10px',
+              borderRadius: '9999px',
+              border: '1px solid rgba(255, 255, 255, 0.18)'
+            }}
+          >
+            {slides.map((b, idx) => {
+              const isActive = idx === (currentSlide % slides.length);
+              return (
+                <button
+                  key={b.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSlide(idx);
+                  }}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  style={{
+                    width: isActive ? '22px' : '6px',
+                    height: '6px',
+                    borderRadius: '9999px',
+                    backgroundColor: isActive ? '#22c55e' : 'rgba(255, 255, 255, 0.65)',
+                    boxShadow: isActive ? '0 0 8px rgba(34, 197, 94, 0.9)' : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.25s ease'
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 2. Interactive Category Tabs Quick Strip */}
@@ -659,8 +715,8 @@ export const Hero: React.FC<HeroProps> = ({
           WebkitOverflowScrolling: 'touch'
         }}
       >
-        {CATEGORY_SLIDES.map((item, idx) => {
-          const isCurrent = idx === currentSlide;
+        {FALLBACK_CATEGORY_SLIDES.map((item, idx) => {
+          const isCurrent = !hasLiveBanners && idx === (currentSlide % FALLBACK_CATEGORY_SLIDES.length);
           return (
             <button
               key={item.id}
@@ -668,8 +724,10 @@ export const Hero: React.FC<HeroProps> = ({
               onClick={() => {
                 if (isCurrent) {
                   handleCategoryClick(item.categoryId);
-                } else {
+                } else if (!hasLiveBanners) {
                   setCurrentSlide(idx);
+                } else {
+                  handleCategoryClick(item.categoryId);
                 }
               }}
               className={`bighaat-cat-chip ${isCurrent ? 'active' : ''}`}

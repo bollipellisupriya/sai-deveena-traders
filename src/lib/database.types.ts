@@ -120,3 +120,22 @@ export interface DbOrderItem {
   total_price: number;
   created_at: string;
 }
+
+export interface DbBanner {
+  id: string;
+  title_en: string;
+  title_te: string;
+  subtitle_en: string;
+  subtitle_te: string;
+  image_desktop: string;
+  image_mobile: string | null;
+  button_text_en: string;
+  button_text_te: string;
+  button_link: string;
+  is_active: boolean;
+  sort_order: number;
+  start_at: string | null;
+  end_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

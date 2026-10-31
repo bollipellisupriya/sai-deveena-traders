@@ -11,6 +11,7 @@ import {
   LogOut,
   Store,
   ShieldCheck,
+  Image as ImageIcon,
   X
 } from 'lucide-react';
 import type { AdminTab } from '../types';
@@ -37,6 +38,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'products', label: 'Products', icon: <Package size={18} /> },
     { id: 'categories', label: 'Categories', icon: <FolderTree size={18} /> },
     { id: 'inventory', label: 'Inventory & Stock', icon: <Boxes size={18} />, badge: 'Live' },
+    { id: 'banners', label: 'Banners & Hero', icon: <ImageIcon size={18} /> },
     { id: 'enquiries', label: 'Customer Enquiries', icon: <MessageSquare size={18} />, badge: 'New' },
     { id: 'orders', label: 'Orders & Sales', icon: <ClipboardList size={18} /> },
     { id: 'customers', label: 'Customers', icon: <Users size={18} /> },

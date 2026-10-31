@@ -204,4 +204,36 @@ export interface StoredCustomerInfo {
   preferredContact: PreferredContactMethod;
 }
 
+export interface Banner {
+  id: string;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+  imageDesktop: string;
+  imageMobile?: string | null;
+  buttonText: LocalizedText;
+  buttonLink: string;
+  isActive: boolean;
+  sortOrder: number;
+  startAt?: string | null;
+  endAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BannerInput {
+  titleEn: string;
+  titleTe: string;
+  subtitleEn: string;
+  subtitleTe: string;
+  imageDesktop: string;
+  imageMobile?: string | null;
+  buttonTextEn: string;
+  buttonTextTe: string;
+  buttonLink?: string;
+  isActive: boolean;
+  sortOrder: number;
+  startAt?: string | null;
+  endAt?: string | null;
+}
+
 

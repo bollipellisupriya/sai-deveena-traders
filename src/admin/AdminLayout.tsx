@@ -11,6 +11,7 @@ import { EnquiriesScreen } from './screens/EnquiriesScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
 import { CustomersScreen } from './screens/CustomersScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { BannersScreen } from './screens/BannersScreen';
 import type { AdminTab } from './types';
 import type { CatalogData } from '../types';
 
@@ -40,6 +41,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         return <CategoriesScreen catalog={catalog} onRefreshCatalog={onRefreshCatalog} />;
       case 'inventory':
         return <InventoryScreen catalog={catalog} onRefreshCatalog={onRefreshCatalog} />;
+      case 'banners':
+        return <BannersScreen />;
       case 'enquiries':
         return <EnquiriesScreen />;
       case 'orders':

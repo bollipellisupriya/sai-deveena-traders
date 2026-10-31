@@ -13,7 +13,7 @@ export const AdminMobileBottomNav: React.FC<AdminMobileBottomNavProps> = ({
   onSelectTab,
   onOpenMoreMenu
 }) => {
-  const isMoreTab = ['categories', 'inventory', 'customers', 'settings'].includes(activeTab);
+  const isMoreTab = ['categories', 'inventory', 'banners', 'customers', 'settings'].includes(activeTab);
 
   const navItems = [
     {

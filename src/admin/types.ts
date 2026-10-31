@@ -1,4 +1,4 @@
-export type AdminTab = 'dashboard' | 'products' | 'categories' | 'inventory' | 'enquiries' | 'orders' | 'customers' | 'settings';
+export type AdminTab = 'dashboard' | 'products' | 'categories' | 'inventory' | 'banners' | 'enquiries' | 'orders' | 'customers' | 'settings';
 
 export interface AdminUser {
   email: string;

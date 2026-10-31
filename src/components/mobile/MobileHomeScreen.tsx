@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Heart, ArrowRight, Truck, ShieldCheck, MessageCircle, Phone, Award, Sparkles, X, Star, MapPin, Clock, CheckCircle2, ExternalLink } from 'lucide-react';
-import type { Product, Category, Language } from '../../types';
+import type { Product, Category, Language, Banner } from '../../types';
+import { bannerService } from '../../services/bannerService';
 import { Hero } from '../Hero';
 
 interface MobileHomeScreenProps {
@@ -35,6 +36,19 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
   onCustomerAction
 }) => {
   const isTe = currentLang === 'te';
+  const [liveBanners, setLiveBanners] = useState<Banner[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    bannerService.fetchActiveBanners().then((res) => {
+      if (mounted && res && res.length > 0) {
+        setLiveBanners(res);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Capitalize and format category labels cleanly (e.g. 'growth-promoters' -> 'Growth Promoters')
   const formatCategoryTitle = (rawName: string) => {
@@ -536,6 +550,7 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
         <div style={{ marginBottom: '1.15rem' }}>
           <Hero
             currentLang={currentLang}
+            banners={liveBanners}
             categories={categories}
             onExploreClick={onViewAllProducts}
             onSelectCategory={onSelectCategory}
