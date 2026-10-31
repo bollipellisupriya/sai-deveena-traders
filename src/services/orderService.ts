@@ -435,7 +435,8 @@ export const orderService = {
   async createGuestOrderSecure(
     guestData: GuestCheckoutData,
     items: Array<{ productId: string; quantity: number }>,
-    idempotencyKey?: string
+    idempotencyKey?: string,
+    retrySecret?: string
   ): Promise<{
     data: {
       orderId: string;
@@ -464,6 +465,12 @@ export const orderService = {
             ? `guest_${crypto.randomUUID()}`
             : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`);
 
+      const validSecret = (retrySecret && retrySecret.trim() !== '')
+        ? retrySecret.trim()
+        : (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? `sec_${crypto.randomUUID()}`
+            : `sec_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`);
+
       const rpcArgs = {
         p_customer_name: guestData.fullName.trim(),
         p_customer_phone: guestData.phone.trim(),
@@ -479,7 +486,8 @@ export const orderService = {
         p_customer_email: guestData.email?.trim() || null,
         p_payment_method: guestData.paymentMethod || 'cash_on_delivery',
         p_order_source: 'web',
-        p_idempotency_key: validKey
+        p_idempotency_key: validKey,
+        p_retry_secret: validSecret
       };
 
       const { data, error } = await supabase.rpc('create_guest_order_secure', rpcArgs);

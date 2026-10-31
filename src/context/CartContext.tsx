@@ -179,17 +179,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsSubmittingOrder(true);
     try {
-      // Generate a strong, unique idempotency key for this submission attempt
+      // Generate a strong, unique idempotency key and retry secret for this submission attempt
       const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
         ? `guest_${crypto.randomUUID()}`
         : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`;
+
+      const retrySecret = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? `sec_${crypto.randomUUID()}`
+        : `sec_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
 
       const orderPayloadItems = items.map(it => ({
         productId: it.product.id,
         quantity: it.quantity
       }));
 
-      const res = await orderService.createGuestOrderSecure(guestData, orderPayloadItems, idempotencyKey);
+      const res = await orderService.createGuestOrderSecure(guestData, orderPayloadItems, idempotencyKey, retrySecret);
 
       if (res.error || !res.data) {
         setIsSubmittingOrder(false);

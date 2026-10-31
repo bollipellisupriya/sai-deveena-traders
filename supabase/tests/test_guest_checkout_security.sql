@@ -28,6 +28,7 @@ DECLARE
   v_cat_id TEXT := 'groceries';
   
   v_idempotency_key TEXT := 'test_idem_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16);
+  v_retry_secret TEXT := 'test_sec_1234567890abcdef_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16);
   v_order_res JSONB;
   v_dup_res JSONB;
   v_lookup_res JSONB;
@@ -83,7 +84,8 @@ BEGIN
     p_customer_email := 'ramesh@example.com',
     p_payment_method := 'cash_on_delivery',
     p_order_source := 'web',
-    p_idempotency_key := v_idempotency_key
+    p_idempotency_key := v_idempotency_key,
+    p_retry_secret := v_retry_secret
   );
 
   v_token := v_order_res->>'guestAccessToken';
@@ -114,7 +116,8 @@ BEGIN
       jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 1), -- ₹120
       jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 2)  -- Duplicate same ID! Total qty should be 3 (₹360)
     ),
-    p_idempotency_key := 'test_dup_cart_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16)
+    p_idempotency_key := 'test_dup_cart_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16),
+    p_retry_secret := v_retry_secret
   );
 
   -- Check order items table for this order: should have exactly 1 order_item with quantity = 3
@@ -209,13 +212,42 @@ BEGIN
     p_landmark := 'Near Hanuman Temple',
     p_delivery_instructions := 'Ring the bell twice',
     p_customer_email := 'ramesh@example.com',
-    p_idempotency_key := v_idempotency_key
+    p_idempotency_key := v_idempotency_key,
+    p_retry_secret := v_retry_secret
   );
 
   ASSERT v_dup_res->>'orderId' = v_order_id::TEXT, 'Test 7 Failed: Must return original order ID';
   ASSERT v_dup_res->>'isDuplicate' = 'true', 'Test 7 Failed: isDuplicate flag must be true';
   ASSERT v_dup_res->>'guestAccessToken' = v_token, 'Test 7 Failed: Original guest token must be preserved';
-  RAISE NOTICE '  ✓ Test 7 Passed: Duplicate submission returned original order';
+  RAISE NOTICE '  ✓ Test 7 Passed: Duplicate submission with valid secret returned original order';
+
+  -- --------------------------------------------------------------------------
+  -- TEST 7B: Guest Idempotency Retry with Incorrect / Missing Secret Rejected
+  -- --------------------------------------------------------------------------
+  RAISE NOTICE 'Running Test 7B: Guest Idempotency Retry with Wrong Secret...';
+  v_err_caught := false;
+  BEGIN
+    PERFORM public.create_guest_order_secure(
+      p_customer_name := 'Ramesh Kumar',
+      p_customer_phone := '9876543210',
+      p_delivery_address := 'House No 4-21, Gandhi Chowk',
+      p_village_town := 'Bhainsa',
+      p_pincode := '504103',
+      p_items := jsonb_build_array(
+        jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 1)
+      ),
+      p_landmark := 'Near Hanuman Temple',
+      p_delivery_instructions := 'Ring the bell twice',
+      p_customer_email := 'ramesh@example.com',
+      p_idempotency_key := v_idempotency_key,
+      p_retry_secret := 'wrong_secret_1234567890abcdef'
+    );
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    v_err_caught := true;
+  END;
+
+  ASSERT v_err_caught = true, 'Test 7B Failed: Guest retry with wrong secret must be rejected with 42501!';
+  RAISE NOTICE '  ✓ Test 7B Passed: Unauthorized guest retry without correct secret blocked with 42501';
 
   -- --------------------------------------------------------------------------
   -- TEST 8: Idempotency Key Reuse with Different Payload (SHA-256 Mismatch)
@@ -232,7 +264,8 @@ BEGIN
       p_items := jsonb_build_array(
         jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 1)
       ),
-      p_idempotency_key := v_idempotency_key -- Reused key!
+      p_idempotency_key := v_idempotency_key, -- Reused key!
+      p_retry_secret := v_retry_secret
     );
   EXCEPTION WHEN SQLSTATE '23505' THEN
     v_err_caught := true;
@@ -256,7 +289,8 @@ BEGIN
       p_items := jsonb_build_array(
         jsonb_build_object('productId', v_test_prod_out_id, 'quantity', 1)
       ),
-      p_idempotency_key := 'test_out_of_stock_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16)
+      p_idempotency_key := 'test_out_of_stock_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16),
+      p_retry_secret := v_retry_secret
     );
   EXCEPTION WHEN OTHERS THEN
     v_err_caught := true;
@@ -282,7 +316,8 @@ BEGIN
       p_items := jsonb_build_array(
         jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 1)
       ),
-      p_idempotency_key := 'test_del_disabled_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16)
+      p_idempotency_key := 'test_del_disabled_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16),
+      p_retry_secret := v_retry_secret
     );
   EXCEPTION WHEN SQLSTATE 'P0001' THEN
     v_err_caught := true;
@@ -310,7 +345,8 @@ BEGIN
     p_items := jsonb_build_array(
       jsonb_build_object('productId', v_test_prod_1_id, 'quantity', 1) -- ₹120
     ),
-    p_idempotency_key := 'test_fallback_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16)
+    p_idempotency_key := 'test_fallback_' || pg_catalog.substr(gen_random_uuid()::TEXT, 1, 16),
+    p_retry_secret := v_retry_secret
   );
 
   -- Restore default row

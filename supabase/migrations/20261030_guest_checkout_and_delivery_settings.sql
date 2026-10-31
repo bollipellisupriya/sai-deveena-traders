@@ -213,6 +213,13 @@ BEGIN
   ) THEN
     ALTER TABLE public.orders ADD COLUMN guest_access_token TEXT;
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'retry_secret_hash'
+  ) THEN
+    ALTER TABLE public.orders ADD COLUMN retry_secret_hash TEXT;
+  END IF;
 END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency_key 
@@ -227,8 +234,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_guest_access_token
 -- ----------------------------------------------------------------------------
 -- 3. STATUS CONSTRAINT SAFE PRESERVATION
 -- Dynamically finds and drops any pre-existing CHECK constraints on public.orders
--- that evaluate status (e.g. orders_status_check, orders_status_check1, etc.)
--- so no older constraint silently rejects the expanded statuses.
+-- that evaluate the order 'status' column (e.g. orders_status_check, etc.)
+-- without touching unrelated constraints such as 'payment_status'.
 -- Preserves ALL 7 historical statuses:
 --   'pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped', 'delivered', 'cancelled'
 -- And adds new statuses:
@@ -246,7 +253,13 @@ BEGIN
     WHERE nsp.nspname = 'public'
       AND rel.relname = 'orders'
       AND con.contype = 'c'
-      AND pg_catalog.pg_get_constraintdef(con.oid) ILIKE '%status%'
+      AND (
+        con.conname = 'orders_status_check'
+        OR (
+          pg_catalog.pg_get_constraintdef(con.oid) ~* '\mstatus\M'
+          AND NOT (pg_catalog.pg_get_constraintdef(con.oid) ~* '\mpayment_status\M')
+        )
+      )
   LOOP
     EXECUTE pg_catalog.format('ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS %I', v_con.conname);
   END LOOP;
@@ -288,6 +301,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.order_items TO authenticated;
 --  - Computes deterministic normalized JSONB hash with SHA-256 (including order_source)
 --  - Handles simultaneous duplicates via unique index conflict handling
 -- ----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.create_guest_order_secure(
+  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+);
+DROP FUNCTION IF EXISTS public.create_guest_order_secure(
+  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+);
+
 CREATE OR REPLACE FUNCTION public.create_guest_order_secure(
   p_customer_name TEXT,
   p_customer_phone TEXT,
@@ -300,7 +320,8 @@ CREATE OR REPLACE FUNCTION public.create_guest_order_secure(
   p_customer_email TEXT DEFAULT NULL,
   p_payment_method TEXT DEFAULT 'cash_on_delivery',
   p_order_source TEXT DEFAULT 'web',
-  p_idempotency_key TEXT DEFAULT NULL
+  p_idempotency_key TEXT DEFAULT NULL,
+  p_retry_secret TEXT DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -308,6 +329,7 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
+  v_user_id UUID;
   v_existing_order RECORD;
   v_order_id UUID;
   v_order_num TEXT;
@@ -333,18 +355,40 @@ DECLARE
   v_norm_email TEXT;
   v_order_source TEXT;
   v_full_location TEXT;
-  v_user_id UUID;
   v_canonical_json JSONB;
   v_payload_hash TEXT;
   v_clean_idempotency_key TEXT;
+  v_clean_retry_secret TEXT;
+  v_retry_secret_hash TEXT;
   v_normalized_items JSONB;
   v_validated_items JSONB := '[]'::jsonb;
 BEGIN
-  -- 1. Validate Mandatory Non-Empty Idempotency Key
+  -- 0. Identify Caller Identity Immediately (BEFORE any lookup or authorization check)
+  v_user_id := (SELECT auth.uid());
+
+  -- 1. Validate Mandatory Non-Empty Idempotency Key & Guest Retry Secret
   v_clean_idempotency_key := pg_catalog.btrim(COALESCE(p_idempotency_key, ''));
   IF v_clean_idempotency_key = '' OR pg_catalog.length(v_clean_idempotency_key) < 8 OR pg_catalog.length(v_clean_idempotency_key) > 128 THEN
     RAISE EXCEPTION 'A valid, non-empty idempotency key (between 8 and 128 characters) is required to place an order.'
       USING ERRCODE = 'P0002';
+  END IF;
+
+  v_clean_retry_secret := pg_catalog.btrim(COALESCE(p_retry_secret, ''));
+
+  -- For guest orders (unauthenticated), a high-entropy client retry secret is required
+  -- to prevent unauthorized third parties from obtaining the order tracking token via idempotency reuse.
+  IF v_user_id IS NULL THEN
+    IF v_clean_retry_secret = '' OR pg_catalog.length(v_clean_retry_secret) < 16 OR pg_catalog.length(v_clean_retry_secret) > 128 THEN
+      RAISE EXCEPTION 'A secure guest retry secret (between 16 and 128 characters) is required for guest orders.'
+        USING ERRCODE = 'P0002';
+    END IF;
+    v_retry_secret_hash := public.crypto_sha256_hex('guest_retry:' || v_clean_retry_secret);
+  ELSE
+    IF v_clean_retry_secret <> '' THEN
+      v_retry_secret_hash := public.crypto_sha256_hex('guest_retry:' || v_clean_retry_secret);
+    ELSE
+      v_retry_secret_hash := NULL;
+    END IF;
   END IF;
 
   -- 2. Validate and Normalize Customer Details
@@ -433,23 +477,34 @@ BEGIN
   v_payload_hash := public.crypto_sha256_hex(v_canonical_json::TEXT);
 
   -- 5. Safe Idempotency Check: Return existing order if identical request already submitted
-  SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+  SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash, retry_secret_hash
   INTO v_existing_order
   FROM public.orders
   WHERE idempotency_key = v_clean_idempotency_key
   LIMIT 1;
 
   IF FOUND THEN
+    -- Check A: Payload integrity
     IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
       RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
         USING ERRCODE = '23505';
     END IF;
 
-    -- Prevent cross-user account leakage: if order was placed by an authenticated user,
-    -- another caller (anonymous or a different user) cannot retrieve it or its token.
-    IF v_existing_order.customer_id IS NOT NULL AND v_existing_order.customer_id IS DISTINCT FROM v_user_id THEN
-      RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
-        USING ERRCODE = '42501';
+    -- Check B: Authorization verification
+    IF v_existing_order.customer_id IS NOT NULL THEN
+      -- Authenticated order: caller must be the exact same authenticated user
+      IF v_user_id IS NULL OR v_user_id <> v_existing_order.customer_id THEN
+        RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+          USING ERRCODE = '42501';
+      END IF;
+    ELSE
+      -- Guest order: caller must supply the matching high-entropy retry secret
+      IF v_existing_order.retry_secret_hash IS NULL 
+         OR v_clean_retry_secret = '' 
+         OR public.crypto_sha256_hex('guest_retry:' || v_clean_retry_secret) <> v_existing_order.retry_secret_hash THEN
+        RAISE EXCEPTION 'Access denied: valid guest retry secret is required to retrieve an existing guest order.'
+          USING ERRCODE = '42501';
+      END IF;
     END IF;
 
     RETURN pg_catalog.jsonb_build_object(
@@ -561,7 +616,6 @@ BEGIN
   v_order_num := 'SDT-' || pg_catalog.to_char(pg_catalog.now(), 'YYYYMMDD') || '-' || pg_catalog.lpad(pg_catalog.nextval('public.order_number_seq')::TEXT, 4, '0');
 
   v_full_location := pg_catalog.btrim(p_delivery_address) || ', ' || pg_catalog.btrim(p_village_town) || ' - ' || v_clean_pincode;
-  v_user_id := (SELECT auth.uid());
 
   -- 10. Atomic Insertion of Order Header with race-condition handling
   BEGIN
@@ -578,6 +632,7 @@ BEGIN
       delivery_instructions,
       idempotency_key,
       idempotency_hash,
+      retry_secret_hash,
       guest_access_token,
       order_source,
       status,
@@ -601,6 +656,7 @@ BEGIN
       NULLIF(pg_catalog.btrim(COALESCE(p_delivery_instructions, '')), ''),
       v_clean_idempotency_key,
       v_payload_hash,
+      v_retry_secret_hash,
       v_guest_token,
       v_order_source,
       'pending',
@@ -614,7 +670,7 @@ BEGIN
     ) RETURNING id INTO v_order_id;
 
   EXCEPTION WHEN unique_violation THEN
-    SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+    SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash, retry_secret_hash
     INTO v_existing_order
     FROM public.orders
     WHERE idempotency_key = v_clean_idempotency_key
@@ -626,10 +682,19 @@ BEGIN
           USING ERRCODE = '23505';
       END IF;
 
-      -- Prevent cross-user account leakage
-      IF v_existing_order.customer_id IS NOT NULL AND v_existing_order.customer_id IS DISTINCT FROM v_user_id THEN
-        RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
-          USING ERRCODE = '42501';
+      -- Check authorization on duplicate race resolution
+      IF v_existing_order.customer_id IS NOT NULL THEN
+        IF v_user_id IS NULL OR v_user_id <> v_existing_order.customer_id THEN
+          RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+            USING ERRCODE = '42501';
+        END IF;
+      ELSE
+        IF v_existing_order.retry_secret_hash IS NULL 
+           OR v_clean_retry_secret = '' 
+           OR public.crypto_sha256_hex('guest_retry:' || v_clean_retry_secret) <> v_existing_order.retry_secret_hash THEN
+          RAISE EXCEPTION 'Access denied: valid guest retry secret is required to retrieve an existing guest order.'
+            USING ERRCODE = '42501';
+        END IF;
       END IF;
 
       RETURN pg_catalog.jsonb_build_object(
@@ -695,11 +760,11 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.create_guest_order_secure(
-  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
 ) FROM PUBLIC;
 
 GRANT EXECUTE ON FUNCTION public.create_guest_order_secure(
-  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+  TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
 ) TO anon, authenticated;
 
 -- Explicitly ensure that whichever role owns create_guest_order_secure has EXECUTE permission
