@@ -73,6 +73,13 @@ BEGIN
   END LOOP;
 END $$;
 
+-- Explicitly drop table policies before recreation to prevent duplicate-policy errors
+DROP POLICY IF EXISTS "Public can view active scheduled banners" ON public.banners;
+DROP POLICY IF EXISTS "Admins can view all banners" ON public.banners;
+DROP POLICY IF EXISTS "Admins can insert banners" ON public.banners;
+DROP POLICY IF EXISTS "Admins can update banners" ON public.banners;
+DROP POLICY IF EXISTS "Admins can delete banners" ON public.banners;
+
 -- Policy 1: Public Storefront can view only active and currently scheduled banners
 CREATE POLICY "Public can view active scheduled banners"
   ON public.banners
@@ -130,7 +137,8 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = 5242880,
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 
--- Storage policies for the 'banners' bucket
+-- Storage policies for the 'banners' bucket:
+-- Match any policies containing 'banner' (singular or plural, case-insensitive)
 DO $$
 DECLARE
   v_pol RECORD;
@@ -139,11 +147,17 @@ BEGIN
     SELECT policyname
     FROM pg_catalog.pg_policies
     WHERE schemaname = 'storage' AND tablename = 'objects'
-      AND policyname LIKE '%banners%'
+      AND policyname ILIKE '%banner%'
   LOOP
     EXECUTE pg_catalog.format('DROP POLICY IF EXISTS %I ON storage.objects', v_pol.policyname);
   END LOOP;
 END $$;
+
+-- Explicitly drop the four storage policies before recreating them
+DROP POLICY IF EXISTS "Public can view banner images" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can upload banner images" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can update banner images" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can delete banner images" ON storage.objects;
 
 -- Anyone can view public banner images
 CREATE POLICY "Public can view banner images"
