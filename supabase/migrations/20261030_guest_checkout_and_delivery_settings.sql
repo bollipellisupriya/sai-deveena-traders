@@ -486,7 +486,7 @@ BEGIN
   IF FOUND THEN
     -- Check A: Payload integrity
     IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
-      RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
+      RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.', v_clean_idempotency_key
         USING ERRCODE = '23505';
     END IF;
 
@@ -494,7 +494,7 @@ BEGIN
     IF v_existing_order.customer_id IS NOT NULL THEN
       -- Authenticated order: caller must be the exact same authenticated user
       IF v_user_id IS NULL OR v_user_id <> v_existing_order.customer_id THEN
-        RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+        RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.', v_clean_idempotency_key
           USING ERRCODE = '42501';
       END IF;
     ELSE
@@ -678,14 +678,14 @@ BEGIN
 
     IF FOUND THEN
       IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
-        RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
+        RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.', v_clean_idempotency_key
           USING ERRCODE = '23505';
       END IF;
 
       -- Check authorization on duplicate race resolution
       IF v_existing_order.customer_id IS NOT NULL THEN
         IF v_user_id IS NULL OR v_user_id <> v_existing_order.customer_id THEN
-          RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+          RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.', v_clean_idempotency_key
             USING ERRCODE = '42501';
         END IF;
       ELSE
