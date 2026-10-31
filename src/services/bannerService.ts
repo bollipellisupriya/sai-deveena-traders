@@ -8,6 +8,20 @@ export interface BannerServiceResult<T> {
 }
 
 export function mapDbBanner(raw: DbBanner): Banner {
+  let displayMode: 'full_image' | 'content_overlay' = 'full_image';
+  let cleanSubtitleTe = raw.subtitle_te || '';
+
+  if (cleanSubtitleTe.includes('<!--mode:content_overlay-->')) {
+    displayMode = 'content_overlay';
+    cleanSubtitleTe = cleanSubtitleTe.replace('<!--mode:content_overlay-->', '').trim();
+  } else if (cleanSubtitleTe.includes('<!--mode:full_image-->')) {
+    displayMode = 'full_image';
+    cleanSubtitleTe = cleanSubtitleTe.replace('<!--mode:full_image-->', '').trim();
+  } else {
+    // If not tagged, default to full_image mode unless subtitle specifically exists
+    displayMode = (raw.subtitle_en && raw.subtitle_en.trim().length > 0) ? 'content_overlay' : 'full_image';
+  }
+
   return {
     id: raw.id,
     title: {
@@ -16,7 +30,7 @@ export function mapDbBanner(raw: DbBanner): Banner {
     },
     subtitle: {
       en: raw.subtitle_en || '',
-      te: raw.subtitle_te || raw.subtitle_en || ''
+      te: cleanSubtitleTe || raw.subtitle_en || ''
     },
     imageDesktop: raw.image_desktop,
     imageMobile: raw.image_mobile || null,
@@ -29,6 +43,7 @@ export function mapDbBanner(raw: DbBanner): Banner {
     sortOrder: raw.sort_order ?? 0,
     startAt: raw.start_at || null,
     endAt: raw.end_at || null,
+    displayMode,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at
   };
@@ -113,11 +128,15 @@ export const bannerService = {
     }
 
     try {
+      const mode = input.displayMode || 'full_image';
+      const modeTag = mode === 'content_overlay' ? '<!--mode:content_overlay-->' : '<!--mode:full_image-->';
+      const rawSubTe = input.subtitleTe ? input.subtitleTe.trim().replace(/<!--mode:[^>]+-->/g, '') : '';
+
       const dbPayload = {
         title_en: input.titleEn.trim(),
         title_te: input.titleTe.trim() || input.titleEn.trim(),
         subtitle_en: input.subtitleEn.trim(),
-        subtitle_te: input.subtitleTe.trim(),
+        subtitle_te: `${rawSubTe}${modeTag}`,
         image_desktop: input.imageDesktop.trim(),
         image_mobile: input.imageMobile?.trim() || null,
         button_text_en: input.buttonTextEn.trim() || 'Shop Now',
@@ -161,7 +180,15 @@ export const bannerService = {
       if (input.titleEn !== undefined) dbPayload.title_en = input.titleEn.trim();
       if (input.titleTe !== undefined) dbPayload.title_te = input.titleTe.trim();
       if (input.subtitleEn !== undefined) dbPayload.subtitle_en = input.subtitleEn.trim();
-      if (input.subtitleTe !== undefined) dbPayload.subtitle_te = input.subtitleTe.trim();
+
+      if (input.displayMode !== undefined || input.subtitleTe !== undefined) {
+        const mode = input.displayMode || 'full_image';
+        const modeTag = mode === 'content_overlay' ? '<!--mode:content_overlay-->' : '<!--mode:full_image-->';
+        let baseSubTe = input.subtitleTe !== undefined ? input.subtitleTe.trim() : '';
+        baseSubTe = baseSubTe.replace(/<!--mode:[^>]+-->/g, '').trim();
+        dbPayload.subtitle_te = `${baseSubTe}${modeTag}`;
+      }
+
       if (input.imageDesktop !== undefined) dbPayload.image_desktop = input.imageDesktop.trim();
       if (input.imageMobile !== undefined) dbPayload.image_mobile = input.imageMobile?.trim() || null;
       if (input.buttonTextEn !== undefined) dbPayload.button_text_en = input.buttonTextEn.trim();

@@ -216,6 +216,7 @@ export interface Banner {
   sortOrder: number;
   startAt?: string | null;
   endAt?: string | null;
+  displayMode?: 'full_image' | 'content_overlay';
   createdAt: string;
   updatedAt: string;
 }
@@ -234,6 +235,7 @@ export interface BannerInput {
   sortOrder: number;
   startAt?: string | null;
   endAt?: string | null;
+  displayMode?: 'full_image' | 'content_overlay';
 }
 
 

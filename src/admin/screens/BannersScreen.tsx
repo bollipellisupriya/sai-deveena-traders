@@ -53,7 +53,8 @@ export const BannersScreen: React.FC = () => {
     isActive: true,
     sortOrder: 0,
     startAt: null,
-    endAt: null
+    endAt: null,
+    displayMode: 'full_image' // Default: Full Image Mode
   });
 
   const desktopFileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +95,8 @@ export const BannersScreen: React.FC = () => {
       isActive: true,
       sortOrder: banners.length > 0 ? Math.max(...banners.map(b => b.sortOrder)) + 1 : 0,
       startAt: null,
-      endAt: null
+      endAt: null,
+      displayMode: 'full_image' // Default to Full Image Mode for newly created banners
     });
     setIsModalOpen(true);
   };
@@ -117,7 +119,8 @@ export const BannersScreen: React.FC = () => {
       isActive: b.isActive,
       sortOrder: b.sortOrder,
       startAt: b.startAt ? b.startAt.slice(0, 16) : null,
-      endAt: b.endAt ? b.endAt.slice(0, 16) : null
+      endAt: b.endAt ? b.endAt.slice(0, 16) : null,
+      displayMode: b.displayMode || 'full_image'
     });
     setIsModalOpen(true);
   };
@@ -783,6 +786,22 @@ export const BannersScreen: React.FC = () => {
 
                       {/* Title & Subtitle */}
                       <td style={{ padding: '0.85rem 1rem', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '3px' }}>
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              padding: '2px 7px',
+                              borderRadius: '6px',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              backgroundColor: banner.displayMode === 'content_overlay' ? '#f3e8ff' : '#dcfce7',
+                              color: banner.displayMode === 'content_overlay' ? '#7e22ce' : '#15803d',
+                              border: banner.displayMode === 'content_overlay' ? '1px solid #d8b4fe' : '1px solid #86efac'
+                            }}
+                          >
+                            {banner.displayMode === 'content_overlay' ? 'Content Overlay' : 'Full Image Mode'}
+                          </span>
+                        </div>
                         <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
                           {banner.title.en || 'Untitled Banner'}
                         </div>
@@ -1179,17 +1198,81 @@ export const BannersScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* SECTION C: BILINGUAL TITLES & SUBTITLES */}
+              {/* SECTION C: DISPLAY MODE CONFIGURATION */}
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
+                  Banner Display Mode <span style={{ color: '#16a34a' }}>*</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, displayMode: 'full_image' }))}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      padding: '0.8rem 1rem',
+                      borderRadius: '10px',
+                      border: formData.displayMode === 'full_image' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                      backgroundColor: formData.displayMode === 'full_image' ? '#f0fdf4' : '#ffffff',
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 800, fontSize: '0.86rem', color: formData.displayMode === 'full_image' ? '#15803d' : '#334155' }}>
+                      <ImageIcon size={16} />
+                      <span>Full Image Mode (Default)</span>
+                    </div>
+                    <span style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '0.3rem', lineHeight: 1.35 }}>
+                      Displays the uploaded banner as-is. Zero white cards, gradient washes or extra text covering the design.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, displayMode: 'content_overlay' }))}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      padding: '0.8rem 1rem',
+                      borderRadius: '10px',
+                      border: formData.displayMode === 'content_overlay' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                      backgroundColor: formData.displayMode === 'content_overlay' ? '#f0fdf4' : '#ffffff',
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 800, fontSize: '0.86rem', color: formData.displayMode === 'content_overlay' ? '#15803d' : '#334155' }}>
+                      <Eye size={16} />
+                      <span>Content Overlay Mode</span>
+                    </div>
+                    <span style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '0.3rem', lineHeight: 1.35 }}>
+                      Overlays separately configured title, subtitle and CTA button card on top of the image.
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* SECTION D: BILINGUAL TITLES & SUBTITLES */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Banner Name / Title (English) <span style={{ color: '#dc2626' }}>*</span>
+                    {formData.displayMode === 'full_image' ? 'Banner Name / Admin Reference (English)' : 'Overlay Title (English)'} <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.titleEn}
                     onChange={e => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
-                    placeholder="e.g. Welcome Offers Banner"
+                    placeholder={formData.displayMode === 'full_image' ? 'e.g. Quality Seeds & Agri Offer' : 'e.g. Premium Seeds & Crop Care'}
                     required
                     style={{
                       width: '100%',
@@ -1200,6 +1283,11 @@ export const BannersScreen: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                   />
+                  {formData.displayMode === 'full_image' && (
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '3px' }}>
+                      Used to identify this banner in Admin and for search engine image alt text. Not shown over image.
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -1501,6 +1589,34 @@ export const BannersScreen: React.FC = () => {
                       alt="Banner Preview"
                       style={{ width: '100%', height: 'auto', maxHeight: '240px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                     />
+                    {formData.displayMode === 'content_overlay' && formData.titleEn && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          right: '1rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                          borderRadius: '10px',
+                          padding: '0.65rem 0.85rem',
+                          maxWidth: '50%',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          textAlign: 'left'
+                        }}
+                      >
+                        {formData.subtitleEn && (
+                          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#15803d', marginBottom: '2px' }}>
+                            {formData.subtitleEn}
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a' }}>
+                          {formData.titleEn}
+                        </div>
+                        <div style={{ marginTop: '4px', fontSize: '0.66rem', fontWeight: 800, color: '#ffffff', backgroundColor: '#16a34a', padding: '2px 8px', borderRadius: '9999px', display: 'inline-block' }}>
+                          {formData.buttonTextEn || 'Shop Now'} &rarr;
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

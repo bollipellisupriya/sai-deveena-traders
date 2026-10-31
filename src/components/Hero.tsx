@@ -21,47 +21,38 @@ export interface HeroProps {
   style?: React.CSSProperties;
 }
 
-export interface CategoryBannerSlide {
+export interface BannerSlide {
   id: string | number;
   categoryId: string;
-  categoryName: {
+  displayMode: 'full_image' | 'content_overlay';
+  imageDesktop: string;
+  imageMobile?: string | null;
+  subLabel?: {
     en: string;
     te: string;
   };
-  iconType: 'seeds' | 'fertilizers' | 'crop-protection' | 'tools' | 'groceries';
-  bgImage: string;
-  fallbackImage: string;
-  subLabel: {
+  headlineLine1?: {
     en: string;
     te: string;
   };
-  headlineLine1: {
+  headlineLine2?: {
     en: string;
     te: string;
   };
-  headlineLine2: {
+  buttonText?: {
     en: string;
     te: string;
   };
-  buttonText: {
-    en: string;
-    te: string;
-  };
-  buttonLink?: string;
-  objectPosition?: string;
+  buttonLink: string;
+  iconType?: 'seeds' | 'fertilizers' | 'crop-protection' | 'tools' | 'groceries';
 }
 
-const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
+const FALLBACK_CATEGORY_SLIDES: BannerSlide[] = [
   {
     id: 'seeds',
     categoryId: 'seeds',
-    categoryName: {
-      en: 'Seeds',
-      te: 'విత్తనాలు'
-    },
-    iconType: 'seeds',
-    bgImage: '/images/bighaat-seeds-banner.jpg',
-    fallbackImage: '/images/categories/seeds.jpg',
+    displayMode: 'content_overlay',
+    imageDesktop: '/images/bighaat-seeds-banner.jpg',
     subLabel: {
       en: '🌾 Certified Hybrid Seeds',
       te: '🌾 నాణ్యమైన హైబ్రిడ్ విత్తనాలు'
@@ -79,18 +70,13 @@ const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
       te: 'విత్తనాలు చూడండి'
     },
     buttonLink: 'seeds',
-    objectPosition: 'left 15%'
+    iconType: 'seeds'
   },
   {
     id: 'fertilizers',
     categoryId: 'fertilizers',
-    categoryName: {
-      en: 'Fertilizers',
-      te: 'ఎరువులు'
-    },
-    iconType: 'fertilizers',
-    bgImage: '/images/bighaat-fert-banner.jpg',
-    fallbackImage: '/images/categories/fertilizers.jpg',
+    displayMode: 'content_overlay',
+    imageDesktop: '/images/bighaat-fert-banner.jpg',
     subLabel: {
       en: '🌱 Genuine Fertilizers',
       te: '🌱 అసలైన రసాయన & సేంద్రీయ ఎరువులు'
@@ -108,18 +94,13 @@ const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
       te: 'ఎరువులు చూడండి'
     },
     buttonLink: 'fertilizers',
-    objectPosition: 'left 15%'
+    iconType: 'fertilizers'
   },
   {
     id: 'crop-protection',
     categoryId: 'crop-protection',
-    categoryName: {
-      en: 'Crop Care',
-      te: 'పంట రక్షణ'
-    },
-    iconType: 'crop-protection',
-    bgImage: '/images/categories/crop-protection.jpg',
-    fallbackImage: '/images/categories/crop-protection.jpg',
+    displayMode: 'content_overlay',
+    imageDesktop: '/images/categories/crop-protection.jpg',
     subLabel: {
       en: '🛡️ Crop Protection & Care',
       te: '🛡️ పంట రక్షణ & పురుగుమందులు'
@@ -137,18 +118,13 @@ const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
       te: 'పంట రక్షణ చూడండి'
     },
     buttonLink: 'crop-protection',
-    objectPosition: 'center 35%'
+    iconType: 'crop-protection'
   },
   {
     id: 'tools',
     categoryId: 'tools',
-    categoryName: {
-      en: 'Farm Tools',
-      te: 'పరికరాలు'
-    },
-    iconType: 'tools',
-    bgImage: '/images/categories/irrigation.jpg',
-    fallbackImage: '/images/categories/tools.jpg',
+    displayMode: 'content_overlay',
+    imageDesktop: '/images/categories/irrigation.jpg',
     subLabel: {
       en: '💧 Tools & Irrigation',
       te: '💧 వ్యవసాయ పరికరాలు & డ్రిప్'
@@ -166,18 +142,13 @@ const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
       te: 'పరికరాలు చూడండి'
     },
     buttonLink: 'tools',
-    objectPosition: 'center 40%'
+    iconType: 'tools'
   },
   {
     id: 'groceries',
     categoryId: 'groceries',
-    categoryName: {
-      en: 'Groceries',
-      te: 'కిరాణా'
-    },
-    iconType: 'groceries',
-    bgImage: '/images/categories/other.jpg',
-    fallbackImage: '/images/banner-1.jpg',
+    displayMode: 'content_overlay',
+    imageDesktop: '/images/categories/other.jpg',
     subLabel: {
       en: '🛒 General Store & Provisions',
       te: '🛒 కిరాణా & నిత్యావసరాలు'
@@ -195,7 +166,7 @@ const BASE_CATEGORY_SLIDES: CategoryBannerSlide[] = [
       te: 'కిరాణా చూడండి'
     },
     buttonLink: 'groceries',
-    objectPosition: 'center 30%'
+    iconType: 'groceries'
   }
 ];
 
@@ -212,21 +183,15 @@ export const Hero: React.FC<HeroProps> = ({
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
-  // Helper to map slide icon
-  const renderCategoryIcon = (iconType: CategoryBannerSlide['iconType'], size = 14) => {
+  // Helper for category icon in overlay mode
+  const renderCategoryIcon = (iconType?: BannerSlide['iconType'], size = 14) => {
     switch (iconType) {
-      case 'seeds':
-        return <Sprout size={size} />;
-      case 'fertilizers':
-        return <Layers size={size} />;
-      case 'crop-protection':
-        return <ShieldCheck size={size} />;
-      case 'tools':
-        return <Wrench size={size} />;
-      case 'groceries':
-        return <ShoppingBag size={size} />;
-      default:
-        return <Sprout size={size} />;
+      case 'seeds': return <Sprout size={size} />;
+      case 'fertilizers': return <Layers size={size} />;
+      case 'crop-protection': return <ShieldCheck size={size} />;
+      case 'tools': return <Wrench size={size} />;
+      case 'groceries': return <ShoppingBag size={size} />;
+      default: return <Sprout size={size} />;
     }
   };
 
@@ -247,33 +212,20 @@ export const Hero: React.FC<HeroProps> = ({
         if (targetKey === 'fertilizers') return id.includes('fert') || en.includes('fert') || te.includes('ఎరువు');
         if (targetKey === 'crop-protection' || targetKey === 'cropcare') {
           return (
-            id.includes('crop') ||
-            id.includes('pest') ||
-            id.includes('protect') ||
-            en.includes('protect') ||
-            en.includes('pest') ||
-            te.includes('రక్షణ') ||
-            te.includes('మందు')
+            id.includes('crop') || id.includes('pest') || id.includes('protect') ||
+            en.includes('protect') || en.includes('pest') || te.includes('రక్షణ') || te.includes('మందు')
           );
         }
         if (targetKey === 'tools' || targetKey === 'irrigation') {
           return (
-            id.includes('tool') ||
-            id.includes('irrig') ||
-            id.includes('equip') ||
-            en.includes('tool') ||
-            en.includes('irrig') ||
-            te.includes('పరికర')
+            id.includes('tool') || id.includes('irrig') || id.includes('equip') ||
+            en.includes('tool') || en.includes('irrig') || te.includes('పరికర')
           );
         }
         if (targetKey === 'groceries') {
           return (
-            id.includes('groc') ||
-            id.includes('store') ||
-            id.includes('prov') ||
-            id.includes('house') ||
-            en.includes('groc') ||
-            te.includes('కిరాణా')
+            id.includes('groc') || id.includes('store') || id.includes('prov') ||
+            id.includes('house') || en.includes('groc') || te.includes('కిరాణా')
           );
         }
         return false;
@@ -284,126 +236,68 @@ export const Hero: React.FC<HeroProps> = ({
     [categories]
   );
 
-  // Navigate to target category
-  const handleCategoryClick = useCallback(
-    (targetCatKey: string) => {
-      const finalId = resolveTargetCategoryId(targetCatKey);
-      if (onSelectCategory) {
-        onSelectCategory(finalId);
-      } else if (onExploreClick) {
-        onExploreClick();
-      } else {
-        const catalogueEl = document.getElementById('catalogue') || document.getElementById('categories');
-        if (catalogueEl) {
-          catalogueEl.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          window.location.hash = '#categories';
-        }
-      }
-    },
-    [onSelectCategory, onExploreClick, resolveTargetCategoryId]
-  );
-
-  // Seamlessly merge Admin Uploaded Banners with the 5 Category Slides
-  const slides = useMemo(() => {
-    // Start with the base 5 category slides
-    const mergedSlides = BASE_CATEGORY_SLIDES.map(baseSlide => {
-      // Check if admin uploaded a custom banner matching this category
-      const matchingBanner = banners.find(b => {
-        const link = (b.buttonLink || '').toLowerCase().replace(/^#/, '');
-        return link === baseSlide.categoryId || b.id === baseSlide.categoryId;
-      });
-
-      if (matchingBanner) {
-        return {
-          ...baseSlide,
-          bgImage: matchingBanner.imageDesktop || baseSlide.bgImage,
-          headlineLine1: matchingBanner.title.en ? matchingBanner.title : baseSlide.headlineLine1,
-          headlineLine2: matchingBanner.subtitle.en ? matchingBanner.subtitle : baseSlide.headlineLine2,
-          buttonText: matchingBanner.buttonText.en ? matchingBanner.buttonText : baseSlide.buttonText,
-          buttonLink: matchingBanner.buttonLink || baseSlide.buttonLink
-        };
-      }
-
-      return baseSlide;
-    });
-
-    // If admin uploaded general promotional banners (like "welcome" or seasonal offers)
-    const generalBanners = banners.filter(b => {
-      const link = (b.buttonLink || '').toLowerCase().replace(/^#/, '');
-      return !['seeds', 'fertilizers', 'crop-protection', 'tools', 'groceries'].includes(link);
-    });
-
-    if (generalBanners.length > 0) {
-      const adminPromoSlides = generalBanners.map(b => {
-        const rawTitle = b.title.en || b.title.te || 'Welcome to Sai Deveena Traders';
-        const isWelcome = rawTitle.toLowerCase().includes('welcome');
-
-        return {
-          id: b.id,
-          categoryId: b.buttonLink ? b.buttonLink.replace(/^#/, '') : 'seeds',
-          categoryName: {
-            en: isWelcome ? 'Welcome' : 'Special Offer',
-            te: isWelcome ? 'స్వాగతం' : 'ప్రత్యేక ఆఫర్'
-          },
-          iconType: 'seeds' as const,
-          bgImage: b.imageDesktop,
-          fallbackImage: '/images/bighaat-seeds-banner.jpg',
-          subLabel: b.subtitle.en || b.subtitle.te ? b.subtitle : {
-            en: '🌾 Sai Deveena Traders & General Store',
-            te: '🌾 సాయి దీవెన ట్రేడర్స్ & జనరల్ స్టోర్'
-          },
-          headlineLine1: isWelcome ? {
-            en: 'Welcome to Sai Deveena Traders',
-            te: 'సాయి దీవెన ట్రేడర్స్ కి స్వాగతం'
-          } : b.title,
-          headlineLine2: isWelcome ? {
-            en: 'Quality Seeds, Fertilizers & Agricultural Products',
-            te: 'నాణ్యమైన విత్తనాలు, ఎరువులు & వ్యవసాయ ఉత్పత్తులు'
-          } : (b.subtitle.en ? b.subtitle : { en: '', te: '' }),
-          buttonText: b.buttonText.en ? b.buttonText : {
-            en: 'Explore Products',
-            te: 'ఉత్పత్తులు చూడండి'
-          },
-          buttonLink: b.buttonLink || '#categories',
-          objectPosition: 'center center'
-        };
-      });
-
-      return [...adminPromoSlides, ...mergedSlides];
-    }
-
-    return mergedSlides;
-  }, [banners]);
-
-  // Handle slide action button or card click
-  const handleSlideAction = useCallback(
-    (targetSlide: typeof slides[0]) => {
-      const link = (targetSlide.buttonLink || targetSlide.categoryId || '#categories').trim();
+  // Handle banner click action
+  const handleBannerClick = useCallback(
+    (slide: BannerSlide) => {
+      const link = (slide.buttonLink || '#categories').trim();
 
       if (link.startsWith('http://') || link.startsWith('https://')) {
-        window.open(link, '_blank');
+        window.open(link, '_blank', 'noopener,noreferrer');
         return;
       }
-      if (link.startsWith('tel:') || link.startsWith('mailto:')) {
+      if (link.startsWith('tel:') || link.startsWith('mailto:') || link.startsWith('whatsapp:')) {
         window.location.href = link;
         return;
       }
 
       const cleanTarget = link.replace(/^#/, '');
-      if (cleanTarget === 'categories' || cleanTarget === 'products' || cleanTarget === '') {
-        if (onExploreClick) onExploreClick();
-        else {
+      if (cleanTarget === 'categories' || cleanTarget === 'catalogue' || cleanTarget === 'products' || cleanTarget === '') {
+        if (onExploreClick) {
+          onExploreClick();
+        } else {
           const el = document.getElementById('categories') || document.getElementById('catalogue');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
+          else window.location.hash = '#categories';
         }
         return;
       }
 
-      handleCategoryClick(cleanTarget);
+      const targetCatId = resolveTargetCategoryId(cleanTarget);
+      if (onSelectCategory) {
+        onSelectCategory(targetCatId);
+      } else if (onExploreClick) {
+        onExploreClick();
+      } else {
+        const el = document.getElementById('categories') || document.getElementById('catalogue');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
     },
-    [onExploreClick, handleCategoryClick]
+    [onExploreClick, onSelectCategory, resolveTargetCategoryId]
   );
+
+  // Active slides definition: Dynamic Supabase banners take precedence
+  const slides = useMemo<BannerSlide[]>(() => {
+    if (banners && banners.length > 0) {
+      return banners.map((b) => {
+        const mode = b.displayMode || 'full_image';
+        return {
+          id: b.id,
+          categoryId: b.buttonLink ? b.buttonLink.replace(/^#/, '') : 'categories',
+          displayMode: mode,
+          imageDesktop: b.imageDesktop,
+          imageMobile: b.imageMobile,
+          subLabel: b.subtitle.en || b.subtitle.te ? b.subtitle : undefined,
+          headlineLine1: b.title.en || b.title.te ? b.title : undefined,
+          headlineLine2: undefined,
+          buttonText: b.buttonText.en ? b.buttonText : { en: 'Shop Now', te: 'ఇప్పుడు చూడండి' },
+          buttonLink: b.buttonLink || '#categories',
+          iconType: 'seeds'
+        };
+      });
+    }
+
+    return FALLBACK_CATEGORY_SLIDES;
+  }, [banners]);
 
   const nextSlide = useCallback(() => {
     if (slides.length <= 1) return;
@@ -415,19 +309,19 @@ export const Hero: React.FC<HeroProps> = ({
     setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Automatic scrolling every 5 seconds
+  // Autoplay carousel every 5 seconds if multiple slides exist
   useEffect(() => {
     if (isPaused || slides.length <= 1) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
   }, [isPaused, nextSlide, slides.length]);
 
-  const slide = slides[currentSlide % slides.length] || slides[0];
+  const activeSlide = slides[currentSlide % slides.length] || slides[0];
 
   return (
     <section
-      id="hero"
-      className={`bighaat-hero-container ${className}`}
+      id="hero-banner-section"
+      className={`dynamic-hero-banner-container ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -435,194 +329,198 @@ export const Hero: React.FC<HeroProps> = ({
       style={{
         position: 'relative',
         width: '100%',
-        borderRadius: '20px',
+        borderRadius: '16px',
         overflow: 'hidden',
         backgroundColor: '#ffffff',
         border: '1px solid #e2e8f0',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
         ...style
       }}
     >
-      {/* 1. Main Banner Body Area */}
+      {/* Main Banner Visual Container */}
       <div
-        className="bighaat-banner-body"
-        onClick={() => handleSlideAction(slide)}
+        className="dynamic-banner-viewport"
+        onClick={() => handleBannerClick(activeSlide)}
         style={{
           position: 'relative',
-          minHeight: '420px',
           width: '100%',
           overflow: 'hidden',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#ffffff',
           cursor: 'pointer'
         }}
-        title={`View banner: ${isTe ? slide.headlineLine1.te : slide.headlineLine1.en}`}
+        title={`View banner: ${activeSlide.headlineLine1?.[isTe ? 'te' : 'en'] || 'Promotional Banner'}`}
       >
-        {/* Active Banner Background Photography with Smooth Crossfade */}
+        {/* Render Carousel Slides with Clean Crossfade */}
         {slides.map((item, index) => {
           const isActive = index === (currentSlide % slides.length);
+          const isFullImage = item.displayMode === 'full_image';
+
           return (
             <div
               key={item.id}
               aria-hidden={!isActive}
               style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 0,
+                position: isActive ? 'relative' : 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: isActive ? undefined : 0,
+                zIndex: isActive ? 1 : 0,
                 opacity: isActive ? 1 : 0,
-                transform: isActive ? 'scale(1)' : 'scale(1.03)',
-                transition: 'opacity 0.65s ease-in-out, transform 0.8s ease-out',
-                pointerEvents: 'none'
+                transition: 'opacity 0.4s ease-in-out',
+                pointerEvents: isActive ? 'auto' : 'none',
+                width: '100%'
               }}
             >
-              <img
-                src={item.bgImage}
-                alt={`${item.headlineLine1.en || 'Banner'} - Sai Deveena Traders`}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = item.fallbackImage;
-                }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: item.objectPosition || 'center center'
-                }}
-              />
+              {/* Clean Responsive Picture Tag: Preserves 100% natural colors and clarity */}
+              <picture style={{ width: '100%', display: 'block' }}>
+                {item.imageMobile && (
+                  <source media="(max-width: 767px)" srcSet={item.imageMobile} />
+                )}
+                <img
+                  src={item.imageDesktop}
+                  alt={item.headlineLine1?.[isTe ? 'te' : 'en'] || 'Sai Deveena Traders'}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    maxHeight: isFullImage ? '480px' : '420px',
+                    objectFit: isFullImage ? 'contain' : 'cover',
+                    display: 'block',
+                    margin: '0 auto',
+                    borderRadius: '16px'
+                  }}
+                />
+              </picture>
+
+              {/* CONTENT OVERLAY MODE ONLY: Rendered ONLY if displayMode is content_overlay */}
+              {!isFullImage && item.headlineLine1 && (
+                <>
+                  {/* Subtle Contrast Wash: active only in overlay mode */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 2,
+                      pointerEvents: 'none',
+                      background:
+                        'linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.92) 75%, rgba(255,255,255,0.98) 100%)'
+                    }}
+                  />
+
+                  {/* Headline & CTA Card */}
+                  <div
+                    className="overlay-headline-wrapper"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 3,
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      padding: '1.5rem 3rem 1.5rem 1.5rem',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div
+                      className="overlay-headline-card"
+                      style={{
+                        maxWidth: '460px',
+                        width: '100%',
+                        backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        borderRadius: '18px',
+                        padding: '1.5rem 2rem',
+                        border: '1.5px solid rgba(255, 255, 255, 0.95)',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {item.subLabel && (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            backgroundColor: '#dcfce7',
+                            color: '#15803d',
+                            fontSize: '0.74rem',
+                            fontWeight: 800,
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '9999px',
+                            marginBottom: '0.5rem',
+                            border: '1px solid #86efac'
+                          }}
+                        >
+                          {renderCategoryIcon(item.iconType, 13)}
+                          <span>{isTe ? item.subLabel.te : item.subLabel.en}</span>
+                        </div>
+                      )}
+
+                      <h2
+                        style={{
+                          fontSize: 'clamp(1.2rem, 2.4vw, 1.95rem)',
+                          fontWeight: 800,
+                          color: '#15803d',
+                          margin: 0,
+                          lineHeight: 1.18,
+                          letterSpacing: '-0.02em'
+                        }}
+                      >
+                        {isTe ? item.headlineLine1.te : item.headlineLine1.en}
+                      </h2>
+
+                      {item.headlineLine2 && (
+                        <h3
+                          style={{
+                            fontSize: 'clamp(1.1rem, 2.2vw, 1.6rem)',
+                            fontWeight: 900,
+                            color: '#14532d',
+                            margin: '0.25rem 0 0.85rem 0',
+                            lineHeight: 1.18
+                          }}
+                        >
+                          {isTe ? item.headlineLine2.te : item.headlineLine2.en}
+                        </h3>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBannerClick(item);
+                        }}
+                        style={{
+                          background: 'linear-gradient(135deg, #16a34a, #15803d)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '9999px',
+                          padding: '0.6rem 1.35rem',
+                          fontSize: '0.86rem',
+                          fontWeight: 800,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.45rem',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 14px rgba(21, 128, 61, 0.3)',
+                          marginTop: item.headlineLine2 ? '0' : '0.75rem',
+                          transition: 'transform 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                      >
+                        <span>{isTe ? (item.buttonText?.te || 'ఇప్పుడు చూడండి') : (item.buttonText?.en || 'Shop Now')}</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
 
-        {/* Soft, Translucent Light Wash on Right for Text Crispness */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 1,
-            pointerEvents: 'none',
-            background:
-              'linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(255, 255, 255, 0.88) 72%, rgba(255, 255, 255, 0.96) 100%)'
-          }}
-        />
-
-        {/* Clean Headline & CTA Card */}
-        <div
-          className="bighaat-headline-block"
-          style={{
-            position: 'relative',
-            zIndex: 3,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            minHeight: '360px',
-            width: '100%',
-            height: '100%',
-            padding: '2.5rem 4rem 2.5rem 2rem',
-            boxSizing: 'border-box'
-          }}
-        >
-          <div
-            className="bighaat-headline-card"
-            style={{
-              maxWidth: '520px',
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              textAlign: 'left'
-            }}
-          >
-            {/* Category Tag Pill */}
-            {(slide.subLabel.en || slide.subLabel.te) && (
-              <div
-                className="bighaat-sub-pill"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  backgroundColor: '#dcfce7',
-                  color: '#15803d',
-                  fontSize: '0.74rem',
-                  fontWeight: 800,
-                  padding: '0.3rem 0.8rem',
-                  borderRadius: '9999px',
-                  marginBottom: '0.55rem',
-                  border: '1.5px solid #86efac',
-                  boxShadow: '0 2px 6px rgba(22, 163, 74, 0.12)'
-                }}
-              >
-                {renderCategoryIcon(slide.iconType, 13)}
-                <span>{isTe ? slide.subLabel.te : slide.subLabel.en}</span>
-              </div>
-            )}
-
-            {/* Headline Line 1 */}
-            <h2
-              className="bighaat-title-1"
-              style={{
-                fontSize: 'clamp(1.25rem, 2.8vw, 2.2rem)',
-                fontWeight: 800,
-                color: '#15803d',
-                margin: 0,
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-                textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              {isTe ? slide.headlineLine1.te : slide.headlineLine1.en}
-            </h2>
-
-            {/* Headline Line 2 (if present) */}
-            {(slide.headlineLine2.en || slide.headlineLine2.te) && (
-              <h2
-                className="bighaat-title-2"
-                style={{
-                  fontSize: 'clamp(1.35rem, 3.2vw, 2.45rem)',
-                  fontWeight: 900,
-                  color: '#14532d',
-                  margin: '0.15rem 0 0.85rem 0',
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.02em',
-                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
-                }}
-              >
-                {isTe ? slide.headlineLine2.te : slide.headlineLine2.en}
-              </h2>
-            )}
-
-            {/* Primary Action Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSlideAction(slide);
-              }}
-              className="bighaat-btn-primary"
-              style={{
-                background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.65rem 1.45rem',
-                fontSize: '0.9rem',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(21, 128, 61, 0.35)',
-                transition: 'all 0.25s ease',
-                marginTop: !(slide.headlineLine2.en || slide.headlineLine2.te) ? '0.75rem' : '0'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-            >
-              {renderCategoryIcon(slide.iconType, 16)}
-              <span>{isTe ? slide.buttonText.te : slide.buttonText.en}</span>
-              <ArrowRight size={15} />
-            </button>
-          </div>
-        </div>
-
-        {/* Previous Chevron Button */}
+        {/* Small, Clean, Professional Carousel Chevron Arrows (Shown only if > 1 banner) */}
         {slides.length > 1 && (
           <button
             type="button"
@@ -631,17 +529,17 @@ export const Hero: React.FC<HeroProps> = ({
               prevSlide();
             }}
             aria-label="Previous Banner"
-            className="bighaat-chevron-btn"
+            className="clean-chevron-btn"
             style={{
               position: 'absolute',
-              left: '0.85rem',
+              left: '0.75rem',
               top: '50%',
               transform: 'translateY(-50%)',
-              width: '38px',
-              height: '38px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(6px)',
               border: '1px solid rgba(203, 213, 225, 0.8)',
               color: '#15803d',
               display: 'flex',
@@ -649,15 +547,14 @@ export const Hero: React.FC<HeroProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               zIndex: 5,
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
               transition: 'all 0.15s ease'
             }}
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
         )}
 
-        {/* Next Chevron Button */}
         {slides.length > 1 && (
           <button
             type="button"
@@ -666,17 +563,17 @@ export const Hero: React.FC<HeroProps> = ({
               nextSlide();
             }}
             aria-label="Next Banner"
-            className="bighaat-chevron-btn"
+            className="clean-chevron-btn"
             style={{
               position: 'absolute',
-              right: '0.85rem',
+              right: '0.75rem',
               top: '50%',
               transform: 'translateY(-50%)',
-              width: '38px',
-              height: '38px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              backdropFilter: 'blur(6px)',
               border: '1px solid rgba(203, 213, 225, 0.8)',
               color: '#15803d',
               display: 'flex',
@@ -684,32 +581,32 @@ export const Hero: React.FC<HeroProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               zIndex: 5,
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
               transition: 'all 0.15s ease'
             }}
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
         )}
 
-        {/* Capsule Pagination Indicators */}
+        {/* Small, Clean Capsule Pagination Indicators (Shown only if > 1 banner) */}
         {slides.length > 1 && (
           <div
             style={{
               position: 'absolute',
-              bottom: '0.75rem',
+              bottom: '0.65rem',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 5,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
+              gap: '0.35rem',
               backgroundColor: 'rgba(15, 23, 42, 0.45)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              padding: '4px 10px',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              padding: '3px 8px',
               borderRadius: '9999px',
-              border: '1px solid rgba(255, 255, 255, 0.18)'
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
             {slides.map((b, idx) => {
@@ -723,15 +620,15 @@ export const Hero: React.FC<HeroProps> = ({
                   }}
                   aria-label={`Go to slide ${idx + 1}`}
                   style={{
-                    width: isActive ? '22px' : '6px',
-                    height: '6px',
+                    width: isActive ? '18px' : '5px',
+                    height: '5px',
                     borderRadius: '9999px',
                     backgroundColor: isActive ? '#22c55e' : 'rgba(255, 255, 255, 0.65)',
-                    boxShadow: isActive ? '0 0 8px rgba(34, 197, 94, 0.9)' : 'none',
+                    boxShadow: isActive ? '0 0 6px rgba(34, 197, 94, 0.85)' : 'none',
                     border: 'none',
                     cursor: 'pointer',
                     padding: 0,
-                    transition: 'all 0.25s ease'
+                    transition: 'all 0.2s ease'
                   }}
                 />
               );
@@ -740,173 +637,29 @@ export const Hero: React.FC<HeroProps> = ({
         )}
       </div>
 
-      {/* 2. Interactive Category Tabs Quick Strip */}
-      <div
-        className="bighaat-category-tabs-strip"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.35rem',
-          padding: '0.65rem 0.85rem',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #f1f5f9',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}
-      >
-        {BASE_CATEGORY_SLIDES.map((item, idx) => {
-          // Check if current slide corresponds to this category
-          const isCurrent = (slide.categoryId === item.categoryId) || (idx === (currentSlide % BASE_CATEGORY_SLIDES.length));
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                const targetIdx = slides.findIndex(s => s.categoryId === item.categoryId);
-                if (targetIdx !== -1) {
-                  setCurrentSlide(targetIdx);
-                } else {
-                  handleCategoryClick(item.categoryId);
-                }
-              }}
-              className={`bighaat-cat-chip ${isCurrent ? 'active' : ''}`}
-              style={{
-                flex: '1 0 auto',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                padding: isCurrent ? '0.45rem 0.85rem' : '0.4rem 0.75rem',
-                borderRadius: '9999px',
-                border: isCurrent ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
-                backgroundColor: isCurrent ? '#f0fdf4' : '#f8fafc',
-                color: isCurrent ? '#15803d' : '#475569',
-                fontSize: '0.78rem',
-                fontWeight: isCurrent ? 800 : 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-                boxShadow: isCurrent ? '0 2px 8px rgba(22, 163, 74, 0.16)' : 'none'
-              }}
-              title={`Switch to ${isTe ? item.categoryName.te : item.categoryName.en}`}
-            >
-              <span style={{ display: 'inline-flex', color: isCurrent ? '#16a34a' : '#64748b' }}>
-                {renderCategoryIcon(item.iconType, 13)}
-              </span>
-              <span>{isTe ? item.categoryName.te : item.categoryName.en}</span>
-            </button>
-          );
-        })}
-      </div>
-
       <style>{`
-        @media (min-width: 1024px) {
-          .bighaat-banner-body {
-            min-height: 380px !important;
-            height: 400px !important;
-          }
-          .bighaat-headline-block {
-            min-height: 380px !important;
-            height: 400px !important;
-            padding: 1.5rem 4.5rem 1.5rem 2rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-end !important;
-          }
-          .bighaat-headline-card {
-            max-width: 470px !important;
-            background: rgba(255, 255, 255, 0.94) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border-radius: 20px !important;
-            padding: 1.75rem 2.2rem !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
-            margin-right: 1.5rem !important;
-          }
-        }
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .bighaat-banner-body {
-            min-height: 330px !important;
-            height: 340px !important;
-          }
-          .bighaat-headline-block {
-            min-height: 330px !important;
-            height: 340px !important;
-            padding: 1rem 3.5rem 1rem 1.5rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-end !important;
-          }
-          .bighaat-headline-card {
-            max-width: 410px !important;
-            background: rgba(255, 255, 255, 0.94) !important;
-            backdrop-filter: blur(14px) !important;
-            -webkit-backdrop-filter: blur(14px) !important;
-            border-radius: 18px !important;
-            padding: 1.35rem 1.6rem !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
-            margin-right: 1.5rem !important;
-          }
+        .clean-chevron-btn:hover {
+          background-color: #ffffff !important;
+          transform: translateY(-50%) scale(1.08) !important;
         }
         @media (max-width: 767px) {
-          .bighaat-banner-body {
-            min-height: 185px !important;
-            height: 195px !important;
+          .overlay-headline-wrapper {
+            padding: 0.6rem 0.85rem !important;
+            align-items: flex-end !important;
+            justify-content: center !important;
           }
-          .bighaat-headline-block {
-            min-height: 185px !important;
-            padding: 0.6rem 0.85rem 0.6rem 1rem !important;
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 30%, rgba(255, 255, 255, 0.95) 65%, #ffffff 100%) !important;
-            justify-content: flex-end !important;
-            align-items: center !important;
+          .overlay-headline-card {
+            max-width: 100% !important;
+            padding: 0.85rem 1rem !important;
           }
-          .bighaat-headline-card {
-            max-width: 64% !important;
-            background: transparent !important;
-            backdrop-filter: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin-right: 0 !important;
+          .clean-chevron-btn {
+            width: 26px !important;
+            height: 26px !important;
+            left: 0.35rem !important;
           }
-          .bighaat-sub-pill {
-            font-size: 0.58rem !important;
-            padding: 0.15rem 0.45rem !important;
-            margin-bottom: 0.18rem !important;
-          }
-          .bighaat-title-1 {
-            font-size: 0.9rem !important;
-            line-height: 1.15 !important;
-          }
-          .bighaat-title-2 {
-            font-size: 0.98rem !important;
-            line-height: 1.15 !important;
-            margin: 0.08rem 0 0.35rem 0 !important;
-          }
-          .bighaat-btn-primary {
-            padding: 0.34rem 0.75rem !important;
-            font-size: 0.72rem !important;
-          }
-          .bighaat-chevron-btn {
-            width: 28px !important;
-            height: 28px !important;
-            left: 0.4rem !important;
-          }
-          .bighaat-chevron-btn:last-of-type {
-            right: 0.4rem !important;
+          .clean-chevron-btn:last-of-type {
+            right: 0.35rem !important;
             left: auto !important;
-          }
-          .bighaat-category-tabs-strip {
-            padding: 0.5rem 0.65rem !important;
-            gap: 0.3rem !important;
-          }
-          .bighaat-cat-chip {
-            font-size: 0.72rem !important;
-            padding: 0.35rem 0.65rem !important;
           }
         }
       `}</style>
