@@ -553,18 +553,16 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
         </div>
       ) : (
       <div className="home-main-content-container" style={{ padding: '0.85rem 1rem 1rem' }}>
-        {/* 2. Admin Added Banners Hero Carousel (renders only when admin has added active banners) */}
-        {liveBanners.length > 0 && (
-          <div style={{ marginBottom: '1.15rem' }}>
-            <Hero
-              currentLang={currentLang}
-              banners={liveBanners}
-              categories={categories}
-              onExploreClick={onViewAllProducts}
-              onSelectCategory={onSelectCategory}
-            />
-          </div>
-        )}
+        {/* 2. Main Hero Banner Carousel */}
+        <div style={{ marginBottom: '1.15rem' }}>
+          <Hero
+            currentLang={currentLang}
+            banners={liveBanners}
+            categories={categories}
+            onExploreClick={onViewAllProducts}
+            onSelectCategory={onSelectCategory}
+          />
+        </div>
 
         {/* 3. Circular Quick Category Navigation (Prominently placed right under Hero) */}
         {quickCategories.length > 0 && (
