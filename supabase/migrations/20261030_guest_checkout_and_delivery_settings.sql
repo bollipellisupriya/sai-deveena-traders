@@ -115,17 +115,31 @@ INSERT INTO public.store_settings (
 ) ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.store_settings FROM PUBLIC, anon;
+REVOKE DELETE ON public.store_settings FROM authenticated;
 GRANT SELECT ON public.store_settings TO anon, authenticated;
 GRANT INSERT, UPDATE ON public.store_settings TO authenticated;
 
-DROP POLICY IF EXISTS "Public can view store settings" ON public.store_settings;
+-- Dynamically drop any pre-existing policies on store_settings so no permissive policy allows non-admin writes
+DO $$
+DECLARE
+  v_pol RECORD;
+BEGIN
+  FOR v_pol IN
+    SELECT policyname
+    FROM pg_catalog.pg_policies
+    WHERE schemaname = 'public' AND tablename = 'store_settings'
+  LOOP
+    EXECUTE pg_catalog.format('DROP POLICY IF EXISTS %I ON public.store_settings', v_pol.policyname);
+  END LOOP;
+END $$;
+
 CREATE POLICY "Public can view store settings"
   ON public.store_settings
   FOR SELECT
   TO anon, authenticated
   USING (true);
 
-DROP POLICY IF EXISTS "Admins can update store settings" ON public.store_settings;
 CREATE POLICY "Admins can update store settings"
   ON public.store_settings
   FOR UPDATE
@@ -133,7 +147,6 @@ CREATE POLICY "Admins can update store settings"
   USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
-DROP POLICY IF EXISTS "Admins can insert store settings" ON public.store_settings;
 CREATE POLICY "Admins can insert store settings"
   ON public.store_settings
   FOR INSERT
@@ -213,12 +226,32 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_guest_access_token
 
 -- ----------------------------------------------------------------------------
 -- 3. STATUS CONSTRAINT SAFE PRESERVATION
+-- Dynamically finds and drops any pre-existing CHECK constraints on public.orders
+-- that evaluate status (e.g. orders_status_check, orders_status_check1, etc.)
+-- so no older constraint silently rejects the expanded statuses.
 -- Preserves ALL 7 historical statuses:
 --   'pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped', 'delivered', 'cancelled'
 -- And adds new statuses:
 --   'pending_confirmation', 'out_for_delivery'
 -- ----------------------------------------------------------------------------
-ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
+DO $$
+DECLARE
+  v_con RECORD;
+BEGIN
+  FOR v_con IN
+    SELECT con.conname
+    FROM pg_catalog.pg_constraint con
+    JOIN pg_catalog.pg_class rel ON con.conrelid = rel.oid
+    JOIN pg_catalog.pg_namespace nsp ON rel.relnamespace = nsp.oid
+    WHERE nsp.nspname = 'public'
+      AND rel.relname = 'orders'
+      AND con.contype = 'c'
+      AND pg_catalog.pg_get_constraintdef(con.oid) ILIKE '%status%'
+  LOOP
+    EXECUTE pg_catalog.format('ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS %I', v_con.conname);
+  END LOOP;
+END $$;
+
 ALTER TABLE public.orders ADD CONSTRAINT orders_status_check CHECK (status IN (
   'pending',
   'pending_confirmation',
@@ -400,7 +433,7 @@ BEGIN
   v_payload_hash := public.crypto_sha256_hex(v_canonical_json::TEXT);
 
   -- 5. Safe Idempotency Check: Return existing order if identical request already submitted
-  SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+  SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
   INTO v_existing_order
   FROM public.orders
   WHERE idempotency_key = v_clean_idempotency_key
@@ -410,6 +443,13 @@ BEGIN
     IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
       RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
         USING ERRCODE = '23505';
+    END IF;
+
+    -- Prevent cross-user account leakage: if order was placed by an authenticated user,
+    -- another caller (anonymous or a different user) cannot retrieve it or its token.
+    IF v_existing_order.customer_id IS NOT NULL AND v_existing_order.customer_id IS DISTINCT FROM v_user_id THEN
+      RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+        USING ERRCODE = '42501';
     END IF;
 
     RETURN pg_catalog.jsonb_build_object(
@@ -574,7 +614,7 @@ BEGIN
     ) RETURNING id INTO v_order_id;
 
   EXCEPTION WHEN unique_violation THEN
-    SELECT id, order_number, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
+    SELECT id, order_number, customer_id, subtotal, delivery_charge, total_amount, status, guest_access_token, idempotency_hash
     INTO v_existing_order
     FROM public.orders
     WHERE idempotency_key = v_clean_idempotency_key
@@ -584,6 +624,12 @@ BEGIN
       IF v_existing_order.idempotency_hash IS NOT NULL AND v_existing_order.idempotency_hash <> v_payload_hash THEN
         RAISE EXCEPTION 'Idempotency key "%" has already been used for a different order payload.'
           USING ERRCODE = '23505';
+      END IF;
+
+      -- Prevent cross-user account leakage
+      IF v_existing_order.customer_id IS NOT NULL AND v_existing_order.customer_id IS DISTINCT FROM v_user_id THEN
+        RAISE EXCEPTION 'Idempotency key "%" has already been used by another user account.'
+          USING ERRCODE = '42501';
       END IF;
 
       RETURN pg_catalog.jsonb_build_object(
@@ -655,6 +701,31 @@ REVOKE ALL ON FUNCTION public.create_guest_order_secure(
 GRANT EXECUTE ON FUNCTION public.create_guest_order_secure(
   TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
 ) TO anon, authenticated;
+
+-- Explicitly ensure that whichever role owns create_guest_order_secure has EXECUTE permission
+-- on both internal crypto helper functions (handling cases where CREATE OR REPLACE preserved a pre-existing owner).
+DO $$
+DECLARE
+  v_rpc_owner TEXT;
+BEGIN
+  SELECT r.rolname INTO v_rpc_owner
+  FROM pg_catalog.pg_proc p
+  JOIN pg_catalog.pg_roles r ON p.proowner = r.oid
+  JOIN pg_catalog.pg_namespace n ON p.pronamespace = n.oid
+  WHERE n.nspname = 'public' 
+    AND p.proname = 'create_guest_order_secure'
+  LIMIT 1;
+
+  IF v_rpc_owner IS NOT NULL THEN
+    EXECUTE pg_catalog.format('GRANT EXECUTE ON FUNCTION public.crypto_gen_random_bytes(INTEGER) TO %I', v_rpc_owner);
+    EXECUTE pg_catalog.format('GRANT EXECUTE ON FUNCTION public.crypto_sha256_hex(TEXT) TO %I', v_rpc_owner);
+  END IF;
+
+  IF CURRENT_USER <> COALESCE(v_rpc_owner, '') THEN
+    EXECUTE pg_catalog.format('GRANT EXECUTE ON FUNCTION public.crypto_gen_random_bytes(INTEGER) TO %I', CURRENT_USER);
+    EXECUTE pg_catalog.format('GRANT EXECUTE ON FUNCTION public.crypto_sha256_hex(TEXT) TO %I', CURRENT_USER);
+  END IF;
+END $$;
 
 
 -- ----------------------------------------------------------------------------
