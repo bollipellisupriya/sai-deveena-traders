@@ -1183,13 +1183,13 @@ export const BannersScreen: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Title (English) <span style={{ color: '#dc2626' }}>*</span>
+                    Banner Name / Title (English) <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.titleEn}
                     onChange={e => setFormData(prev => ({ ...prev, titleEn: e.target.value }))}
-                    placeholder="e.g. Premium Seeds & Crop Care"
+                    placeholder="e.g. Welcome Offers Banner"
                     required
                     style={{
                       width: '100%',
@@ -1488,77 +1488,19 @@ export const BannersScreen: React.FC = () => {
                     style={{
                       position: 'relative',
                       width: previewDevice === 'mobile' ? '360px' : '100%',
-                      height: previewDevice === 'mobile' ? '180px' : '200px',
                       margin: '0 auto',
-                      borderRadius: '16px',
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       border: '1.5px solid #cbd5e1',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                      backgroundColor: '#f8fafc'
                     }}
                   >
                     <img
                       src={previewDevice === 'mobile' && formData.imageMobile ? formData.imageMobile : formData.imageDesktop}
                       alt="Banner Preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: 'auto', maxHeight: '240px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
                     />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background:
-                          'linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.92) 75%, rgba(255,255,255,0.98) 100%)'
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        right: '1.5rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        maxWidth: previewDevice === 'mobile' ? '55%' : '45%',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: previewDevice === 'mobile' ? '0.58rem' : '0.7rem',
-                          fontWeight: 800,
-                          color: '#15803d',
-                          backgroundColor: '#dcfce7',
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          display: 'inline-block',
-                          marginBottom: '4px'
-                        }}
-                      >
-                        {formData.subtitleEn || 'Special Offer'}
-                      </div>
-                      <h4
-                        style={{
-                          fontSize: previewDevice === 'mobile' ? '0.92rem' : '1.25rem',
-                          fontWeight: 900,
-                          color: '#0f172a',
-                          margin: 0,
-                          lineHeight: 1.2
-                        }}
-                      >
-                        {formData.titleEn || 'Banner Title'}
-                      </h4>
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          padding: '4px 12px',
-                          borderRadius: '9999px',
-                          backgroundColor: '#16a34a',
-                          color: '#ffffff',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          display: 'inline-block'
-                        }}
-                      >
-                        {formData.buttonTextEn || 'Shop Now'} &rarr;
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
