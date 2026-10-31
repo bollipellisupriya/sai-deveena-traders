@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  Sprout,
-  Layers,
-  ShieldCheck,
-  Wrench,
-  ShoppingBag
-} from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Language, Category, Banner } from '../types';
 
 export interface HeroProps {
@@ -20,178 +11,6 @@ export interface HeroProps {
   className?: string;
   style?: React.CSSProperties;
 }
-
-export interface CategoryBannerSlide {
-  id: string | number;
-  categoryId: string;
-  categoryName: {
-    en: string;
-    te: string;
-  };
-  iconType: 'seeds' | 'fertilizers' | 'crop-protection' | 'tools' | 'groceries';
-  bgImage: string;
-  fallbackImage: string;
-  subLabel: {
-    en: string;
-    te: string;
-  };
-  headlineLine1: {
-    en: string;
-    te: string;
-  };
-  headlineLine2: {
-    en: string;
-    te: string;
-  };
-  buttonText: {
-    en: string;
-    te: string;
-  };
-  objectPosition?: string;
-}
-
-const FALLBACK_CATEGORY_SLIDES: CategoryBannerSlide[] = [
-  {
-    id: 1,
-    categoryId: 'seeds',
-    categoryName: {
-      en: 'Seeds',
-      te: 'విత్తనాలు'
-    },
-    iconType: 'seeds',
-    bgImage: '/images/bighaat-seeds-banner.jpg',
-    fallbackImage: '/images/categories/seeds.jpg',
-    subLabel: {
-      en: '🌾 Certified Hybrid Seeds',
-      te: '🌾 నాణ్యమైన హైబ్రిడ్ విత్తనాలు'
-    },
-    headlineLine1: {
-      en: 'High-Yield Seeds',
-      te: 'అధిక దిగుబడి విత్తనాలు'
-    },
-    headlineLine2: {
-      en: 'Cotton, Chilli, Paddy & Veg',
-      te: 'పత్తి, మిరప, వరి & కూరగాయలు'
-    },
-    buttonText: {
-      en: 'Explore Seeds',
-      te: 'విత్తనాలు చూడండి'
-    },
-    objectPosition: 'left 15%'
-  },
-  {
-    id: 2,
-    categoryId: 'fertilizers',
-    categoryName: {
-      en: 'Fertilizers',
-      te: 'ఎరువులు'
-    },
-    iconType: 'fertilizers',
-    bgImage: '/images/bighaat-fert-banner.jpg',
-    fallbackImage: '/images/categories/fertilizers.jpg',
-    subLabel: {
-      en: '🌱 Genuine Fertilizers',
-      te: '🌱 అసలైన రసాయన & సేంద్రీయ ఎరువులు'
-    },
-    headlineLine1: {
-      en: 'Plant Nutrition & Growth',
-      te: 'మొక్కల పోషణ & వేగవంత పెరుగుదల'
-    },
-    headlineLine2: {
-      en: 'DAP, Urea, NPK & Zinc',
-      te: 'యూరియా, డీఏపీ, ఎన్‌పికె & జింక్'
-    },
-    buttonText: {
-      en: 'Explore Fertilizers',
-      te: 'ఎరువులు చూడండి'
-    },
-    objectPosition: 'left 15%'
-  },
-  {
-    id: 3,
-    categoryId: 'crop-protection',
-    categoryName: {
-      en: 'Crop Care',
-      te: 'పంట రక్షణ'
-    },
-    iconType: 'crop-protection',
-    bgImage: '/images/categories/crop-protection.jpg',
-    fallbackImage: '/images/categories/crop-protection.jpg',
-    subLabel: {
-      en: '🛡️ Crop Protection & Care',
-      te: '🛡️ పంట రక్షణ & పురుగుమందులు'
-    },
-    headlineLine1: {
-      en: 'Pesticides & Bio-Cure',
-      te: 'పురుగు & తెగులు నివారణ'
-    },
-    headlineLine2: {
-      en: 'Insecticides & Fungicides',
-      te: 'శిలీంధ్రనాశకాలు & కలుపు నివారిణులు'
-    },
-    buttonText: {
-      en: 'Shop Crop Care',
-      te: 'పంట రక్షణ చూడండి'
-    },
-    objectPosition: 'center 35%'
-  },
-  {
-    id: 4,
-    categoryId: 'tools',
-    categoryName: {
-      en: 'Farm Tools',
-      te: 'పరికరాలు'
-    },
-    iconType: 'tools',
-    bgImage: '/images/categories/irrigation.jpg',
-    fallbackImage: '/images/categories/tools.jpg',
-    subLabel: {
-      en: '💧 Tools & Irrigation',
-      te: '💧 వ్యవసాయ పరికరాలు & డ్రిప్'
-    },
-    headlineLine1: {
-      en: 'Modern Farm Equipment',
-      te: 'ఆధునిక వ్యవసాయ పరికరాలు'
-    },
-    headlineLine2: {
-      en: 'Sprayers, Pipes & Tarpaulins',
-      te: 'స్ప్రేయర్లు, టార్పాలిన్లు & పైపులు'
-    },
-    buttonText: {
-      en: 'Shop Farm Tools',
-      te: 'పరికరాలు చూడండి'
-    },
-    objectPosition: 'center 40%'
-  },
-  {
-    id: 5,
-    categoryId: 'groceries',
-    categoryName: {
-      en: 'Groceries',
-      te: 'కిరాణా'
-    },
-    iconType: 'groceries',
-    bgImage: '/images/categories/other.jpg',
-    fallbackImage: '/images/banner-1.jpg',
-    subLabel: {
-      en: '🛒 General Store & Provisions',
-      te: '🛒 కిరాణా & నిత్యావసరాలు'
-    },
-    headlineLine1: {
-      en: 'Daily Farm Essentials',
-      te: 'రైతు కుటుంబాల నిత్యావసరాలు'
-    },
-    headlineLine2: {
-      en: 'Dal, Cooking Oils & Grains',
-      te: 'నాణ్యమైన పప్పులు, నూనెలు & సరుకులు'
-    },
-    buttonText: {
-      en: 'Shop Groceries',
-      te: 'కిరాణా చూడండి'
-    },
-    objectPosition: 'center 30%'
-  }
-];
 
 export const Hero: React.FC<HeroProps> = ({
   currentLang = 'en',
@@ -206,25 +25,12 @@ export const Hero: React.FC<HeroProps> = ({
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
-  // Helper to map slide icon
-  const renderCategoryIcon = (iconType: CategoryBannerSlide['iconType'], size = 14) => {
-    switch (iconType) {
-      case 'seeds':
-        return <Sprout size={size} />;
-      case 'fertilizers':
-        return <Layers size={size} />;
-      case 'crop-protection':
-        return <ShieldCheck size={size} />;
-      case 'tools':
-        return <Wrench size={size} />;
-      case 'groceries':
-        return <ShoppingBag size={size} />;
-      default:
-        return <Sprout size={size} />;
-    }
-  };
+  // If no admin-added banners exist or active, do not render any frontend fallback banners
+  if (!banners || banners.length === 0) {
+    return null;
+  }
 
-  // Smart resolution to find matching database category ID
+  // Resolve category link to category ID in catalog
   const resolveTargetCategoryId = useCallback(
     (targetKey: string): string => {
       if (!categories || categories.length === 0) return targetKey;
@@ -278,110 +84,84 @@ export const Hero: React.FC<HeroProps> = ({
     [categories]
   );
 
-  // Navigate to target category
-  const handleCategoryClick = useCallback(
-    (targetCatKey: string) => {
-      const finalId = resolveTargetCategoryId(targetCatKey);
-      if (onSelectCategory) {
-        onSelectCategory(finalId);
-      } else if (onExploreClick) {
-        onExploreClick();
-      } else {
-        const catalogueEl = document.getElementById('catalogue') || document.getElementById('categories');
-        if (catalogueEl) {
-          catalogueEl.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          window.location.hash = '#categories';
-        }
-      }
-    },
-    [onSelectCategory, onExploreClick, resolveTargetCategoryId]
-  );
+  // Handle banner or CTA button action click
+  const handleBannerClick = useCallback(
+    (banner: Banner) => {
+      const link = (banner.buttonLink || '#categories').trim();
 
-  // Prepare slides: Live Supabase banners if available; otherwise fallback category slides
-  const hasLiveBanners = banners && banners.length > 0;
-
-  const slides = useMemo(() => {
-    if (hasLiveBanners) {
-      return banners.map((b) => ({
-        id: b.id,
-        isCustom: true,
-        categoryId: b.buttonLink ? b.buttonLink.replace(/^#/, '') : 'categories',
-        bgImage: b.imageDesktop,
-        mobileImage: b.imageMobile,
-        fallbackImage: '/images/bighaat-seeds-banner.jpg',
-        subLabel: b.subtitle.en || b.subtitle.te ? b.subtitle : { en: 'Special Promotion', te: 'ప్రత్యేక ఆఫర్' },
-        headlineLine1: b.title,
-        headlineLine2: { en: '', te: '' },
-        buttonText: b.buttonText.en ? b.buttonText : { en: 'Shop Now', te: 'ఇప్పుడు చూడండి' },
-        buttonLink: b.buttonLink || '#categories',
-        iconType: 'seeds' as const,
-        objectPosition: 'center center'
-      }));
-    }
-
-    return FALLBACK_CATEGORY_SLIDES.map(s => ({
-      ...s,
-      isCustom: false,
-      mobileImage: null,
-      buttonLink: s.categoryId
-    }));
-  }, [hasLiveBanners, banners]);
-
-  // Handle slide action button or card click
-  const handleSlideAction = useCallback(
-    (targetSlide: typeof slides[0]) => {
-      if (targetSlide.isCustom && targetSlide.buttonLink) {
-        const link = targetSlide.buttonLink.trim();
-        if (link.startsWith('http://') || link.startsWith('https://')) {
-          window.open(link, '_blank');
-          return;
-        }
-        if (link.startsWith('tel:') || link.startsWith('mailto:')) {
-          window.location.href = link;
-          return;
-        }
-        const cleanTarget = link.replace(/^#/, '');
-        if (cleanTarget === 'categories' || cleanTarget === 'products' || cleanTarget === '') {
-          if (onExploreClick) onExploreClick();
-          else {
-            const el = document.getElementById('categories') || document.getElementById('catalogue');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }
-          return;
-        }
-        handleCategoryClick(cleanTarget);
+      // External website URL
+      if (link.startsWith('http://') || link.startsWith('https://')) {
+        window.open(link, '_blank', 'noopener,noreferrer');
         return;
       }
 
-      handleCategoryClick((targetSlide as any).categoryId || 'categories');
+      // Telephone or WhatsApp or Email
+      if (link.startsWith('tel:') || link.startsWith('mailto:') || link.startsWith('whatsapp:')) {
+        window.location.href = link;
+        return;
+      }
+
+      const cleanTarget = link.replace(/^#/, '');
+
+      // Explore catalogue / categories
+      if (cleanTarget === 'categories' || cleanTarget === 'catalogue' || cleanTarget === 'products' || cleanTarget === '') {
+        if (onExploreClick) {
+          onExploreClick();
+        } else {
+          const el = document.getElementById('categories') || document.getElementById('catalogue');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.location.hash = '#categories';
+          }
+        }
+        return;
+      }
+
+      // Specific Category Selection
+      const targetCatId = resolveTargetCategoryId(cleanTarget);
+      if (onSelectCategory) {
+        onSelectCategory(targetCatId);
+      } else if (onExploreClick) {
+        onExploreClick();
+      } else {
+        const el = document.getElementById('categories') || document.getElementById('catalogue');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
     },
-    [onExploreClick, handleCategoryClick]
+    [onExploreClick, onSelectCategory, resolveTargetCategoryId]
   );
 
   const nextSlide = useCallback(() => {
-    if (slides.length <= 1) return;
-    setCurrentSlide(prev => (prev + 1) % slides.length);
-  }, [slides.length]);
+    if (banners.length <= 1) return;
+    setCurrentSlide(prev => (prev + 1) % banners.length);
+  }, [banners.length]);
 
   const prevSlide = useCallback(() => {
-    if (slides.length <= 1) return;
-    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
-  }, [slides.length]);
+    if (banners.length <= 1) return;
+    setCurrentSlide(prev => (prev - 1 + banners.length) % banners.length);
+  }, [banners.length]);
 
-  // Automatic scrolling every 5 seconds
+  // Autoplay banner carousel every 5 seconds if multiple banners exist
   useEffect(() => {
-    if (isPaused || slides.length <= 1) return;
+    if (isPaused || banners.length <= 1) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [isPaused, nextSlide, slides.length]);
+  }, [isPaused, nextSlide, banners.length]);
 
-  const slide = slides[currentSlide % slides.length] || slides[0];
+  const activeBanner = banners[currentSlide % banners.length] || banners[0];
+
+  // Check if active banner has textual overlay (titles or subtitle)
+  const hasTextOverlay = useMemo(() => {
+    const title = activeBanner.title?.[isTe ? 'te' : 'en'] || activeBanner.title?.en || activeBanner.title?.te || '';
+    const subtitle = activeBanner.subtitle?.[isTe ? 'te' : 'en'] || activeBanner.subtitle?.en || activeBanner.subtitle?.te || '';
+    return Boolean(title.trim().length > 0 || subtitle.trim().length > 0);
+  }, [activeBanner, isTe]);
 
   return (
     <section
-      id="hero"
-      className={`bighaat-hero-container ${className}`}
+      id="hero-banners"
+      className={`admin-hero-banner-container ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -391,29 +171,29 @@ export const Hero: React.FC<HeroProps> = ({
         width: '100%',
         borderRadius: '20px',
         overflow: 'hidden',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f8fafc',
         border: '1px solid #e2e8f0',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
         ...style
       }}
     >
-      {/* 1. Main Banner Body Area */}
+      {/* Main Banner Interactive Body */}
       <div
-        className="bighaat-banner-body"
-        onClick={() => handleSlideAction(slide)}
+        className="admin-banner-body"
+        onClick={() => handleBannerClick(activeBanner)}
         style={{
           position: 'relative',
-          minHeight: '420px',
+          minHeight: '380px',
           width: '100%',
           overflow: 'hidden',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#0f172a',
           cursor: 'pointer'
         }}
-        title={`View banner: ${isTe ? slide.headlineLine1.te : slide.headlineLine1.en}`}
+        title={`View banner: ${activeBanner.title?.[isTe ? 'te' : 'en'] || activeBanner.title?.en || 'Promotional Banner'}`}
       >
-        {/* Active Banner Background Photography with Smooth Crossfade */}
-        {slides.map((item, index) => {
-          const isActive = index === (currentSlide % slides.length);
+        {/* Render Banner Slides with Crossfade Animation */}
+        {banners.map((item, index) => {
+          const isActive = index === (currentSlide % banners.length);
           return (
             <div
               key={item.id}
@@ -423,26 +203,23 @@ export const Hero: React.FC<HeroProps> = ({
                 inset: 0,
                 zIndex: 0,
                 opacity: isActive ? 1 : 0,
-                transform: isActive ? 'scale(1)' : 'scale(1.03)',
-                transition: 'opacity 0.65s ease-in-out, transform 0.8s ease-out',
+                transform: isActive ? 'scale(1)' : 'scale(1.02)',
+                transition: 'opacity 0.6s ease-in-out, transform 0.8s ease-out',
                 pointerEvents: 'none'
               }}
             >
               <picture style={{ width: '100%', height: '100%' }}>
-                {item.mobileImage && (
-                  <source media="(max-width: 767px)" srcSet={item.mobileImage} />
+                {item.imageMobile && (
+                  <source media="(max-width: 767px)" srcSet={item.imageMobile} />
                 )}
                 <img
-                  src={item.bgImage}
-                  alt={`${item.headlineLine1.en || 'Banner'} - Sai Deveena Traders`}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = item.fallbackImage;
-                  }}
+                  src={item.imageDesktop}
+                  alt={item.title?.en || item.title?.te || 'Sai Deveena Traders Banner'}
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    objectPosition: item.objectPosition || 'center center'
+                    objectPosition: 'center center'
                   }}
                 />
               </picture>
@@ -450,139 +227,134 @@ export const Hero: React.FC<HeroProps> = ({
           );
         })}
 
-        {/* Soft, Translucent Light Wash on Right for Text Crispness */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 1,
-            pointerEvents: 'none',
-            background:
-              'linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(255, 255, 255, 0.88) 72%, rgba(255, 255, 255, 0.96) 100%)'
-          }}
-        />
-
-        {/* Clean Headline & CTA Card */}
-        <div
-          className="bighaat-headline-block"
-          style={{
-            position: 'relative',
-            zIndex: 3,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            minHeight: '360px',
-            width: '100%',
-            height: '100%',
-            padding: '2.5rem 4rem 2.5rem 2rem',
-            boxSizing: 'border-box'
-          }}
-        >
-          <div
-            className="bighaat-headline-card"
-            style={{
-              maxWidth: '520px',
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              textAlign: 'left'
-            }}
-          >
-            {/* Category Tag Pill */}
-            {(slide.subLabel.en || slide.subLabel.te) && (
-              <div
-                className="bighaat-sub-pill"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  backgroundColor: '#dcfce7',
-                  color: '#15803d',
-                  fontSize: '0.74rem',
-                  fontWeight: 800,
-                  padding: '0.3rem 0.8rem',
-                  borderRadius: '9999px',
-                  marginBottom: '0.55rem',
-                  border: '1.5px solid #86efac',
-                  boxShadow: '0 2px 6px rgba(22, 163, 74, 0.12)'
-                }}
-              >
-                {renderCategoryIcon(slide.iconType, 13)}
-                <span>{isTe ? slide.subLabel.te : slide.subLabel.en}</span>
-              </div>
-            )}
-
-            {/* Headline Line 1 */}
-            <h2
-              className="bighaat-title-1"
+        {/* Text Overlay Card (Rendered ONLY if admin provided title or subtitle) */}
+        {hasTextOverlay && (
+          <>
+            {/* Soft Translucent Light Wash for Text Contrast */}
+            <div
               style={{
-                fontSize: 'clamp(1.25rem, 2.8vw, 2.2rem)',
-                fontWeight: 800,
-                color: '#15803d',
-                margin: 0,
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-                textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
+                position: 'absolute',
+                inset: 0,
+                zIndex: 1,
+                pointerEvents: 'none',
+                background:
+                  'linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.25) 35%, rgba(255, 255, 255, 0.88) 70%, rgba(255, 255, 255, 0.96) 100%)'
               }}
-            >
-              {isTe ? slide.headlineLine1.te : slide.headlineLine1.en}
-            </h2>
+            />
 
-            {/* Headline Line 2 (if present) */}
-            {(slide.headlineLine2.en || slide.headlineLine2.te) && (
-              <h2
-                className="bighaat-title-2"
-                style={{
-                  fontSize: 'clamp(1.35rem, 3.2vw, 2.45rem)',
-                  fontWeight: 900,
-                  color: '#14532d',
-                  margin: '0.15rem 0 0.85rem 0',
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.02em',
-                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
-                }}
-              >
-                {isTe ? slide.headlineLine2.te : slide.headlineLine2.en}
-              </h2>
-            )}
-
-            {/* Primary Action Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSlideAction(slide);
-              }}
-              className="bighaat-btn-primary"
+            <div
+              className="admin-headline-block"
               style={{
-                background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '9999px',
-                padding: '0.65rem 1.45rem',
-                fontSize: '0.9rem',
-                fontWeight: 800,
-                display: 'inline-flex',
+                position: 'relative',
+                zIndex: 3,
+                display: 'flex',
+                justifyContent: 'flex-end',
                 alignItems: 'center',
-                gap: '0.45rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(21, 128, 61, 0.35)',
-                transition: 'all 0.25s ease',
-                marginTop: !(slide.headlineLine2.en || slide.headlineLine2.te) ? '0.75rem' : '0'
+                minHeight: '340px',
+                width: '100%',
+                height: '100%',
+                padding: '2rem 3.5rem 2rem 2rem',
+                boxSizing: 'border-box'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {renderCategoryIcon(slide.iconType, 16)}
-              <span>{isTe ? slide.buttonText.te : slide.buttonText.en}</span>
-              <ArrowRight size={15} />
-            </button>
-          </div>
-        </div>
+              <div
+                className="admin-headline-card"
+                style={{
+                  maxWidth: '480px',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  textAlign: 'left'
+                }}
+              >
+                {/* Subtitle Pill (if configured) */}
+                {(activeBanner.subtitle?.en || activeBanner.subtitle?.te) && (
+                  <div
+                    className="admin-sub-pill"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      backgroundColor: '#dcfce7',
+                      color: '#15803d',
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      padding: '0.3rem 0.85rem',
+                      borderRadius: '9999px',
+                      marginBottom: '0.55rem',
+                      border: '1.5px solid #86efac',
+                      boxShadow: '0 2px 6px rgba(22, 163, 74, 0.12)'
+                    }}
+                  >
+                    <span>
+                      {isTe
+                        ? (activeBanner.subtitle.te || activeBanner.subtitle.en)
+                        : (activeBanner.subtitle.en || activeBanner.subtitle.te)}
+                    </span>
+                  </div>
+                )}
 
-        {/* Previous Chevron Button */}
-        {slides.length > 1 && (
+                {/* Banner Main Title */}
+                {(activeBanner.title?.en || activeBanner.title?.te) && (
+                  <h2
+                    className="admin-title-1"
+                    style={{
+                      fontSize: 'clamp(1.25rem, 2.6vw, 2.1rem)',
+                      fontWeight: 900,
+                      color: '#14532d',
+                      margin: '0 0 0.85rem 0',
+                      lineHeight: 1.2,
+                      letterSpacing: '-0.02em',
+                      textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
+                    }}
+                  >
+                    {isTe
+                      ? (activeBanner.title.te || activeBanner.title.en)
+                      : (activeBanner.title.en || activeBanner.title.te)}
+                  </h2>
+                )}
+
+                {/* Call to Action Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBannerClick(activeBanner);
+                  }}
+                  className="admin-btn-primary"
+                  style={{
+                    background: 'linear-gradient(135deg, #16a34a, #15803d)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '0.65rem 1.45rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(21, 128, 61, 0.35)',
+                    transition: 'all 0.25s ease'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                >
+                  <span>
+                    {isTe
+                      ? (activeBanner.buttonText?.te || activeBanner.buttonText?.en || 'ఇప్పుడు చూడండి')
+                      : (activeBanner.buttonText?.en || activeBanner.buttonText?.te || 'Shop Now')}
+                  </span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Previous Chevron (Shown only if > 1 banner) */}
+        {banners.length > 1 && (
           <button
             type="button"
             onClick={(e) => {
@@ -590,7 +362,7 @@ export const Hero: React.FC<HeroProps> = ({
               prevSlide();
             }}
             aria-label="Previous Banner"
-            className="bighaat-chevron-btn"
+            className="admin-chevron-btn"
             style={{
               position: 'absolute',
               left: '0.85rem',
@@ -608,7 +380,7 @@ export const Hero: React.FC<HeroProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               zIndex: 5,
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.15)',
               transition: 'all 0.15s ease'
             }}
           >
@@ -616,8 +388,8 @@ export const Hero: React.FC<HeroProps> = ({
           </button>
         )}
 
-        {/* Next Chevron Button */}
-        {slides.length > 1 && (
+        {/* Next Chevron (Shown only if > 1 banner) */}
+        {banners.length > 1 && (
           <button
             type="button"
             onClick={(e) => {
@@ -625,7 +397,7 @@ export const Hero: React.FC<HeroProps> = ({
               nextSlide();
             }}
             aria-label="Next Banner"
-            className="bighaat-chevron-btn"
+            className="admin-chevron-btn"
             style={{
               position: 'absolute',
               right: '0.85rem',
@@ -643,7 +415,7 @@ export const Hero: React.FC<HeroProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               zIndex: 5,
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.12)',
+              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.15)',
               transition: 'all 0.15s ease'
             }}
           >
@@ -651,8 +423,8 @@ export const Hero: React.FC<HeroProps> = ({
           </button>
         )}
 
-        {/* Capsule Pagination Indicators */}
-        {slides.length > 1 && (
+        {/* Capsule Pagination Indicators (Shown only if > 1 banner) */}
+        {banners.length > 1 && (
           <div
             style={{
               position: 'absolute',
@@ -668,11 +440,11 @@ export const Hero: React.FC<HeroProps> = ({
               WebkitBackdropFilter: 'blur(10px)',
               padding: '4px 10px',
               borderRadius: '9999px',
-              border: '1px solid rgba(255, 255, 255, 0.18)'
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
-            {slides.map((b, idx) => {
-              const isActive = idx === (currentSlide % slides.length);
+            {banners.map((b, idx) => {
+              const isActive = idx === (currentSlide % banners.length);
               return (
                 <button
                   key={b.id}
@@ -680,7 +452,7 @@ export const Hero: React.FC<HeroProps> = ({
                     e.stopPropagation();
                     setCurrentSlide(idx);
                   }}
-                  aria-label={`Go to slide ${idx + 1}`}
+                  aria-label={`Go to banner ${idx + 1}`}
                   style={{
                     width: isActive ? '22px' : '6px',
                     height: '6px',
@@ -699,74 +471,13 @@ export const Hero: React.FC<HeroProps> = ({
         )}
       </div>
 
-      {/* 2. Interactive Category Tabs Quick Strip */}
-      <div
-        className="bighaat-category-tabs-strip"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '0.35rem',
-          padding: '0.65rem 0.85rem',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid #f1f5f9',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}
-      >
-        {FALLBACK_CATEGORY_SLIDES.map((item, idx) => {
-          const isCurrent = !hasLiveBanners && idx === (currentSlide % FALLBACK_CATEGORY_SLIDES.length);
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                if (isCurrent) {
-                  handleCategoryClick(item.categoryId);
-                } else if (!hasLiveBanners) {
-                  setCurrentSlide(idx);
-                } else {
-                  handleCategoryClick(item.categoryId);
-                }
-              }}
-              className={`bighaat-cat-chip ${isCurrent ? 'active' : ''}`}
-              style={{
-                flex: '1 0 auto',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem',
-                padding: isCurrent ? '0.45rem 0.85rem' : '0.4rem 0.75rem',
-                borderRadius: '9999px',
-                border: isCurrent ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
-                backgroundColor: isCurrent ? '#f0fdf4' : '#f8fafc',
-                color: isCurrent ? '#15803d' : '#475569',
-                fontSize: '0.78rem',
-                fontWeight: isCurrent ? 800 : 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-                boxShadow: isCurrent ? '0 2px 8px rgba(22, 163, 74, 0.16)' : 'none'
-              }}
-              title={`Switch to ${isTe ? item.categoryName.te : item.categoryName.en}`}
-            >
-              <span style={{ display: 'inline-flex', color: isCurrent ? '#16a34a' : '#64748b' }}>
-                {renderCategoryIcon(item.iconType, 13)}
-              </span>
-              <span>{isTe ? item.categoryName.te : item.categoryName.en}</span>
-            </button>
-          );
-        })}
-      </div>
-
       <style>{`
         @media (min-width: 1024px) {
-          .bighaat-banner-body {
+          .admin-banner-body {
             min-height: 380px !important;
             height: 400px !important;
           }
-          .bighaat-headline-block {
+          .admin-headline-block {
             min-height: 380px !important;
             height: 400px !important;
             padding: 1.5rem 4.5rem 1.5rem 2rem !important;
@@ -774,7 +485,7 @@ export const Hero: React.FC<HeroProps> = ({
             align-items: center !important;
             justify-content: flex-end !important;
           }
-          .bighaat-headline-card {
+          .admin-headline-card {
             max-width: 470px !important;
             background: rgba(255, 255, 255, 0.94) !important;
             backdrop-filter: blur(14px) !important;
@@ -787,19 +498,19 @@ export const Hero: React.FC<HeroProps> = ({
           }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
-          .bighaat-banner-body {
-            min-height: 330px !important;
+          .admin-banner-body {
+            min-height: 320px !important;
             height: 340px !important;
           }
-          .bighaat-headline-block {
-            min-height: 330px !important;
+          .admin-headline-block {
+            min-height: 320px !important;
             height: 340px !important;
             padding: 1rem 3.5rem 1rem 1.5rem !important;
             display: flex !important;
             align-items: center !important;
             justify-content: flex-end !important;
           }
-          .bighaat-headline-card {
+          .admin-headline-card {
             max-width: 410px !important;
             background: rgba(255, 255, 255, 0.94) !important;
             backdrop-filter: blur(14px) !important;
@@ -812,19 +523,19 @@ export const Hero: React.FC<HeroProps> = ({
           }
         }
         @media (max-width: 767px) {
-          .bighaat-banner-body {
+          .admin-banner-body {
             min-height: 185px !important;
             height: 195px !important;
           }
-          .bighaat-headline-block {
+          .admin-headline-block {
             min-height: 185px !important;
             padding: 0.6rem 0.85rem 0.6rem 1rem !important;
             background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 30%, rgba(255, 255, 255, 0.95) 65%, #ffffff 100%) !important;
             justify-content: flex-end !important;
             align-items: center !important;
           }
-          .bighaat-headline-card {
-            max-width: 64% !important;
+          .admin-headline-card {
+            max-width: 65% !important;
             background: transparent !important;
             backdrop-filter: none !important;
             border: none !important;
@@ -832,40 +543,28 @@ export const Hero: React.FC<HeroProps> = ({
             padding: 0 !important;
             margin-right: 0 !important;
           }
-          .bighaat-sub-pill {
-            font-size: 0.58rem !important;
+          .admin-sub-pill {
+            font-size: 0.6rem !important;
             padding: 0.15rem 0.45rem !important;
-            margin-bottom: 0.18rem !important;
+            margin-bottom: 0.2rem !important;
           }
-          .bighaat-title-1 {
-            font-size: 0.9rem !important;
+          .admin-title-1 {
+            font-size: 0.92rem !important;
             line-height: 1.15 !important;
+            margin-bottom: 0.4rem !important;
           }
-          .bighaat-title-2 {
-            font-size: 0.98rem !important;
-            line-height: 1.15 !important;
-            margin: 0.08rem 0 0.35rem 0 !important;
+          .admin-btn-primary {
+            padding: 0.35rem 0.8rem !important;
+            font-size: 0.74rem !important;
           }
-          .bighaat-btn-primary {
-            padding: 0.34rem 0.75rem !important;
-            font-size: 0.72rem !important;
-          }
-          .bighaat-chevron-btn {
+          .admin-chevron-btn {
             width: 28px !important;
             height: 28px !important;
             left: 0.4rem !important;
           }
-          .bighaat-chevron-btn:last-of-type {
+          .admin-chevron-btn:last-of-type {
             right: 0.4rem !important;
             left: auto !important;
-          }
-          .bighaat-category-tabs-strip {
-            padding: 0.5rem 0.65rem !important;
-            gap: 0.3rem !important;
-          }
-          .bighaat-cat-chip {
-            font-size: 0.72rem !important;
-            padding: 0.35rem 0.65rem !important;
           }
         }
       `}</style>

@@ -40,11 +40,18 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
 
   useEffect(() => {
     let mounted = true;
-    bannerService.fetchActiveBanners().then((res) => {
-      if (mounted && res && res.length > 0) {
-        setLiveBanners(res);
-      }
-    });
+    bannerService.fetchActiveBanners()
+      .then((res) => {
+        if (mounted) {
+          setLiveBanners(res || []);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load active banners:', err);
+        if (mounted) {
+          setLiveBanners([]);
+        }
+      });
     return () => {
       mounted = false;
     };
@@ -546,16 +553,18 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
         </div>
       ) : (
       <div className="home-main-content-container" style={{ padding: '0.85rem 1rem 1rem' }}>
-        {/* 2. Main 3D Organic Video Hero Section */}
-        <div style={{ marginBottom: '1.15rem' }}>
-          <Hero
-            currentLang={currentLang}
-            banners={liveBanners}
-            categories={categories}
-            onExploreClick={onViewAllProducts}
-            onSelectCategory={onSelectCategory}
-          />
-        </div>
+        {/* 2. Admin Added Banners Hero Carousel (renders only when admin has added active banners) */}
+        {liveBanners.length > 0 && (
+          <div style={{ marginBottom: '1.15rem' }}>
+            <Hero
+              currentLang={currentLang}
+              banners={liveBanners}
+              categories={categories}
+              onExploreClick={onViewAllProducts}
+              onSelectCategory={onSelectCategory}
+            />
+          </div>
+        )}
 
         {/* 3. Circular Quick Category Navigation (Prominently placed right under Hero) */}
         {quickCategories.length > 0 && (
