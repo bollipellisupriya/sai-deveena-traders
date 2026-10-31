@@ -18,6 +18,7 @@ interface CartContextValue {
   isCartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
+  abandonCheckout: () => void;
   checkoutStep: 'cart' | 'checkout' | 'success';
   setCheckoutStep: (step: 'cart' | 'checkout' | 'success') => void;
   lastPlacedOrder: Order | null;
@@ -39,6 +40,21 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'sdt_cart_items_v2';
 const GUEST_ORDERS_KEY = 'sdt_guest_orders_v2';
+const ACTIVE_CHECKOUT_ATTEMPT_KEY = 'sdt_active_checkout_attempt';
+
+interface ActiveCheckoutAttempt {
+  idempotencyKey: string;
+  retrySecret: string;
+  cartSignature: string;
+}
+
+const clearActiveCheckoutAttempt = () => {
+  try {
+    sessionStorage.removeItem(ACTIVE_CHECKOUT_ATTEMPT_KEY);
+  } catch (e) {
+    // Ignore storage errors in non-browser or sandboxed environments
+  }
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load saved cart from localStorage
@@ -117,9 +133,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return Math.max(0, freeDeliveryThreshold - subtotal);
   }, [subtotal, freeDeliveryThreshold]);
 
-  // Cart operations
+  // Cart operations (any cart alteration resets active checkout attempt)
   const addToCart = useCallback((product: Product, quantity = 1) => {
     if (quantity <= 0) return;
+    clearActiveCheckoutAttempt();
     setItems(prev => {
       const idx = prev.findIndex(it => it.product.id === product.id);
       if (idx >= 0) {
@@ -135,6 +152,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
+    clearActiveCheckoutAttempt();
     setItems(prev => {
       if (quantity <= 0) {
         return prev.filter(it => it.product.id !== productId);
@@ -144,11 +162,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const removeFromCart = useCallback((productId: string) => {
+    clearActiveCheckoutAttempt();
     setItems(prev => prev.filter(it => it.product.id !== productId));
   }, []);
 
   const clearCart = useCallback(() => {
+    clearActiveCheckoutAttempt();
     setItems([]);
+  }, []);
+
+  const abandonCheckout = useCallback(() => {
+    clearActiveCheckoutAttempt();
+    setCheckoutStep('cart');
+  }, []);
+
+  const handleSetCheckoutStep = useCallback((step: 'cart' | 'checkout' | 'success') => {
+    if (step === 'cart') {
+      clearActiveCheckoutAttempt();
+    }
+    setCheckoutStep(step);
   }, []);
 
   const openCart = useCallback(() => {
@@ -179,14 +211,53 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsSubmittingOrder(true);
     try {
-      // Generate a strong, unique idempotency key and retry secret for this submission attempt
-      const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
-        ? `guest_${crypto.randomUUID()}`
-        : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`;
+      // 1. Compute cart signature to identify this specific order payload
+      const cartSignature = items
+        .map(it => `${it.product.id}:${it.quantity}`)
+        .sort()
+        .join('|');
 
-      const retrySecret = typeof crypto !== 'undefined' && crypto.randomUUID
-        ? `sec_${crypto.randomUUID()}`
-        : `sec_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
+      // 2. Retrieve or generate the exact same idempotency key and retry secret for this checkout attempt
+      let idempotencyKey = '';
+      let retrySecret = '';
+
+      try {
+        const storedJson = sessionStorage.getItem(ACTIVE_CHECKOUT_ATTEMPT_KEY);
+        if (storedJson) {
+          const stored: ActiveCheckoutAttempt = JSON.parse(storedJson);
+          if (
+            stored &&
+            stored.cartSignature === cartSignature &&
+            stored.idempotencyKey &&
+            stored.retrySecret
+          ) {
+            idempotencyKey = stored.idempotencyKey;
+            retrySecret = stored.retrySecret;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read checkout attempt from sessionStorage', e);
+      }
+
+      // Generate only once per distinct checkout attempt and persist across retries/reloads
+      if (!idempotencyKey || !retrySecret) {
+        idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID
+          ? `guest_${crypto.randomUUID()}`
+          : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${Math.random().toString(36).substring(2, 11)}`;
+
+        retrySecret = typeof crypto !== 'undefined' && crypto.randomUUID
+          ? `sec_${crypto.randomUUID()}`
+          : `sec_${Date.now()}_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
+
+        try {
+          sessionStorage.setItem(
+            ACTIVE_CHECKOUT_ATTEMPT_KEY,
+            JSON.stringify({ idempotencyKey, retrySecret, cartSignature })
+          );
+        } catch (e) {
+          console.warn('Could not persist checkout attempt to sessionStorage', e);
+        }
+      }
 
       const orderPayloadItems = items.map(it => ({
         productId: it.product.id,
@@ -252,6 +323,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Could not store guest order in localStorage', e);
       }
 
+      // Order successfully confirmed: clear active checkout attempt credentials
+      clearActiveCheckoutAttempt();
+
       setLastPlacedOrder(placedOrder);
       clearCart();
       setCheckoutStep('success');
@@ -262,7 +336,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsSubmittingOrder(false);
       return { success: false, error: err.message || 'An unexpected error occurred while placing the order.' };
     }
-  }, [items, clearCart]);
+  }, [items, deliverySettings, clearCart]);
 
   const value = useMemo<CartContextValue>(() => ({
     items,
@@ -280,8 +354,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isCartOpen,
     openCart,
     closeCart,
+    abandonCheckout,
     checkoutStep,
-    setCheckoutStep,
+    setCheckoutStep: handleSetCheckoutStep,
     lastPlacedOrder,
     setLastPlacedOrder,
     refreshDeliverySettings,
@@ -293,6 +368,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateQuantity,
     removeFromCart,
     clearCart,
+    abandonCheckout,
     totalItemCount,
     subtotal,
     deliverySettings,
@@ -304,6 +380,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     openCart,
     closeCart,
     checkoutStep,
+    handleSetCheckoutStep,
     lastPlacedOrder,
     refreshDeliverySettings,
     placeGuestOrder,
