@@ -536,7 +536,9 @@ export const MobileHomeScreen: React.FC<MobileHomeScreenProps> = ({
         <div style={{ marginBottom: '1.15rem' }}>
           <Hero
             currentLang={currentLang}
+            categories={categories}
             onExploreClick={onViewAllProducts}
+            onSelectCategory={onSelectCategory}
           />
         </div>
 
